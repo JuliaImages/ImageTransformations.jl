@@ -1,0 +1,5 @@
+ImageCore
+TestImages
+@windows ImageMagick
+@linux ImageMagick
+@osx QuartzImageIO
