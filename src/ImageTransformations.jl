@@ -10,7 +10,7 @@ export warp, center
 typealias FloatLike{T<:AbstractFloat} Union{T,Gray{T}}
 typealias FloatColorant{T<:AbstractFloat} Colorant{T}
 
-@inline Base.getindex(A::AbstractExtrapolation, v::SVector) = A[convert(Tuple, v)...]
+@inline Base.getindex(A::AbstractExtrapolation, v::StaticVector) = A[convert(Tuple, v)...]
 
 function warp(img::AbstractExtrapolation, tform)
     inds = autorange(img, tform)
