@@ -1,14 +1,20 @@
 module ImageTransformations
 
-using CoordinateTransformations, Interpolations, OffsetArrays, StaticArrays, Colors, ColorVectorSpace
+using CoordinateTransformations, Interpolations, OffsetArrays, StaticArrays, Colors, ColorVectorSpace, ImageCore
 
 import Base: start, next, done, eltype, iteratorsize
-using Base: tail
-
-export warp, center
+using Base: tail, Cartesian
 
 typealias FloatLike{T<:AbstractFloat} Union{T,Gray{T}}
 typealias FloatColorant{T<:AbstractFloat} Colorant{T}
+
+export
+
+    warp,
+    center,
+    restrict
+
+include("resizing.jl")
 
 @inline Base.getindex(A::AbstractExtrapolation, v::StaticVector) = A[convert(Tuple, v)...]
 
