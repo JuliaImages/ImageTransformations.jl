@@ -6,16 +6,14 @@ is better than a naive summation over 2x2 blocks.
 """
 restrict(img::AbstractArray, ::Tuple{}) = img
 
-typealias RegionType Union{Dims,Vector{Int}}
-
-function restrict(A::AbstractArray, region::RegionType=coords_spatial(A))
+function restrict(A::AbstractArray, region::Union{Dims,Vector{Int}} = coords_spatial(A))
     for dim in region
-        A = _restrict(A, dim)
+        A = restrict(A, dim)
     end
     A
 end
 
-function _restrict{T,N}(A::AbstractArray{T,N}, dim::Integer)
+function restrict{T,N}(A::AbstractArray{T,N}, dim::Integer)
     if size(A, dim) <= 2
         return A
     end
