@@ -1,5 +1,6 @@
 ImageCore
 TestImages
+FixedPointNumbers
 @windows ImageMagick
 @linux ImageMagick
 @osx QuartzImageIO

@@ -12,7 +12,8 @@ export
 
     warp,
     center,
-    restrict
+    restrict,
+    imresize
 
 include("resizing.jl")
 
@@ -91,3 +92,4 @@ center{T,N}(img::AbstractArray{T,N}) = SVector{N}(map(_center, indices(img)))
 _center(ind::AbstractUnitRange) = (first(ind)+last(ind))/2
 
 end # module
+

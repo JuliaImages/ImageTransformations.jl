@@ -48,3 +48,14 @@ using Base.Test
     img2 = colorview(RGB, fill(N0f8(0.9), 3, 5, 5))
     @test isapprox(channelview(restrict(img1)), channelview(restrict(img2)), rtol=0.01)
 end
+
+@testset "Image resize" begin
+    img = zeros(10,10)
+    img2 = imresize(img, (5,5))
+    @test length(img2) == 25
+    img = rand(RGB{Float32}, 10, 10)
+    img2 = imresize(img, (6,7))
+    @test size(img2) == (6,7)
+    @test eltype(img2) == RGB{Float32}
+end
+
