@@ -1,3 +1,4 @@
+__precompile__()
 module ImageTransformations
 
 using CoordinateTransformations, Interpolations, OffsetArrays, StaticArrays, Colors, ColorVectorSpace, ImageCore
