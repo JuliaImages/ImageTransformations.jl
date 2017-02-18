@@ -147,10 +147,14 @@ end
 
 function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractArray{S,N})
     itp = interpolate(original, BSpline(Linear()), OnGrid())
+    imresize!(resized, itp)
+end
+
+function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractInterpolation{S,N})
     sf = map(/, size(original), size(resized))
-    for I in CartesianRange(size(resized))
+    @inbounds for I in CartesianRange(size(resized))
         I_o = map(*, I.I, sf)
-        resized[I] = itp[I_o...]
+        resized[I] = original[I_o...]
     end
     resized
 end
