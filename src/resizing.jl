@@ -162,11 +162,37 @@ function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractArray{S
 end
 
 function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractInterpolation{S,N})
-    sf = map(/, size(original), size(resized))
-    @inbounds for I in CartesianRange(size(resized))
-        I_o = map(*, I.I, sf)
-        resized[I] = original[I_o...]
+    # Define the equivalent of an affine transformation for mapping
+    # locations in `resized` to the corresponding position in
+    # `original`. We take the viewpoint that a pixel at `i, j` is a
+    # sensor that *integrates* the intensity over an area spanning
+    # `i±0.5, j±0.5` (this is a good model of how a camera pixel
+    # actually works). We then map the *outer corners* of the two
+    # images to each other, i.e., in typical cases
+    #     (0.5, 0.5) -> (0.5, 0.5)  (outer corner, top left)
+    #     size(resized)+0.5 -> size(original)+0.5  (outer corner, lower right)
+    # This ensures that both images cover exactly the same area.
+    Ro, Rr = CartesianRange(indices(original)), CartesianRange(indices(resized))
+    sf = map(/, (last(Ro)-first(Ro)+1).I, (last(Rr)-first(Rr)+1).I) # +1 for outer corners
+    offset = map((io,ir,s)->io - 0.5 - s*(ir-0.5), first(Ro).I, first(Rr).I, sf)
+    if all(x->x >= 1, sf)
+        @inbounds for I in Rr
+            I_o = map3((i,s,off)->s*i+off, I.I, sf, offset)
+            resized[I] = original[I_o...]
+        end
+    else
+        @inbounds for I in Rr
+            I_o = clampR(map3((i,s,off)->s*i+off, I.I, sf, offset), Ro)
+            resized[I] = original[I_o...]
+        end
     end
     resized
 end
 
+# map isn't optimized for 3 tuple-arguments, so do it here
+@inline map3(f, a, b, c) = (f(a[1], b[1], c[1]), map3(f, tail(a), tail(b), tail(c))...)
+@inline map3(f, ::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
+
+function clampR{N}(I::NTuple{N}, R::CartesianRange{CartesianIndex{N}})
+    map3(clamp, I, first(R).I, last(R).I)
+end
