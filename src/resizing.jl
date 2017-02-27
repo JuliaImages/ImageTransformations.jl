@@ -1,8 +1,12 @@
 """
-`imgr = restrict(img[, region])` performs two-fold reduction in size
-along the dimensions listed in `region`, or all spatial coordinates if
-`region` is not specified.  It anti-aliases the image as it goes, so
-is better than a naive summation over 2x2 blocks.
+    restrict(img[, region]) -> imgr
+
+Reduce the size of `img` by two-fold along the dimensions listed in
+`region`, or all spatial coordinates if `region` is not specified.  It
+anti-aliases the image as it goes, so is better than a naive summation
+over 2x2 blocks.
+
+See also [`imresize`](@ref).
 """
 restrict(img::AbstractArray, ::Tuple{}) = img
 
@@ -137,6 +141,19 @@ function imresize{T,N}(original::AbstractArray{T,N}, short_size::NTuple)
     imresize(original, new_size)
 end
 
+"""
+    imresize(img, sz) -> imgr
+
+Change `img` to be of size `sz`. This interpolates the values at
+sub-pixel locations. If you are shrinking the image, you risk aliasing
+unless you low-pass filter `img` first. For example:
+
+    σ = map((o,n)->0.75*o/n, size(img), sz)
+    kern = KernelFactors.gaussian(σ)   # from ImageFiltering
+    imgr = imresize(imfilter(img, kern, NA()), sz)
+
+See also [`restrict`](@ref).
+"""
 function imresize{T,N}(original::AbstractArray{T,N}, new_size::NTuple{N})
     Tnew = imresize_type(first(original))
     if size(original) == new_size
