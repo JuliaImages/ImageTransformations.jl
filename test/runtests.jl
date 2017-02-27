@@ -51,11 +51,39 @@ end
 
 @testset "Image resize" begin
     img = zeros(10,10)
-    img2 = imresize(img, (5,5))
+    img2 = @inferred(imresize(img, (5,5)))
     @test length(img2) == 25
     img = rand(RGB{Float32}, 10, 10)
     img2 = imresize(img, (6,7))
     @test size(img2) == (6,7)
     @test eltype(img2) == RGB{Float32}
+
+    A = [1 0; 0 1]
+    @test imresize(A, (1, 1)) ≈ reshape([0.5], 1, 1)
+    # if only 1 of 4 pixels is nonzero, check that you get 1/4 the
+    # value (no matter where it is)
+    for i = 1:4
+        fill!(A, 0)
+        A[i] = 1
+        @test imresize(A, (1, 1)) ≈ reshape([0.25], 1, 1)
+    end
+    A = [1 0; 0 0]
+    @test imresize(A, (2, 1)) ≈ reshape([0.5, 0], (2, 1))
+    @test imresize(A, (1, 2)) ≈ reshape([0.5, 0], (1, 2))
+    A = [1 0 0; 0 0 0; 0 0 0]
+    @test imresize(A, (2, 2)) ≈ [0.75^2 0; 0 0]
+
+    A = Gray{N0f8}[1 0; 0 0]
+    R = imresize(A, (1, 1))
+    @test eltype(R) == Gray{N0f8} && R[1,1] == Gray(N0f8(0.25f0))
+    @test gray.(imresize(A, (2, 1))) ≈ reshape([N0f8(0.5f0), 0], (2, 1))
+    @test gray.(imresize(A, (1, 2))) ≈ reshape([N0f8(0.5f0), 0], (1, 2))
+
+    A = ones(5,5)
+    for l2 = 3:7, l1 = 3:7
+        R = imresize(A, (l1, l2))
+        @test all(x->x==1, R)
+    end
 end
 
+nothing

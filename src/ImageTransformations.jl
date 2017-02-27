@@ -1,7 +1,7 @@
 __precompile__()
 module ImageTransformations
 
-using CoordinateTransformations, Interpolations, OffsetArrays, StaticArrays, Colors, ColorVectorSpace, ImageCore
+using CoordinateTransformations, Interpolations, OffsetArrays, StaticArrays, FixedPointNumbers, Colors, ColorVectorSpace, ImageCore
 
 import Base: start, next, done, eltype, iteratorsize
 using Base: tail, Cartesian
@@ -93,4 +93,3 @@ center{T,N}(img::AbstractArray{T,N}) = SVector{N}(map(_center, indices(img)))
 _center(ind::AbstractUnitRange) = (first(ind)+last(ind))/2
 
 end # module
-
