@@ -58,4 +58,3 @@ end
     @test size(img2) == (6,7)
     @test eltype(img2) == RGB{Float32}
 end
-

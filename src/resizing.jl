@@ -138,12 +138,23 @@ function imresize{T,N}(original::AbstractArray{T,N}, short_size::NTuple)
 end
 
 function imresize{T,N}(original::AbstractArray{T,N}, new_size::NTuple{N})
+    Tnew = imresize_type(first(original))
     if size(original) == new_size
-        copy!(similar(original), original)
+        copy!(similar(original, Tnew), original)
     else
-        imresize!(similar(original, new_size), original)
+        imresize!(similar(original, Tnew, new_size), original)
     end
 end
+
+# To choose the output type, rather than forcing everything to
+# Float64 by multiplying by 1.0, we exploit the fact that the scale
+# changes correspond to integer ratios.  We mimic ratio arithmetic
+# without actually using Rational (which risks promoting to a
+# Rational type, too slow for image processing).
+imresize_type(c::Colorant) = base_colorant_type(c){eltype(imresize_type(Gray(c)))}
+imresize_type(c::Gray) = Gray{imresize_type(gray(c))}
+imresize_type(c::FixedPoint) = typeof(c)
+imresize_type(c) = typeof((c*1)/1)
 
 function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractArray{S,N})
     itp = interpolate(original, BSpline(Linear()), OnGrid())
