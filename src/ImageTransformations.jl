@@ -25,6 +25,12 @@ function warp(img::AbstractExtrapolation, tform)
     out = OffsetArray(Array{eltype(img)}(map(length, inds)), inds)
     warp!(out, img, tform)
 end
+function warp{TCol<:Colorant}(img::AbstractArray{TCol}, tform)
+    TNorm = eltype(TCol)
+    apad, pad = Interpolations.prefilter(TNorm, TCol, img, typeof(BSpline(Linear())), typeof(OnGrid()))
+    itp = Interpolations.BSplineInterpolation(TNorm, apad, BSpline(Linear()), OnGrid(), pad)
+    warp(itp, tform)
+end
 warp(img::AbstractArray, tform) = warp(interpolate(img, BSpline(Linear()), OnGrid()), tform)
 warp{T<:FloatLike}(img::AbstractInterpolation{T}, tform) = warp(extrapolate(img, convert(T, NaN)), tform)
 warp{T<:FloatColorant}(img::AbstractInterpolation{T}, tform) = warp(extrapolate(img, nan(T)), tform)
