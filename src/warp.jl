@@ -5,8 +5,11 @@
 
 warp(img::AbstractArray, args...) = warp(interpolate(img, BSpline(Linear()), OnGrid()), args...)
 
-function warp{T<:Colorant,S}(::Type{T}, img::AbstractArray{S}, args...)
-    TCol = typeof(convert(T,one(S)))
+@inline _dst_type{T<:Colorant,S}(::Type{T}, ::Type{S}) = ccolor(T, S)
+@inline _dst_type{T<:Number,S}(::Type{T}, ::Type{S}) = T
+
+function warp{T,S}(::Type{T}, img::AbstractArray{S}, args...)
+    TCol = _dst_type(T,S)
     TNorm = eltype(TCol)
     apad, pad = Interpolations.prefilter(TNorm, TCol, img, typeof(BSpline(Linear())), typeof(OnGrid()))
     itp = Interpolations.BSplineInterpolation(TNorm, apad, BSpline(Linear()), OnGrid(), pad)
