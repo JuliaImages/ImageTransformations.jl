@@ -96,3 +96,19 @@
         ]
     end
 end
+
+@testset "autorange" begin
+    h, w = 10, 20
+    d = sqrt(h^2 + w^2)
+    tst_img = zeros(h,w)
+    # We compare the result of autorange against manually computed
+    # values using basic trigonometry
+    for ϕ in (pi/8, pi/4, pi/2)
+        rot = LinearMap(RotMatrix(ϕ))
+        rnge = @inferred ImageTransformations.autorange(tst_img, rot)
+        @test rnge[1].start == -floor(sin(ϕ)*w)
+        @test rnge[1].stop  ==  floor(cos(ϕ)*h)
+        @test rnge[2].start == 1
+        @test rnge[2].stop  == ceil(cos(atan(h/w)-ϕ)*d)
+    end
+end
