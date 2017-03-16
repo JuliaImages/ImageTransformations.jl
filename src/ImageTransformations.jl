@@ -17,6 +17,7 @@ export
     imresize
 
 include("resizing.jl")
+include("restrict_old.jl")
 
 @inline Base.getindex(A::AbstractExtrapolation, v::StaticVector) = A[convert(Tuple, v)...]
 

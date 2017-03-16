@@ -86,4 +86,6 @@ end
     end
 end
 
+include("restrict_old.jl")
+
 nothing

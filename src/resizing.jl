@@ -23,111 +23,67 @@ function restrict{T,N}(A::AbstractArray{T,N}, dim::Integer)
     end
     newsz = ntuple(i->i==dim?restrict_size(size(A,dim)):size(A,i), Val{N})
     # FIXME: The following line fails for interpolations because
-    # interpolations can be accessed linearily A[i].
+    # interpolations can not be accessed linearily A[i].
     #    out = Array{typeof(A[1]/4+A[2]/2),N}(newsz)
     out = Array{typeof(first(A)/4+first(A)/2),N}(newsz)
     restrict!(out, A, dim)
     out
 end
 
-# out should have efficient linear indexing
-for N = 1:5
-    @eval begin
-        function restrict!{T}(out::AbstractArray{T,$N}, A::AbstractArray, dim)
-            if isodd(size(A, dim))
-                half = convert(eltype(T), 0.5)
-                quarter = convert(eltype(T), 0.25)
-                indx = 0
-                if dim == 1
-                    @inbounds @nloops $N i d->(d==1 ? (1:1) : (1:size(A,d))) d->(j_d = d==1 ? i_d+1 : i_d) begin
-                        nxt = convert(T, @nref $N A j)
-                        out[indx+=1] = half*(@nref $N A i) + quarter*nxt
-                        for k = 3:2:size(A,1)-2
-                            prv = nxt
-                            i_1 = k
-                            j_1 = k+1
-                            nxt = convert(T, @nref $N A j)
-                            out[indx+=1] = quarter*(prv+nxt) + half*(@nref $N A i)
-                        end
-                        i_1 = size(A,1)
-                        out[indx+=1] = quarter*nxt + half*(@nref $N A i)
-                    end
-                else
-                    strd = stride(out, dim)
-                    # Must initialize the i_dim==1 entries with zero
-                    @nexprs $N d->sz_d=d==dim?1:size(out,d)
-                    @nloops $N i d->(1:sz_d) begin
-                        (@nref $N out i) = zero(T)
-                    end
-                    stride_1 = 1
-                    @nexprs $N d->(stride_{d+1} = stride_d*size(out,d))
-                    @nexprs $N d->offset_d = 0
-                    ispeak = true
-                    @inbounds @nloops $N i d->(d==1?(1:1):(1:size(A,d))) d->(if d==dim; ispeak=isodd(i_d); offset_{d-1} = offset_d+(div(i_d+1,2)-1)*stride_d; else; offset_{d-1} = offset_d+(i_d-1)*stride_d; end) begin
-                        indx = offset_0
-                        if ispeak
-                            for k = 1:size(A,1)
-                                i_1 = k
-                                out[indx+=1] += half*(@nref $N A i)
-                            end
-                        else
-                            for k = 1:size(A,1)
-                                i_1 = k
-                                tmp = quarter*(@nref $N A i)
-                                out[indx+=1] += tmp
-                                out[indx+strd] = tmp
-                            end
-                        end
-                    end
-                end
+function restrict!{T,S,N}(out::AbstractArray{T,N}, A::AbstractArray{S}, dim)
+    # one_d is a tuple in which all elements are 0 expect for "dim"
+    #   e.g. for N=4 and dim=3: one_d=CartesianIndex((0,0,1,0))
+    one_d = CartesianIndex{N}(ntuple(d->d==dim?1:0, Val{N})::NTuple{N,Int})
+    # mlp is a tuple of multiplier in which all elements are 1 expect for "dim"
+    #   e.g. for N=4 and dim=3: mlp=(1,1,2,1)
+    mlp = ntuple(d->d==dim?2:1, Val{N})::NTuple{N,Int}
+    inds = indices(out)
+    min_d, max_d = extrema(inds[dim])
+    if isodd(length(indices(A,dim)))
+        half    = convert(eltype(T), 0.5)
+        quarter = convert(eltype(T), 0.25)
+        @inbounds for O in CartesianRange(inds)
+            # compute corresponding index in A
+            I = CartesianIndex{N}(map(*, O.I, mlp)) - one_d
+            if O[dim] == min_d
+                # edge case: beginning
+                out[O] = half    * convert(T, A[I]) +
+                         quarter * convert(T, A[I+one_d])
+            elseif O[dim] == max_d
+                # edge case: end
+                out[O] = quarter * convert(T, A[I-one_d]) +
+                         half    * convert(T, A[I])
             else
-                threeeighths = convert(eltype(T), 0.375)
-                oneeighth = convert(eltype(T), 0.125)
-                indx = 0
-                if dim == 1
-                    z = convert(T, zero(first(A)))
-                    @inbounds @nloops $N i d->(d==1 ? (1:1) : (1:size(A,d))) d->(j_d = i_d) begin
-                        c = d = z
-                        for k = 1:size(out,1)-1
-                            a = c
-                            b = d
-                            j_1 = 2*k
-                            i_1 = j_1-1
-                            c = convert(T, @nref $N A i)
-                            d = convert(T, @nref $N A j)
-                            out[indx+=1] = oneeighth*(a+d) + threeeighths*(b+c)
-                        end
-                        out[indx+=1] = oneeighth*c+threeeighths*d
-                    end
-                else
-                    fill!(out, zero(T))
-                    strd = stride(out, dim)
-                    stride_1 = 1
-                    @nexprs $N d->(stride_{d+1} = stride_d*size(out,d))
-                    @nexprs $N d->offset_d = 0
-                    peakfirst = true
-                    @inbounds @nloops $N i d->(d==1?(1:1):(1:size(A,d))) d->(if d==dim; peakfirst=isodd(i_d); offset_{d-1} = offset_d+(div(i_d+1,2)-1)*stride_d; else; offset_{d-1} = offset_d+(i_d-1)*stride_d; end) begin
-                        indx = offset_0
-                        if peakfirst
-                            for k = 1:size(A,1)
-                                i_1 = k
-                                tmp = @nref $N A i
-                                out[indx+=1] += threeeighths*tmp
-                                out[indx+strd] += oneeighth*tmp
-                            end
-                        else
-                            for k = 1:size(A,1)
-                                i_1 = k
-                                tmp = @nref $N A i
-                                out[indx+=1] += oneeighth*tmp
-                                out[indx+strd] += threeeighths*tmp
-                            end
-                        end
-                    end
-                end
+                # 1/4 prev_pixel + 1/2 center_pixel + 1/4 next_pixel
+                out[O] = quarter * convert(T, A[I-one_d]) +
+                         half    * convert(T, A[I]) +
+                         quarter * convert(T, A[I+one_d])
+            end
+        end
+    else
+        threeeighths = convert(eltype(T), 0.375)
+        oneeighth    = convert(eltype(T), 0.125)
+        @inbounds for O in CartesianRange(inds)
+            # compute corresponding index in A
+            I = CartesianIndex{N}(map(*, O.I, mlp)) - one_d
+            if O[dim] == min_d
+                # edge case: beginning
+                out[O] = threeeighths * convert(T, A[I]) +
+                         oneeighth    * convert(T, A[I+one_d])
+            elseif O[dim] == max_d
+                # edge case: end
+                out[O] = threeeighths * convert(T, A[I-one_d]) +
+                         oneeighth    * convert(T, A[I-2one_d])
+            else
+                #
+                out[O] = oneeighth    * convert(T, A[I-2one_d]) +
+                         threeeighths * convert(T, A[I-one_d]) +
+                         threeeighths * convert(T, A[I]) +
+                         oneeighth    * convert(T, A[I+one_d])
             end
         end
     end
+    out
 end
 
 restrict_size(len::Integer) = isodd(len) ? (len+1)>>1 : (len>>1)+1
