@@ -1,7 +1,6 @@
 function autorange(img, tform)
     R = CartesianRange(indices(img))
-    I = first(R)
-    mn = mx = x = tform(SVector(I))
+    mn = mx = tform(SVector(first(R)))
     for I in CornerIterator(R)
         x = tform(SVector(I))
         # we map min and max to prevent type-inference issues
@@ -19,7 +18,7 @@ immutable CornerIterator{I<:CartesianIndex}
     start::I
     stop::I
 end
-CornerIterator{I<:CartesianIndex}(R::CartesianRange{I}) = CornerIterator{I}(R.start, R.stop)
+CornerIterator{I<:CartesianIndex}(R::CartesianRange{I}) = CornerIterator{I}(first(R), last(R))
 
 eltype{I}(::Type{CornerIterator{I}}) = I
 iteratorsize{I}(::Type{CornerIterator{I}}) = Base.HasShape()
