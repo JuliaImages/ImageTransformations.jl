@@ -1,5 +1,4 @@
 @testset "Restriction" begin
-    imgcol = colorview(RGB, rand(3,5,6))
     A = reshape([convert(UInt16, i) for i = 1:60], 4, 5, 3)
     B = restrict(A, (1,2))
     Btarget = cat(3, [  0.96875   4.625   5.96875;
@@ -27,12 +26,6 @@
                  [ 10.1015625  23.71875  13.6171875;
                    14.09375    32.875    18.78125;
                    11.0390625  25.59375  14.5546875]) ≈ B
-    #imgcolax = AxisArray(imgcol, :y, :x)
-    #imgr = restrict(imgcolax, (1,2))
-    #@test pixelspacing(imgr) == (2,2)
-    #@test pixelspacing(imgcolax) == (1,1)  # issue #347
-    #@inferred(restrict(imgcolax, Axis{:y}))
-    #@inferred(restrict(imgcolax, Axis{:x}))
     # Issue #395
     img1 = colorview(RGB, fill(0.9, 3, 5, 5))
     img2 = colorview(RGB, fill(N0f8(0.9), 3, 5, 5))
