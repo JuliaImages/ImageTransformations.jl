@@ -36,5 +36,25 @@ tfm = recenter(RotMatrix(-pi/4), center(img_pyramid))
 imgr = warp(img_pyramid, tfm)
 @test indices(imgr) == (0:6, 0:6)
 
-# I do this very complicated because turns out NaNs are hard to compare...
+# Use map and === because of the NaNs
 @test all(map(===, round.(Float64.(parent(imgr)),3), round.(ref,3)))
+
+img_pyramid_cntr = OffsetArray(img_pyramid, -2:2, -2:2)
+tfm = LinearMap(RotMatrix(-pi/4))
+imgr_cntr = warp(img_pyramid_cntr, tfm)
+@test indices(imgr_cntr) == (-3:3, -3:3)
+nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))
+@test all(map(nearlysame, parent(imgr_cntr), parent(imgr)))
+
+itp = interpolate(img_pyramid_cntr, BSpline(Quadratic(Flat())), OnCell())
+imgrq_cntr = warp(itp, tfm)
+@test indices(imgrq_cntr) == (-3:3, -3:3)
+refq = Float64[
+    NaN      NaN      NaN      0.003  NaN      NaN      NaN
+    NaN      NaN       -0.038  0.205   -0.038  NaN      NaN
+    NaN       -0.038    0.255  0.635    0.255   -0.038  NaN
+      0.003    0.205    0.635  1.0      0.635    0.205    0.003
+    NaN       -0.038    0.255  0.635    0.255   -0.038  NaN
+    NaN      NaN       -0.038  0.205   -0.038  NaN      NaN
+    NaN      NaN      NaN      0.003  NaN      NaN      NaN]
+@test all(map(===, round.(Float64.(parent(imgrq_cntr)),3), round.(refq,3)))

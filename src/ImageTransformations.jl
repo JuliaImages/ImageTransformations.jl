@@ -4,7 +4,7 @@ module ImageTransformations
 using ImageCore
 using CoordinateTransformations
 using StaticArrays
-using Interpolations
+using Interpolations, AxisAlgorithms
 using OffsetArrays
 using FixedPointNumbers
 using Colors, ColorVectorSpace

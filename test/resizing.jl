@@ -1,5 +1,5 @@
 @testset "Restriction" begin
-    A = reshape([convert(UInt16, i) for i = 1:60], 4, 5, 3)
+    A = reshape([UInt16(i) for i = 1:60], 4, 5, 3)
     B = restrict(A, (1,2))
     Btarget = cat(3, [  0.96875   4.625   5.96875;
                         2.875    10.5    12.875;
@@ -30,6 +30,14 @@
     img1 = colorview(RGB, fill(0.9, 3, 5, 5))
     img2 = colorview(RGB, fill(N0f8(0.9), 3, 5, 5))
     @test isapprox(channelview(restrict(img1)), channelview(restrict(img2)), rtol=0.01)
+    # Non-1 indices
+    Ao = OffsetArray(A, (-2,1,0))
+    @test parent(@inferred(restrict(Ao, 1))) == restrict(A, 1)
+    @test parent(@inferred(restrict(Ao, 2))) == restrict(A, 2)
+    @test parent(@inferred(restrict(Ao, (1,2)))) == restrict(A, (1,2))
+    # Arrays-of-arrays
+    a = Vector{Int}[[3,3,3], [2,1,7],[-11,4,2]]
+    @test restrict(a) == Vector{Float64}[[2,3.5/2,6.5/2], [-5,4.5/2,5.5/2]]
 end
 
 @testset "Image resize" begin

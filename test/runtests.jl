@@ -1,4 +1,4 @@
-using ImageTransformations, CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers
+using ImageTransformations, CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers, OffsetArrays, Interpolations
 using Base.Test
 
 tests = [

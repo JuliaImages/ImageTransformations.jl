@@ -10,125 +10,148 @@ See also [`imresize`](@ref).
 """
 restrict(img::AbstractArray, ::Tuple{}) = img
 
-function restrict(A::AbstractArray, region::Union{Dims,Vector{Int}} = coords_spatial(A))
-    for dim in region
-        A = restrict(A, dim)
-    end
-    A
+restrict(A::AbstractArray, region::Vector{Int}) = restrict(A, (region...))
+function restrict(A::AbstractArray, region::Dims = coords_spatial(A))
+    restrict(restrict(A, region[1]), Base.tail(region))
 end
 
 function restrict{T,N}(A::AbstractArray{T,N}, dim::Integer)
-    if size(A, dim) <= 2
-        return A
-    end
-    newsz = ntuple(i->i==dim?restrict_size(size(A,dim)):size(A,i), Val{N})
-    # FIXME: The following line fails for interpolations because
-    # interpolations can be accessed linearily A[i].
-    #    out = Array{typeof(A[1]/4+A[2]/2),N}(newsz)
-    out = Array{typeof(first(A)/4+first(A)/2),N}(newsz)
+    indsA = indices(A)
+    newinds = ntuple(i->i==dim?restrict_indices(indsA[dim]):indsA[i], Val{N})
+    out = similar(Array{typeof(first(A)/4+first(A)/2),N}, newinds)
     restrict!(out, A, dim)
     out
 end
 
-# out should have efficient linear indexing
-@generated function restrict!{T,N}(out::AbstractArray{T,N}, A::AbstractArray, dim)
+function restrict!{T,N}(out::AbstractArray{T,N}, A::AbstractArray, dim)
+    if dim > N
+        return copy!(out, A)
+    end
+    indsout, indsA = indices(out), indices(A)
+    ndims(out) == ndims(A) || throw(DimensionMismatch("input and output must have the same number of dimensions"))
+    for d = 1:length(indsA)
+        target = d==dim ? restrict_indices(indsA[d]) : indsA[d]
+        indsout[d] == target || error("input and output must have corresponding indices; to be consistent with the input indices,\ndimension $d should be $target, got $(indsout[d])")
+    end
+    indspre, indspost = indsA[1:dim-1], indsA[dim+1:end]
+    _restrict!(out, indsout[dim], A, indspre, indsA[dim], indspost)
+end
+
+@generated function _restrict!{Npre,Npost}(out, indout, A,
+                                           indspre::NTuple{Npre,AbstractUnitRange},
+                                           indA,
+                                           indspost::NTuple{Npost,AbstractUnitRange})
+    Ipre = [Symbol(:ipre_, d) for d = 1:Npre]
+    Ipost = [Symbol(:ipost_, d) for d = 1:Npost]
     quote
-        if isodd(size(A, dim))
+        $(Expr(:meta, :noinline))
+        T = eltype(out)
+        if isodd(length(indA))
             half = convert(eltype(T), 0.5)
             quarter = convert(eltype(T), 0.25)
-            indx = 0
-            if dim == 1
-                @inbounds @nloops $N i d->(d==1 ? (1:1) : (1:size(A,d))) d->(j_d = d==1 ? i_d+1 : i_d) begin
-                    nxt = convert(T, @nref $N A j)
-                    out[indx+=1] = half*convert(T, @nref $N A i) + quarter*nxt
-                    for k = 3:2:size(A,1)-2
-                        prv = nxt
-                        i_1 = k
-                        j_1 = k+1
-                        nxt = convert(T, @nref $N A j)
-                        out[indx+=1] = quarter*(prv+nxt) + half*convert(T, @nref $N A i)
-                    end
-                    i_1 = size(A,1)
-                    out[indx+=1] = quarter*nxt + half*convert(T, @nref $N A i)
+            @nloops $Npost ipost d->indspost[d] begin
+                iout = first(indout)
+                @nloops $Npre ipre d->indspre[d] begin
+                    out[$(Ipre...), iout, $(Ipost...)] = zero(T)
                 end
-            else
-                strd = stride(out, dim)
-                # Must initialize the i_dim==1 entries with zero
-                @nexprs $N d->sz_d=d==dim?1:size(out,d)
-                @nloops $N i d->(1:sz_d) begin
-                    (@nref $N out i) = zero(T)
-                end
-                stride_1 = 1
-                @nexprs $N d->(stride_{d+1} = stride_d*size(out,d))
-                @nexprs $N d->offset_d = 0
                 ispeak = true
-                @inbounds @nloops $N i d->(d==1?(1:1):(1:size(A,d))) d->(if d==dim; ispeak=isodd(i_d); offset_{d-1} = offset_d+(div(i_d+1,2)-1)*stride_d; else; offset_{d-1} = offset_d+(i_d-1)*stride_d; end) begin
-                    indx = offset_0
+                for iA in indA
                     if ispeak
-                        for k = 1:size(A,1)
-                            i_1 = k
-                            out[indx+=1] += half*convert(T, @nref $N A i)
+                        @inbounds @nloops $Npre ipre d->indspre[d] begin
+                            out[$(Ipre...), iout, $(Ipost...)] +=
+                                half*convert(T, A[$(Ipre...), iA, $(Ipost...)])
                         end
                     else
-                        for k = 1:size(A,1)
-                            i_1 = k
-                            tmp = quarter*convert(T, @nref $N A i)
-                            out[indx+=1] += tmp
-                            out[indx+strd] = tmp
+                        @inbounds @nloops $Npre ipre d->indspre[d] begin
+                            tmp = quarter*convert(T, A[$(Ipre...), iA, $(Ipost...)])
+                            out[$(Ipre...), iout, $(Ipost...)]   += tmp
+                            out[$(Ipre...), iout+1, $(Ipost...)] = tmp
                         end
                     end
+                    ispeak = !ispeak
+                    iout += ispeak
                 end
             end
         else
             threeeighths = convert(eltype(T), 0.375)
             oneeighth = convert(eltype(T), 0.125)
-            indx = 0
-            if dim == 1
-                z = convert(T, zero(first(A)))
-                @inbounds @nloops $N i d->(d==1 ? (1:1) : (1:size(A,d))) d->(j_d = i_d) begin
-                    c = d = z
-                    for k = 1:size(out,1)-1
-                        a = c
-                        b = d
-                        j_1 = 2*k
-                        i_1 = j_1-1
-                        c = convert(T, @nref $N A i)
-                        d = convert(T, @nref $N A j)
-                        out[indx+=1] = oneeighth*(a+d) + threeeighths*(b+c)
-                    end
-                    out[indx+=1] = oneeighth*c+threeeighths*d
-                end
-            else
-                fill!(out, zero(T))
-                strd = stride(out, dim)
-                stride_1 = 1
-                @nexprs $N d->(stride_{d+1} = stride_d*size(out,d))
-                @nexprs $N d->offset_d = 0
+            z = convert(T, zero(first(A)))
+            fill!(out, zero(T))
+            @nloops $Npost ipost d->indspost[d] begin
                 peakfirst = true
-                @inbounds @nloops $N i d->(d==1?(1:1):(1:size(A,d))) d->(if d==dim; peakfirst=isodd(i_d); offset_{d-1} = offset_d+(div(i_d+1,2)-1)*stride_d; else; offset_{d-1} = offset_d+(i_d-1)*stride_d; end) begin
-                    indx = offset_0
+                iout = first(indout)
+                for iA in indA
                     if peakfirst
-                        for k = 1:size(A,1)
-                            i_1 = k
-                            tmp = convert(T, @nref $N A i)
-                            out[indx+=1] += threeeighths*tmp
-                            out[indx+strd] += oneeighth*tmp
+                        @inbounds @nloops $Npre ipre d->indspre[d] begin
+                            tmp = convert(T, A[$(Ipre...), iA, $(Ipost...)])
+                            out[$(Ipre...), iout, $(Ipost...)] += threeeighths*tmp
+                            out[$(Ipre...), iout+1, $(Ipost...)] += oneeighth*tmp
                         end
                     else
-                        for k = 1:size(A,1)
-                            i_1 = k
-                            tmp = convert(T, @nref $N A i)
-                            out[indx+=1] += oneeighth*tmp
-                            out[indx+strd] += threeeighths*tmp
+                        @inbounds @nloops $Npre ipre d->indspre[d] begin
+                            tmp = convert(T, A[$(Ipre...), iA, $(Ipost...)])
+                            out[$(Ipre...), iout, $(Ipost...)]   += oneeighth*tmp
+                            out[$(Ipre...), iout+1, $(Ipost...)] += threeeighths*tmp
                         end
                     end
+                    peakfirst = !peakfirst
+                    iout += peakfirst
                 end
             end
         end
+        out
+    end
+end
+
+# If we're restricting along dimension 1, there are some additional efficiencies possible
+@generated function _restrict!{Npost}(out, indout, A, ::NTuple{0,AbstractUnitRange},
+                                      indA, indspost::NTuple{Npost,AbstractUnitRange})
+    Ipost = [Symbol(:ipost_, d) for d = 1:Npost]
+    quote
+        $(Expr(:meta, :noinline))
+        T = eltype(out)
+        if isodd(length(indA))
+            half = convert(eltype(T), 0.5)
+            quarter = convert(eltype(T), 0.25)
+            @inbounds @nloops $Npost ipost d->indspost[d] begin
+                iout, iA = first(indout), first(indA)
+                nxt = convert(T, A[iA+1, $(Ipost...)])
+                out[iout, $(Ipost...)] = half*convert(T, A[iA, $(Ipost...)]) + quarter*nxt
+                for iA in first(indA)+2:2:last(indA)-2
+                    prv = nxt
+                    nxt = convert(T, A[iA+1, $(Ipost...)])
+                    out[iout+=1, $(Ipost...)] = quarter*(prv+nxt) + half*convert(T, A[iA, $(Ipost...)])
+                end
+                out[iout+1, $(Ipost...)] = quarter*nxt + half*convert(T, A[last(indA), $(Ipost...)])
+            end
+        else
+            threeeighths = convert(eltype(T), 0.375)
+            oneeighth = convert(eltype(T), 0.125)
+            z = convert(T, zero(first(A)))
+            @inbounds @nloops $Npost ipost d->indspost[d] begin
+                c = d = z
+                iA = first(indA)
+                for iout = first(indout):last(indout)-1
+                    a, b = c, d
+                    c, d = convert(T, A[iA, $(Ipost...)]), convert(T, A[iA+1, $(Ipost...)])
+                    iA += 2
+                    out[iout, $(Ipost...)] = oneeighth*(a+d) + threeeighths*(b+c)
+                end
+                out[last(indout), $(Ipost...)] = oneeighth*c + threeeighths*d
+            end
+        end
+        out
     end
 end
 
 restrict_size(len::Integer) = isodd(len) ? (len+1)>>1 : (len>>1)+1
+
+restrict_indices(r::Base.OneTo) = Base.OneTo(restrict_size(length(r)))
+function restrict_indices(r::UnitRange)
+    f, l = first(r), last(r)
+    isodd(f) && return (f+1)>>1:restrict_size(l)
+    f>>1 : (isodd(l) ? (l+1)>>1 : l>>1)
+end
 
 # imresize
 imresize(original::AbstractArray, dim1, dimN...) = imresize(original, (dim1,dimN...))
