@@ -113,4 +113,17 @@ end
             @test rnge[2].stop  == ceil(cos(α-ϕ)*d)
         end
     end
+    # Non-1 indices
+    for (indh, indw) in ((-1:10,0:20), (-1:20,-2:10), (0:7,-3:9))
+        h, w = length(indh), length(indw)
+        tst_img = OffsetArray(zeros(h,w), indh, indw)
+        for ϕ in deg2rad.(1:1:89)
+            rot = LinearMap(RotMatrix(ϕ))
+            rnge = @inferred ImageTransformations.autorange(tst_img, rot)
+            @test rnge[1].start == floor(cos(ϕ)*first(indh) - sin(ϕ)*last(indw))
+            @test rnge[1].stop  ==  ceil(cos(ϕ)*last(indh)  - sin(ϕ)*first(indw))
+            @test rnge[2].start == floor(sin(ϕ)*first(indh) + cos(ϕ)*first(indw))
+            @test rnge[2].stop  ==  ceil(sin(ϕ)*last(indh)  + cos(ϕ)*last(indw))
+        end
+    end
 end
