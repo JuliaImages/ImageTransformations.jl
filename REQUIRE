@@ -8,4 +8,4 @@ StaticArrays
 Colors 0.7.0
 ColorVectorSpace 0.2
 FixedPointNumbers 0.3
-Compat 0.17
+Compat 0.18
