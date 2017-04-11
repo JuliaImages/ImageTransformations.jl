@@ -12,6 +12,7 @@ using Compat
 
 import Base: start, next, done, eltype, iteratorsize, size, length
 using Base: tail, Cartesian
+using Colors.AbstractGray
 
 export
 

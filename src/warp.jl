@@ -16,7 +16,7 @@ function warp{T,S}(::Type{T}, img::AbstractArray{S}, args...)
     warp(itp, args...)
 end
 
-@compat const FloatLike{T<:AbstractFloat} = Union{T,Gray{T}} # Why not AbstractGray ?
+@compat const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}
 @compat const FloatColorant{T<:AbstractFloat} = Colorant{T}
 
 # The default values used by extrapolation for off-domain points
