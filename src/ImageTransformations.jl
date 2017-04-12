@@ -11,7 +11,7 @@ using Colors, ColorVectorSpace
 using Compat
 
 import Base: start, next, done, eltype, iteratorsize, size, length
-using Base: tail, Cartesian
+using Base: tail, Cartesian, Indices
 using Colors.AbstractGray
 
 export

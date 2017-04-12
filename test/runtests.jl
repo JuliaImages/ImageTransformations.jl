@@ -1,5 +1,10 @@
-using ImageTransformations, CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers, OffsetArrays, Interpolations
+using CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers, OffsetArrays, Interpolations
 using Base.Test
+
+refambs = detect_ambiguities(CoordinateTransformations, Base, Core)
+using ImageTransformations
+ambs = detect_ambiguities(ImageTransformations, CoordinateTransformations, Base, Core)
+@test isempty(setdiff(ambs, refambs))
 
 tests = [
     "autorange.jl",

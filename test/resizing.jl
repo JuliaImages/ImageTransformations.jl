@@ -44,6 +44,8 @@ end
     img = zeros(10,10)
     img2 = @inferred(imresize(img, (5,5)))
     @test length(img2) == 25
+    img2 = imresize(img, 5)
+    @test size(img2) == (5,10)
     img = rand(RGB{Float32}, 10, 10)
     img2 = imresize(img, (6,7))
     @test size(img2) == (6,7)
@@ -75,4 +77,32 @@ end
         R = imresize(A, (l1, l2))
         @test all(x->x==1, R)
     end
+    for l2 = 3:7, l1 = 3:7
+        R = imresize(A, (0:l1-1, 0:l2-1))
+        @test all(x->x==1, R)
+        @test indices(R) == (0:l1-1, 0:l2-1)
+    end
+    for l1 = 3:7
+        R = imresize(A, (0:l1-1,))
+        @test all(x->x==1, R)
+        @test indices(R) == (0:l1-1, 1:5)
+    end
+    R = imresize(A, (2:6, 0:4))
+    @test all(x->x==1, R)
+    @test indices(R) == (2:6, 0:4)
+    R = imresize(A, ())
+    @test all(x->x==1, R)
+    @test indices(R) == indices(A)
+    @test !(R === A)
+    Ao = OffsetArray(A, -2:2, 0:4)
+    R = imresize(Ao, (5,5))
+    @test indices(R) === indices(A)
+    R = imresize(Ao, indices(Ao))
+    @test indices(R) === indices(Ao)
+    @test !(R === A)
+    img = reshape([0.5])
+    R = imresize(img, ())
+    @test ndims(R) == 0
+    @test !(R === A)
+    @test_throws DimensionMismatch imresize(img, 3, 7)
 end

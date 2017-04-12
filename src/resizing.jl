@@ -156,18 +156,24 @@ end
 # imresize
 imresize(original::AbstractArray, dim1, dimN...) = imresize(original, (dim1,dimN...))
 
-function imresize{T,N}(original::AbstractArray{T,N}, short_size::NTuple)
+function imresize(original::AbstractArray, short_size::Tuple)
     len_short = length(short_size)
-    new_size = ntuple(i -> (i > len_short ? size(original,i) : short_size[i]), N)
+    len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
+    new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
     imresize(original, new_size)
 end
+odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
+odims(original, i, short_size::Tuple{}) = indices(original, i)
+odims(original, i, short_size) = oftype(first(short_size), indices(original, i))
 
 """
     imresize(img, sz) -> imgr
+    imresize(img, inds) -> imgr
 
-Change `img` to be of size `sz`. This interpolates the values at
-sub-pixel locations. If you are shrinking the image, you risk aliasing
-unless you low-pass filter `img` first. For example:
+Change `img` to be of size `sz` (or to have indices `inds`). This
+interpolates the values at sub-pixel locations. If you are shrinking
+the image, you risk aliasing unless you low-pass filter `img`
+first. For example:
 
     σ = map((o,n)->0.75*o/n, size(img), sz)
     kern = KernelFactors.gaussian(σ)   # from ImageFiltering
@@ -175,12 +181,32 @@ unless you low-pass filter `img` first. For example:
 
 See also [`restrict`](@ref).
 """
-function imresize{T,N}(original::AbstractArray{T,N}, new_size::NTuple{N})
+function imresize{T}(original::AbstractArray{T,0}, new_inds::Tuple{})
     Tnew = imresize_type(first(original))
-    if size(original) == new_size
-        copy!(similar(original, Tnew), original)
+    copy!(similar(original, Tnew), original)
+end
+
+function imresize{T,N}(original::AbstractArray{T,N}, new_size::Dims{N})
+    Tnew = imresize_type(first(original))
+    inds = indices(original)
+    if map(length, inds) == new_size
+        dest = similar(original, Tnew, new_size)
+        if indices(dest) == inds
+            copy!(dest, original)
+        else
+            copy!(dest, CartesianRange(indices(dest)), original, CartesianRange(inds))
+        end
     else
         imresize!(similar(original, Tnew, new_size), original)
+    end
+end
+
+function imresize{T,N}(original::AbstractArray{T,N}, new_inds::Indices{N})
+    Tnew = imresize_type(first(original))
+    if indices(original) == new_inds
+        copy!(similar(original, Tnew), original)
+    else
+        imresize!(similar(original, Tnew, new_inds), original)
     end
 end
 
