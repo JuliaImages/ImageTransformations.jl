@@ -25,7 +25,7 @@ iteratorsize{I}(::Type{CornerIterator{I}}) = Base.HasShape()
 
 # in 0.6 we could write: 1 .+ (iter.stop.I .- iter.start.I .!= 0)
 size{N}(iter::CornerIterator{CartesianIndex{N}}) = ntuple(d->iter.stop.I[d]-iter.start.I[d]==0 ? 1 : 2, Val{N})::NTuple{N,Int}
-length(iter) = prod(size(iter))
+length(iter::CornerIterator) = prod(size(iter))
 
 @inline function start{I<:CartesianIndex}(iter::CornerIterator{I})
     if any(map(>, iter.start.I, iter.stop.I))
