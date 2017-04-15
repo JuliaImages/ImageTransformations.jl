@@ -1,8 +1,8 @@
 function autorange(img, tform)
     R = CartesianRange(indices(img))
-    mn = mx = tform(SVector(first(R)))
+    mn = mx = tform(SVector(first(R).I))
     for I in CornerIterator(R)
-        x = tform(SVector(I))
+        x = tform(SVector(I.I))
         # we map min and max to prevent type-inference issues
         # (because min(::SVector,::SVector) -> Vector)
         mn = map(min, x, mn)

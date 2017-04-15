@@ -96,7 +96,7 @@ end
 function warp!(out, img::AbstractExtrapolation, tform)
     tinv = inv(tform)
     for I in CartesianRange(indices(out))
-        out[I] = _getindex(img, tinv(SVector(I)))
+        out[I] = _getindex(img, tinv(SVector(I.I)))
     end
     out
 end
