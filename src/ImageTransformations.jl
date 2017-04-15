@@ -1,6 +1,7 @@
 __precompile__()
 module ImageTransformations
 
+using ShowItLikeYouBuildIt
 using ImageCore
 using CoordinateTransformations
 using StaticArrays

@@ -11,8 +11,17 @@ immutable WarpedView{T,N,A<:AbstractArray,F1<:Transformation,F2<:Transformation,
     end
 end
 
-function WarpedView(parent::AbstractArray, args...)
-    WarpedView(interpolate(parent, BSpline(Linear()), OnGrid()), args...)
+function WarpedView{T,N,F<:Transformation}(inner::WarpedView{T,N}, tform_in::F)
+    tform = compose(tform_in, inner.transform)
+    tinv = inv(tform)
+    etp = inner.parent
+    inds = autorange(etp, tform)
+    WarpedView{T,N,typeof(etp),typeof(tform),typeof(tinv),typeof(inds)}(etp, tform, tinv, inds)
+end
+
+function WarpedView{T,N}(parent::AbstractArray{T,N}, args...)
+    itp = Interpolations.BSplineInterpolation{T,N,typeof(parent),Interpolations.BSpline{Interpolations.Linear},OnGrid,0}(parent)
+    WarpedView(itp, args...)
 end
 
 function WarpedView{T,F<:Transformation}(itp::AbstractInterpolation{T}, tform::F, fill=_default_fill(T))
@@ -25,11 +34,26 @@ function WarpedView{T,N,F<:Transformation}(etp::AbstractExtrapolation{T,N}, tfor
     WarpedView{T,N,typeof(etp),F,typeof(tinv),typeof(inds)}(etp, tform, tinv, inds)
 end
 
-Base.parent(A::WarpedView)  = A.parent
+Base.parent(A::WarpedView) = A.parent
 @inline Base.indices(A::WarpedView) = A.indices
 
 @compat Compat.IndexStyle{T<:WarpedView}(::Type{T}) = IndexCartesian()
-@inline Base.getindex{N}(A::WarpedView, I::Vararg{Int,N}) = _getindex(A.parent, A.transform_inv(SVector(I)))
+@inline Base.getindex{T,N}(A::WarpedView{T,N}, I::Vararg{Int,N}) =
+    _getindex(A.parent, A.transform_inv(SVector(I)))
 
 Base.size(A::WarpedView)    = OffsetArrays.errmsg(A)
 Base.size(A::WarpedView, d) = OffsetArrays.errmsg(A)
+
+function ShowItLikeYouBuildIt.showarg(io::IO, A::WarpedView)
+    print(io, "WarpedView(")
+    showarg(io, _parent(A))
+    print(io, ", ")
+    showarg(io, A.transform)
+    print(io, ')')
+end
+
+_parent(A) = parent(A)
+_parent(A::WarpedView) = _parent(parent(A))
+_parent(A::AbstractInterpolation) = _parent(parent(A))
+
+Base.summary(A::WarpedView) = summary_build(A)

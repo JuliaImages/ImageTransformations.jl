@@ -11,8 +11,11 @@ for T in (Float16,Float32,Float64,
     @test indices(imgr) == (-78:591, -78:591)
     @test eltype(imgr) <: T
 end
-#imgr2 = warp(imgr, inv(tfm   # this will need fixes in Interpolations
-#@test imgr2[indices(img_camera)...] ≈ img
+
+imgr = @inferred(warp(Gray, img_camera, tfm))
+imgr2 = warp(Gray, imgr, inv(tfm))
+# look the same but are not similar enough to pass test
+# @test imgr2[indices(img_camera)...] ≈ img_camera
 
 img_pyramid = Gray{Float64}[
     0.0 0.0 0.0 0.0 0.0;
