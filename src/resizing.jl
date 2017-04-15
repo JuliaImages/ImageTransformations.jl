@@ -11,7 +11,8 @@ See also [`imresize`](@ref).
 restrict(img::AbstractArray, ::Tuple{}) = img
 
 restrict(A::AbstractArray, region::Vector{Int}) = restrict(A, (region...))
-function restrict(A::AbstractArray, region::Dims = coords_spatial(A))
+restrict(A::AbstractArray) = restrict(A, coords_spatial(A))
+function restrict(A::AbstractArray, region::Dims)
     restrict(restrict(A, region[1]), Base.tail(region))
 end
 
