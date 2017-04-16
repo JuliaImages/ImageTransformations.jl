@@ -46,14 +46,10 @@ Base.size(A::WarpedView, d) = OffsetArrays.errmsg(A)
 
 function ShowItLikeYouBuildIt.showarg(io::IO, A::WarpedView)
     print(io, "WarpedView(")
-    showarg(io, _parent(A))
+    showarg(io, parent(A))
     print(io, ", ")
-    showarg(io, A.transform)
+    print(io, A.transform)
     print(io, ')')
 end
-
-_parent(A) = parent(A)
-_parent(A::WarpedView) = _parent(parent(A))
-_parent(A::AbstractInterpolation) = _parent(parent(A))
 
 Base.summary(A::WarpedView) = summary_build(A)
