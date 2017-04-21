@@ -1,46 +1,24 @@
-# None of these types are provided by this package, so the following line seems unclean
-#     @inline Base.getindex(A::AbstractExtrapolation, v::StaticVector) = A[convert(Tuple, v)...]
-# furthermore it would be ambiguous with getindex(::Extrapolation, xs...) after https://github.com/tlycken/Interpolations.jl/pull/141
-@inline _getindex(A, v::StaticVector) = A[convert(Tuple, v)...]
-
-warp(img::AbstractArray, args...) = warp(interpolate(img, BSpline(Linear()), OnGrid()), args...)
-
-@inline _dst_type{T<:Colorant,S}(::Type{T}, ::Type{S}) = ccolor(T, S)
-@inline _dst_type{T<:Number,S}(::Type{T}, ::Type{S}) = T
-
-function warp{T,S}(::Type{T}, img::AbstractArray{S}, args...)
-    TCol = _dst_type(T,S)
-    TNorm = eltype(TCol)
-    apad, pad = Interpolations.prefilter(TNorm, TCol, img, typeof(BSpline(Linear())), typeof(OnGrid()))
-    itp = Interpolations.BSplineInterpolation(TNorm, apad, BSpline(Linear()), OnGrid(), pad)
-    warp(itp, args...)
-end
-
-@compat const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}
-@compat const FloatColorant{T<:AbstractFloat} = Colorant{T}
-
-# The default values used by extrapolation for off-domain points
-@inline _default_fill{T<:FloatLike}(::Type{T}) = convert(T, NaN)
-@inline _default_fill{T<:FloatColorant}(::Type{T}) = nan(T)
-@inline _default_fill{T}(::Type{T}) = zero(T)
-
-warp{T}(img::AbstractInterpolation{T}, tform, fill=_default_fill(T)) = warp(extrapolate(img, fill), tform)
-
 """
-    warp(img, tform) -> imgw
+    warp(img, tform, [fill]) -> imgw
 
 Transform the coordinates of `img`, returning a new `imgw` satisfying
 `imgw[x] = img[tform(x)]`. `tform` should be defined using
-CoordinateTransformations.jl.
+[CoordinateTransformations.jl](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
 # Interpolation scheme
 
-At off-grid points, `imgw` is calculated by interpolation. The default
-is linear interpolation, used when `img` is a plain array, and `NaN`
-values are used to indicate locations for which `tform(x)` was outside
-the bounds of the input `img`. For more control over the interpolation
-scheme---and how beyond-the-edge points are handled---pass it in as an
-`AbstractExtrapolation` from Interpolations.jl.
+At off-grid points, `imgw` is calculated by interpolation. The
+default is linear interpolation, which is used when `img` is a
+plain array and the `img[tform(x)]` is inbound. In the case
+`tform(x)` maps to indices outside the original `img`, the value
+/ extrapolation scheme denoted by the optional parameter `fill`
+(which defaults to `NaN`) is used to indicate locations for which
+`tform(x)` was outside the bounds of the input `img`.
+
+For more control over the interpolation scheme --- and how
+beyond-the-edge points are handled --- pass it in as an
+`AbstractExtrapolation` from
+[Interpolations.jl](https://github.com/JuliaMath/Interpolations.jl).
 
 # The meaning of the coordinates
 
@@ -87,15 +65,31 @@ julia> indices(imgr)
 (Base.OneTo(906),Base.OneTo(905))
 ```
 """
-function warp(img::AbstractExtrapolation, tform)
+function warp{T,N}(img::AbstractArray{T,N}, args...)
+    itp = Interpolations.BSplineInterpolation{T,N,typeof(img),Interpolations.BSpline{Interpolations.Linear},OnGrid,0}(img)
+    warp(itp, args...)
+end
+
+# The default values used by extrapolation for off-domain points
+@compat const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}
+@compat const FloatColorant{T<:AbstractFloat} = Colorant{T}
+@inline _default_fill{T<:FloatLike}(::Type{T}) = convert(T, NaN)
+@inline _default_fill{T<:FloatColorant}(::Type{T}) = nan(T)
+@inline _default_fill{T}(::Type{T}) = zero(T)
+
+function warp{T}(img::AbstractInterpolation{T}, tform, fill = _default_fill(T))
+    warp(extrapolate(img, fill), tform)
+end
+
+function warp{T}(img::AbstractExtrapolation{T}, tform)
     inds = autorange(img, tform)
-    out = OffsetArray(Array{eltype(img)}(map(length, inds)), inds)
+    out = OffsetArray(Array{T}(map(length, inds)), inds)
     warp!(out, img, tform)
 end
 
 function warp!(out, img::AbstractExtrapolation, tform)
     tinv = inv(tform)
-    for I in CartesianRange(indices(out))
+    @inbounds for I in CartesianRange(indices(out))
         out[I] = _getindex(img, tinv(SVector(I.I)))
     end
     out
