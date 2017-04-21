@@ -1,6 +1,7 @@
 __precompile__()
 module ImageTransformations
 
+using ShowItLikeYouBuildIt
 using ImageCore
 using CoordinateTransformations
 using StaticArrays
@@ -18,12 +19,14 @@ export
 
     restrict,
     imresize,
+    center,
     warp,
-    center
+    WarpedView
 
 include("autorange.jl")
 include("resizing.jl")
 include("warp.jl")
+include("warpedview.jl")
 
 center{T,N}(img::AbstractArray{T,N}) = SVector{N}(map(_center, indices(img)))
 _center(ind::AbstractUnitRange) = (first(ind)+last(ind))/2
