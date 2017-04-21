@@ -3,6 +3,12 @@ nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))
 nearlysame(A::AbstractArray, B::AbstractArray) = all(map(nearlysame, A, B))
 #img_square = Gray{N0f8}.(reshape(linspace(0,1,9), (3,3)))
 
+SPACE = if VERSION < v"0.6.0-dev.2505" # julia PR #20288
+    ""
+else
+    " "
+end
+
 img_camera = testimage("camera")
 @testset "Constructor" begin
     tfm = recenter(RotMatrix(-pi/8), center(img_camera))
@@ -12,8 +18,7 @@ img_camera = testimage("camera")
         imgr = @inferred(warp(img_camera, tfm))
         @test indices(imgr) == ref_inds
 
-        for T in (Float16,Float32,Float64,
-                N0f8,Gray,Gray{Float16},RGB)
+        for T in (Float32,Gray,RGB) # TODO: remove this signature completely
             imgr = @inferred(warp(T, img_camera, tfm))
             @test indices(imgr) == ref_inds
             @test eltype(imgr) <: T
@@ -27,6 +32,9 @@ img_camera = testimage("camera")
 
     @testset "WarpedView" begin
         wv = @inferred(WarpedView(img_camera, tfm))
+        @test summary(wv) == "-78:591×-78:591 WarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(wv)
+        @test_throws ErrorException size(wv, 1)
         @test indices(wv) == ref_inds
         @test eltype(wv) === eltype(img_camera)
         @test typeof(parent(wv)) <: Interpolations.AbstractExtrapolation
@@ -111,6 +119,7 @@ ref_img_pyramid_quad = Float64[
         @testset "Quadratic Interpolation" begin
             itp = interpolate(img_pyramid_cntr, BSpline(Quadratic(Flat())), OnCell())
             imgrq_cntr = WarpedView(itp, tfm2)
+            @test summary(imgrq_cntr) == "-3:3×-3:3 WarpedView(interpolate(::OffsetArray{Gray{Float64},2}, BSpline(Quadratic(Flat())), OnCell()), LinearMap([0.707107 0.707107; -0.707107 0.707107])) with element type ColorTypes.Gray{Float64}"
             @test indices(imgrq_cntr) == (-3:3, -3:3)
             @test nearlysame(round.(Float64.(imgrq_cntr[indices(imgrq_cntr)...]),3), round.(ref_img_pyramid_quad,3))
         end
