@@ -11,10 +11,10 @@ immutable WarpedView{T,N,A<:AbstractArray,F1<:Transformation,F2<:Transformation,
     end
 end
 
-function WarpedView{T,N,F<:Transformation}(inner::WarpedView{T,N}, tform_in::F)
-    tform = compose(tform_in, inner.transform)
+function WarpedView{T,N,F<:Transformation}(inner::WarpedView{T,N}, outer_tform::F)
+    tform = compose(outer_tform, inner.transform)
     tinv = inv(tform)
-    etp = inner.parent
+    etp = parent(inner)
     inds = autorange(etp, tform)
     WarpedView{T,N,typeof(etp),typeof(tform),typeof(tinv),typeof(inds)}(etp, tform, tinv, inds)
 end
@@ -44,9 +44,16 @@ Base.parent(A::WarpedView) = A.parent
 Base.size(A::WarpedView)    = OffsetArrays.errmsg(A)
 Base.size(A::WarpedView, d) = OffsetArrays.errmsg(A)
 
+# This will return the next non-standard parent
+# This way only those extrapolations/interpolations are displayed
+# that are different to the default settings
+_next_custom(A) = A
+_next_custom(A::Interpolations.FilledExtrapolation) = _next_custom(A.itp)
+_next_custom{T,N,TI,IT<:BSpline{Linear},GT<:OnGrid}(A::Interpolations.BSplineInterpolation{T,N,TI,IT,GT}) = _next_custom(A.coefs)
+
 function ShowItLikeYouBuildIt.showarg(io::IO, A::WarpedView)
     print(io, "WarpedView(")
-    showarg(io, parent(A))
+    showarg(io, _next_custom(parent(A)))
     print(io, ", ")
     print(io, A.transform)
     print(io, ')')
