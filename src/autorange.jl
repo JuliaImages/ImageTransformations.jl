@@ -1,5 +1,9 @@
 function autorange(img, tform)
     R = CartesianRange(indices(img))
+    autorange(R, tform)
+end
+
+function autorange(R::CartesianRange, tform)
     mn = mx = tform(SVector(first(R).I))
     for I in CornerIterator(R)
         x = tform(SVector(I.I))
