@@ -3,11 +3,7 @@ nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))
 nearlysame(A::AbstractArray, B::AbstractArray) = all(map(nearlysame, A, B))
 #img_square = Gray{N0f8}.(reshape(linspace(0,1,9), (3,3)))
 
-SPACE = if VERSION < v"0.6.0-dev.2505" # julia PR #20288
-    ""
-else
-    " "
-end
+SPACE = VERSION < v"0.6.0-dev.2505" ? "" : " " # julia PR #20288
 
 img_camera = testimage("camera")
 @testset "Constructor" begin
@@ -18,11 +14,14 @@ img_camera = testimage("camera")
         imgr = @inferred(warp(img_camera, inv(tfm)))
         @test indices(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg" imgr
 
         imgr = @inferred(warp(img_camera, inv(tfm), 1))
         @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_white" imgr
         imgr2 = @inferred warp(imgr, tfm)
         @test eltype(imgr2) == eltype(img_camera)
+        @test_reference "warp_cameraman" imgr2[indices(img_camera)...]
         # look the same but are not similar enough to pass test
         # @test imgr2[indices(img_camera)...] ≈ img_camera
     end
@@ -30,6 +29,7 @@ img_camera = testimage("camera")
     @testset "InvWarpedView" begin
         wv = @inferred(InvWarpedView(img_camera, tfm))
         @test summary(wv) == "-78:591×-78:591 InvWarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_reference "invwarpedview_cameraman_rotate_r22deg" wv
         @test_throws ErrorException size(wv)
         @test_throws ErrorException size(wv, 1)
         @test indices(wv) == ref_inds
@@ -38,6 +38,7 @@ img_camera = testimage("camera")
 
         # check nested transformation using the inverse
         wv2 = @inferred(InvWarpedView(wv, inv(tfm)))
+        @test_reference "invwarpedview_cameraman" wv2
         @test indices(wv2) == indices(img_camera)
         @test eltype(wv2) === eltype(img_camera)
         @test parent(wv2) === img_camera
