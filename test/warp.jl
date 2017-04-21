@@ -17,15 +17,12 @@ img_camera = testimage("camera")
     @testset "warp" begin
         imgr = @inferred(warp(img_camera, tfm))
         @test indices(imgr) == ref_inds
+        @test eltype(imgr) == eltype(img_camera)
 
-        for T in (Float32,Gray,RGB) # TODO: remove this signature completely
-            imgr = @inferred(warp(T, img_camera, tfm))
-            @test indices(imgr) == ref_inds
-            @test eltype(imgr) <: T
-        end
-
-        imgr = @inferred(warp(Gray, img_camera, tfm))
-        imgr2 = warp(Gray, imgr, inv(tfm))
+        imgr = @inferred(warp(img_camera, tfm, 1))
+        @test eltype(imgr) == eltype(img_camera)
+        imgr2 = @inferred warp(imgr, inv(tfm))
+        @test eltype(imgr2) == eltype(img_camera)
         # look the same but are not similar enough to pass test
         # @test imgr2[indices(img_camera)...] ≈ img_camera
     end
@@ -87,6 +84,7 @@ ref_img_pyramid_quad = Float64[
     @testset "warp" begin
         imgr = warp(img_pyramid, tfm1)
         @test indices(imgr) == (0:6, 0:6)
+        @test eltype(imgr) == eltype(img_pyramid)
         # Use map and === because of the NaNs
         @test nearlysame(round.(Float64.(parent(imgr)),3), round.(ref_img_pyramid,3))
 
