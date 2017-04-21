@@ -21,7 +21,8 @@ export
     imresize,
     center,
     warp,
-    WarpedView
+    WarpedView,
+    warpedview
 
 include("autorange.jl")
 include("resizing.jl")
