@@ -11,7 +11,7 @@ notifications:
 # uncomment the following lines to override the default test script
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("ImageTransformations"); Pkg.test("ImageTransformations"; coverage=VERSION >= v"0.6.0-alpha")'
+  - julia --color=yes -e 'Pkg.clone(pwd()); Pkg.build("ImageTransformations"); Pkg.test("ImageTransformations"; coverage=VERSION >= v"0.6.0-alpha")'
 after_success:
   # push coverage results to Codecov
   - julia -e 'if VERSION >= v"0.6.0-alpha" cd(Pkg.dir("ImageTransformations")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder()); end'
