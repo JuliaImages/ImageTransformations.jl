@@ -26,6 +26,7 @@ export
 
 include("autorange.jl")
 include("resizing.jl")
+include("interpolations.jl")
 include("warp.jl")
 include("invwarpedview.jl")
 

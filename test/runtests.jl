@@ -18,6 +18,7 @@ function test_reference_impl{T<:String}(filename, actual::AbstractArray{T})
         reference = replace.(readlines(reference_path(filename)), ["\n"], [""])
         try
             @assert reference == actual # to throw error
+            @test true # to increase test counter if reached
         catch # test failed
             println("Test for \"$filename\" failed.")
             println("- REFERENCE -------------------")
@@ -65,6 +66,7 @@ end
 tests = [
     "autorange.jl",
     "resizing.jl",
+    "interpolations.jl",
     "warp.jl",
 ]
 
