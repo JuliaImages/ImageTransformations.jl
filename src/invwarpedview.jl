@@ -10,7 +10,7 @@ immutable InvWarpedView{T,N,A<:AbstractArray,F1<:Transformation,I,F2<:Transforma
             tform::F,
             indices::I)
         @assert eltype(parent) == T
-        etp = _box_extrapolation(parent)
+        etp = box_extrapolation(parent)
         tinv = inv(tform)
         new{T,N,TA,F,I,typeof(tinv),typeof(etp)}(parent, tform, indices, tinv, etp)
     end
@@ -62,7 +62,7 @@ function invwarpedview{T}(
         degree::Union{Linear,Constant},
         fill::FillType = _default_fill(T),
         args...)
-    invwarpedview(_box_extrapolation(A, degree, fill), tform, args...)
+    invwarpedview(box_extrapolation(A, degree, fill), tform, args...)
 end
 
 function invwarpedview(

@@ -12,20 +12,28 @@
 @inline _default_fill{T<:FloatColorant}(::Type{T}) = _nan(T)
 @inline _default_fill{T}(::Type{T}) = zero(T)
 
-_box_extrapolation(etp::AbstractExtrapolation) = etp
+box_extrapolation(etp::AbstractExtrapolation) = etp
 
-function _box_extrapolation{T}(itp::AbstractInterpolation{T}, fill::FillType = _default_fill(T))
+function box_extrapolation{T}(itp::AbstractInterpolation{T}, fill::FillType = _default_fill(T))
     etp = extrapolate(itp, fill)
-    _box_extrapolation(etp)
+    box_extrapolation(etp)
 end
 
-function _box_extrapolation{T,N,D<:Union{Linear,Constant}}(parent::AbstractArray{T,N}, degree::D = Linear(), args...)
+function box_extrapolation{T,N,D<:Union{Linear,Constant}}(parent::AbstractArray{T,N}, degree::D = Linear(), args...)
     itp = Interpolations.BSplineInterpolation{T,N,typeof(parent),BSpline{D},OnGrid,0}(parent)
-    _box_extrapolation(itp, args...)
+    box_extrapolation(itp, args...)
 end
 
-function _box_extrapolation(parent::AbstractArray, fill::FillType)
-    _box_extrapolation(parent, Linear(), fill)
+function box_extrapolation(parent::AbstractArray, fill::FillType)
+    box_extrapolation(parent, Linear(), fill)
+end
+
+function box_extrapolation(itp::AbstractInterpolation, degree::Union{Linear,Constant}, args...)
+    throw(ArgumentError("Boxing an interpolation in another interpolation is discouraged. Did you specify the parameter \"$degree\" on purpose?"))
+end
+
+function box_extrapolation(itp::AbstractExtrapolation, fill::FillType)
+    throw(ArgumentError("Boxing an extrapolation in another extrapolation is discouraged. Did you specify the parameter \"$fill\" on purpose?"))
 end
 
 # This is type-piracy, but necessary if we want Interpolations to be

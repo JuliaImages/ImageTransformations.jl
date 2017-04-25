@@ -84,11 +84,11 @@ function warp!(out, img::AbstractExtrapolation, tform)
 end
 
 function warp{T,N}(img::AbstractArray{T,N}, tform, inds::Tuple, args...)
-    etp = _box_extrapolation(img, args...)
+    etp = box_extrapolation(img, args...)
     warp(etp, tform, inds)
 end
 
 function warp{T,N}(img::AbstractArray{T,N}, tform, args...)
-    etp = _box_extrapolation(img, args...)
+    etp = box_extrapolation(img, args...)
     warp(etp, tform)
 end

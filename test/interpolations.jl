@@ -34,51 +34,58 @@
     @test @inferred(_default_fill(HSV{Float64})) === HSV{Float64}(NaN,NaN,NaN)
 end
 
-@testset "_box_extrapolation" begin
-    @test_throws UndefVarError _box_extrapolation
-    @test typeof(ImageTransformations._box_extrapolation) <: Function
-    import ImageTransformations._box_extrapolation
+@testset "box_extrapolation" begin
+    @test_throws UndefVarError box_extrapolation
+    @test typeof(ImageTransformations.box_extrapolation) <: Function
+    import ImageTransformations.box_extrapolation
 
     img = rand(Gray{N0f8}, 2, 2)
 
-    etp = @inferred _box_extrapolation(img)
-    @test @inferred(_box_extrapolation(etp)) === etp
+    etp = @inferred box_extrapolation(img)
+    @test @inferred(box_extrapolation(etp)) === etp
     @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.fillvalue === Gray{N0f8}(0.0)
     @test etp.itp.coefs === img
 
-    etp2 = @inferred _box_extrapolation(etp.itp)
+    @test_throws ArgumentError box_extrapolation(etp, 0)
+    @test_throws ArgumentError box_extrapolation(etp, Flat())
+    @test_throws ArgumentError box_extrapolation(etp, Constant())
+    @test_throws ArgumentError box_extrapolation(etp, Constant(), Flat())
+    @test_throws ArgumentError box_extrapolation(etp.itp, Constant())
+    @test_throws ArgumentError box_extrapolation(etp.itp, Constant(), Flat())
+
+    etp2 = @inferred box_extrapolation(etp.itp)
     @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
     @test typeof(etp2) <: Interpolations.FilledExtrapolation
     @test etp2.fillvalue === Gray{N0f8}(0.0)
     @test etp2 !== etp
     @test etp2.itp === etp.itp
 
-    etp2 = @inferred _box_extrapolation(etp.itp, Flat())
+    etp2 = @inferred box_extrapolation(etp.itp, Flat())
     @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
     @test typeof(etp2) <: Interpolations.Extrapolation
     @test etp2 !== etp
     @test etp2.itp === etp.itp
 
-    etp = @inferred _box_extrapolation(img, 1)
+    etp = @inferred box_extrapolation(img, 1)
     @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.fillvalue === Gray{N0f8}(1.0)
     @test etp.itp.coefs === img
 
-    etp = @inferred _box_extrapolation(img, Flat())
-    @test @inferred(_box_extrapolation(etp)) === etp
+    etp = @inferred box_extrapolation(img, Flat())
+    @test @inferred(box_extrapolation(etp)) === etp
     @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
 
-    etp = @inferred _box_extrapolation(img, Constant())
+    etp = @inferred box_extrapolation(img, Constant())
     @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Gray{N0f8}(0.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.itp.coefs === img
 
-    etp = @inferred _box_extrapolation(img, Constant(), Flat())
+    etp = @inferred box_extrapolation(img, Constant(), Flat())
     @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Flat()) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
