@@ -68,6 +68,7 @@ tests = [
     "resizing.jl",
     "interpolations.jl",
     "warp.jl",
+    "deprecations.jl",
 ]
 
 for t in tests
