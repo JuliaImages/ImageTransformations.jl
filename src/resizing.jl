@@ -222,6 +222,7 @@ imresize_type(c::FixedPoint) = typeof(c)
 imresize_type(c) = typeof((c*1)/1)
 
 function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractArray{S,N})
+    # FIXME: avoid allocation for interpolation
     itp = interpolate(original, BSpline(Linear()), OnGrid())
     imresize!(resized, itp)
 end

@@ -24,11 +24,16 @@ function box_extrapolation{T,N,D<:Union{Linear,Constant}}(parent::AbstractArray{
     box_extrapolation(itp, args...)
 end
 
+function box_extrapolation{T,N}(parent::AbstractArray{T,N}, degree::Interpolations.Degree, args...)
+    itp = interpolate(parent, BSpline(degree), OnGrid())
+    box_extrapolation(itp, args...)
+end
+
 function box_extrapolation(parent::AbstractArray, fill::FillType)
     box_extrapolation(parent, Linear(), fill)
 end
 
-function box_extrapolation(itp::AbstractInterpolation, degree::Union{Linear,Constant}, args...)
+function box_extrapolation(itp::AbstractInterpolation, degree::Interpolations.Degree, args...)
     throw(ArgumentError("Boxing an interpolation in another interpolation is discouraged. Did you specify the parameter \"$degree\" on purpose?"))
 end
 

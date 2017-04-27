@@ -1,38 +1,41 @@
 """
     warp(img, tform, [indices], [degree = Linear()], [fill = NaN]) -> imgw
 
-Transform the coordinates of `img`, returning a new `imgw` satisfying
-`imgw[I] = img[tform(I)]`. This approach is known as backward
-mode warping. The transformation `tform` must accept a `SVector` as
-input. A useful package to create a wide variety of such transformations is
+Transform the coordinates of `img`, returning a new `imgw`
+satisfying `imgw[I] = img[tform(I)]`. This approach is known as
+backward mode warping. The transformation `tform` must accept a
+`SVector` as input. A useful package to create a wide variety of
+such transformations is
 [CoordinateTransformations.jl](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
-# Interpolation scheme
+# Reconstruction scheme
 
-At off-grid points, `imgw` is calculated by interpolation. The
-degree of the b-spline can be specified with the optional
-parameter `degree`, which can take the values `Linear()` or
-`Constant()`.
+During warping, values for `img` must be reconstructed at
+arbitrary locations `tform(I)` which do not lie on to the lattice
+of pixels. How this reconstruction is done depends on the type of
+`img` and the optional parameter `degree`.
 
-The b-spline interpolation is used when `img` is a plain array
-and `img[tform(I)]` is inbound. In the case `tform(I)` maps to
-indices outside the original `img`, those locations are set to a
-value `fill` (which defaults to `NaN` if the element type supports
-it, and `0` otherwise).
+When `img` is a plain array, b-spline interpolation is used with
+`degree = Linear()` for linear interpolation or `degree =
+Constant()` for nearest neighbor interpolation. In the case
+`tform(I)` maps to indices outside the original `img`, those
+locations are set to a value `fill` (which defaults to `NaN` if
+the element type supports it, and `0` otherwise).
 
-For more control over the interpolation scheme --- and how
+For more control over the reconstruction scheme --- and how
 beyond-the-edge points are handled --- pass `img` as an
 `AbstractInterpolation` or `AbstractExtrapolation` from
 [Interpolations.jl](https://github.com/JuliaMath/Interpolations.jl).
 
 # The meaning of the coordinates
 
-The output array `imgw` has indices that would result from applying
-`inv(tform)` to the indices of `img`. This can be very handy for keeping
-track of how pixels in `imgw` line up with pixels in `img`.
+The output array `imgw` has indices that would result from
+applying `inv(tform)` to the indices of `img`. This can be very
+handy for keeping track of how pixels in `imgw` line up with
+pixels in `img`.
 
-If you just want a plain array, you can "strip" the custom indices
-with `parent(imgw)`.
+If you just want a plain array, you can "strip" the custom
+indices with `parent(imgw)`.
 
 # Examples: a 2d rotation (see JuliaImages documentation for pictures)
 
@@ -46,7 +49,7 @@ julia> indices(img)
 
 # Rotate around the center of `img`
 julia> tfm = recenter(RotMatrix(-pi/4), center(img))
-AffineMap([0.707107 -0.707107; 0.707107 0.707107], [347.01,-68.7554])
+AffineMap([0.707107 0.707107; -0.707107 0.707107], [-196.755,293.99])
 
 julia> imgw = warp(img, tfm);
 
@@ -111,8 +114,8 @@ inv(tform), args...)` right now.
 To change to the new behaviour, set `const warp =
 ImageTransformations.warp_new` right after package import.
 """
-@generated function warp_old(img::AbstractArray, tform, args...)
-    Base.depwarn("'warp(img, tform)' is deprecated in favour of the new interpretation 'warp(img, inv(tform))'. Set 'const warp = ImageTransformations.warp_new' right after package import to change to the new behaviour right away. See https://github.com/JuliaImages/ImageTransformations.jl/issues/25 for more background information", :warp)
-    :(warp_new(img, inv(tform), args...))
+function warp_old(img::AbstractArray, tform, args...)
+    Base.depwarn("'warp(img, tform)' is deprecated in favour of the new interpretation 'warp(img, inv(tform))'. Set 'const warp = ImageTransformations.warp_new' right after package import to change to the new behaviour right away. See https://github.com/JuliaImages/ImageTransformations.jl/issues/25 for more background information", :warp_old)
+    warp_new(img, inv(tform), args...)
 end
 const warp = warp_old

@@ -26,6 +26,20 @@ img_camera = testimage("camera")
         @test_reference "warp_cameraman" imgr2[indices(img_camera)...]
         # look the same but are not similar enough to pass test
         # @test imgr2[indices(img_camera)...] ≈ img_camera
+
+        imgr = @inferred(warp(img_camera, tfm, Flat()))
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        imgr = @inferred(warp(img_camera, tfm, ref_inds, Flat()))
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+
+        imgr = @inferred(warp(img_camera, tfm, Constant(), Periodic()))
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+        imgr = @inferred(warp(img_camera, tfm, ref_inds, Constant(), Periodic()))
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
     end
 
     tfm = recenter(RotMatrix(-pi/8), center(img_camera))
@@ -75,6 +89,15 @@ ref_img_pyramid_quad = Float64[
     NaN      NaN     -0.038    0.205   -0.038    NaN      NaN;
     NaN      NaN      NaN      0.003    NaN      NaN      NaN;
 ]
+ref_img_pyramid_grid = Float64[
+    NaN  NaN         NaN         NaN         NaN         NaN         NaN;
+    NaN  NaN         NaN           0.157977  NaN         NaN         NaN;
+    NaN  NaN           0.223858    0.654962    0.223858  NaN         NaN;
+    NaN    0.157977    0.654962    1.0         0.654962    0.157977  NaN;
+    NaN  NaN           0.223858    0.654962    0.223858  NaN         NaN;
+    NaN  NaN         NaN           0.157977  NaN         NaN         NaN;
+    NaN  NaN         NaN         NaN         NaN         NaN         NaN;
+]
 
 @testset "Result against reference" begin
 
@@ -92,6 +115,10 @@ ref_img_pyramid_quad = Float64[
             imgr_cntr = warp(img_pyramid_cntr, tfm2)
             @test indices(imgr_cntr) == (-3:3, -3:3)
             @test nearlysame(parent(imgr_cntr), parent(imgr))
+
+            imgr_cntr = warp(img_pyramid_cntr, tfm2, (-1:1,-1:1))
+            @test indices(imgr_cntr) == (-1:1, -1:1)
+            @test nearlysame(parent(imgr_cntr), imgr[2:4,2:4])
         end
 
         @testset "Quadratic Interpolation" begin
@@ -99,6 +126,10 @@ ref_img_pyramid_quad = Float64[
             imgrq_cntr = warp(itp, tfm2)
             @test indices(imgrq_cntr) == (-3:3, -3:3)
             @test nearlysame(round.(Float64.(parent(imgrq_cntr)),3), round.(ref_img_pyramid_quad,3))
+
+            imgrq_cntr = warp(img_pyramid_cntr, tfm2, Quadratic(Flat()))
+            @test indices(imgrq_cntr) == (-3:3, -3:3)
+            @test nearlysame(round.(Float64.(parent(imgrq_cntr)),3), round.(ref_img_pyramid_grid,3))
         end
     end
 
