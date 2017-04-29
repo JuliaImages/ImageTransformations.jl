@@ -21,6 +21,8 @@ export
     imresize,
     center,
     warp,
+    WarpedView,
+    warpedview,
     InvWarpedView,
     invwarpedview
 
@@ -28,6 +30,7 @@ include("autorange.jl")
 include("resizing.jl")
 include("interpolations.jl")
 include("warp.jl")
+include("warpedview.jl")
 include("invwarpedview.jl")
 
 @inline _getindex(A, v::StaticVector) = A[convert(Tuple, v)...]
