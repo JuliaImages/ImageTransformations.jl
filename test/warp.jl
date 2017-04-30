@@ -14,11 +14,31 @@ img_camera = testimage("camera")
 
     @testset "warp_new" begin
         imgr = @inferred(warp(img_camera, tfm))
+        @test typeof(imgr) <: OffsetArray
         @test indices(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "warp_cameraman_rotate_r22deg" imgr
 
+        imgr2 = imgr[indices(img_camera)...]
+        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr2
+
+        imgr = @inferred(warp(img_camera, tfm, indices(img_camera)))
+        @test typeof(imgr) <: Array
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr
+
+        imgr = @inferred(warp(img_camera, tfm, indices(img_camera), 1))
+        @test typeof(imgr) <: Array
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+
+        imgr = @inferred(warp(img_camera, tfm, indices(img_camera), Linear(), 1))
+        @test typeof(imgr) <: Array
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+
         imgr = @inferred(warp(img_camera, tfm, 1))
+        @test typeof(imgr) <: OffsetArray
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "warp_cameraman_rotate_r22deg_white" imgr
         imgr2 = @inferred warp(imgr, inv(tfm))
@@ -28,6 +48,7 @@ img_camera = testimage("camera")
         # @test imgr2[indices(img_camera)...] ≈ img_camera
 
         imgr = @inferred(warp(img_camera, tfm, Flat()))
+        @test typeof(imgr) <: OffsetArray
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
         imgr = @inferred(warp(img_camera, tfm, ref_inds, Flat()))
@@ -35,6 +56,7 @@ img_camera = testimage("camera")
         @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
 
         imgr = @inferred(warp(img_camera, tfm, Constant(), Periodic()))
+        @test typeof(imgr) <: OffsetArray
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
         imgr = @inferred(warp(img_camera, tfm, ref_inds, Constant(), Periodic()))
