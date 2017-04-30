@@ -28,8 +28,11 @@ Base.parent(A::WarpedView) = A.parent
 @inline Base.getindex{T,N}(A::WarpedView{T,N}, I::Vararg{Int,N}) =
     _getindex(A.extrapolation, A.transform(SVector(I)))
 
-Base.size(A::WarpedView)    = OffsetArrays.errmsg(A)
-Base.size(A::WarpedView, d) = OffsetArrays.errmsg(A)
+Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F})    = OffsetArrays.errmsg(A)
+Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F}, d) = OffsetArrays.errmsg(A)
+
+Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}})    = map(length, A.indices)
+Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}, d) = d <= N ? length(A.indices[d]) : 1
 
 function ShowItLikeYouBuildIt.showarg(io::IO, A::WarpedView)
     print(io, "WarpedView(")
@@ -51,15 +54,30 @@ function warpedview{T}(
         A::AbstractArray{T},
         tform::Transformation,
         degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T),
-        args...)
-    warpedview(box_extrapolation(A, degree, fill), tform, args...)
+        fill::FillType = _default_fill(T))
+    warpedview(box_extrapolation(A, degree, fill), tform)
+end
+
+function warpedview{T}(
+        A::AbstractArray{T},
+        tform::Transformation,
+        indices::Tuple,
+        degree::Union{Linear,Constant},
+        fill::FillType = _default_fill(T))
+    warpedview(box_extrapolation(A, degree, fill), tform, indices)
 end
 
 function warpedview(
         A::AbstractArray,
         tform::Transformation,
-        fill::FillType,
-        args...)
-    warpedview(A, tform, Linear(), fill, args...)
+        fill::FillType)
+    warpedview(A, tform, Linear(), fill)
+end
+
+function warpedview(
+        A::AbstractArray,
+        tform::Transformation,
+        indices::Tuple,
+        fill::FillType)
+    warpedview(A, tform, indices, Linear(), fill)
 end

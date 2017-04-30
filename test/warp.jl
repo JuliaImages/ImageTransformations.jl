@@ -8,7 +8,7 @@ nearlysame(A::AbstractArray, B::AbstractArray) = all(map(nearlysame, A, B))
 SPACE = VERSION < v"0.6.0-dev.2505" ? "" : " " # julia PR #20288
 
 img_camera = testimage("camera")
-@testset "Constructor" begin
+@testset "Interface tests" begin
     tfm = recenter(RotMatrix(pi/8), center(img_camera))
     ref_inds = (-78:591, -78:591)
 
@@ -64,10 +64,110 @@ img_camera = testimage("camera")
         @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
     end
 
+    @testset "warpedview" begin
+        imgr = @inferred(warpedview(img_camera, tfm))
+        @test imgr == @inferred(WarpedView(img_camera, tfm))
+        @test summary(imgr) == "-78:591×-78:591 WarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test parent(imgr) === img_camera
+        @test typeof(imgr) <: WarpedView
+        @test indices(imgr) == ref_inds
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg" imgr
+
+        imgr2 = imgr[indices(img_camera)...]
+        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr2
+
+        imgr = @inferred(warpedview(img_camera, tfm, indices(img_camera)))
+        @test imgr == @inferred(WarpedView(img_camera, tfm, indices(img_camera)))
+        @test summary(imgr) == "512×512 WarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test @inferred(size(imgr)) == size(img_camera)
+        @test @inferred(size(imgr,3)) == 1
+        @test parent(imgr) === img_camera
+        @test indices(imgr) === indices(img_camera)
+        @test typeof(imgr) <: WarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr
+
+        imgr = @inferred(warpedview(img_camera, tfm, indices(img_camera), 1))
+        @test summary(imgr) == "512×512 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test @inferred(size(imgr)) == size(img_camera)
+        @test @inferred(size(imgr,3)) == 1
+        @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test indices(imgr) === indices(img_camera)
+        @test typeof(imgr) <: WarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+
+        imgr = @inferred(warpedview(img_camera, tfm, indices(img_camera), Linear(), 1))
+        @test summary(imgr) == "512×512 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test @inferred(size(imgr)) == size(img_camera)
+        @test @inferred(size(imgr,3)) == 1
+        @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test indices(imgr) === indices(img_camera)
+        @test typeof(imgr) <: WarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+
+        imgr = @inferred(warpedview(img_camera, tfm, 1))
+        @test summary(imgr) == "-78:591×-78:591 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test typeof(imgr) <: WarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_white" imgr
+        imgr2 = @inferred warpedview(imgr, inv(tfm))
+        @test eltype(imgr2) == eltype(img_camera)
+        @test_reference "warp_cameraman" imgr2[indices(img_camera)...]
+        # look the same but are not similar enough to pass test
+        # @test imgr2[indices(img_camera)...] ≈ img_camera
+
+        imgr = @inferred(warpedview(img_camera, tfm, Flat()))
+        @test summary(imgr) == "-78:591×-78:591 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test typeof(parent(imgr)) <: Interpolations.Extrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test typeof(imgr) <: WarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        imgr = @inferred(warpedview(img_camera, tfm, ref_inds, Flat()))
+        @test eltype(imgr) == eltype(img_camera)
+        @test indices(imgr) === ref_inds
+        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+
+        imgr = @inferred(warpedview(img_camera, tfm, Constant(), Periodic()))
+        @test summary(imgr) == "-78:591×-78:591 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test typeof(parent(imgr)) <: Interpolations.Extrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test typeof(imgr) <: WarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+
+        imgr = @inferred(warpedview(img_camera, tfm, ref_inds, Constant(), Periodic()))
+        @test summary(imgr) == "-78:591×-78:591 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+    end
+
     tfm = recenter(RotMatrix(-pi/8), center(img_camera))
-    @testset "InvWarpedView" begin
+    @testset "invwarpedview" begin
         wv = @inferred(InvWarpedView(img_camera, tfm))
-        @test summary(wv) == "-78:591×-78:591 InvWarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test wv ≈ @inferred(InvWarpedView(WarpedView(img_camera, inv(tfm))))
         @test_reference "invwarpedview_cameraman_rotate_r22deg" wv
         @test_throws ErrorException size(wv)
         @test_throws ErrorException size(wv, 1)
@@ -82,6 +182,99 @@ img_camera = testimage("camera")
         @test eltype(wv2) === eltype(img_camera)
         @test parent(wv2) === img_camera
         @test wv2 ≈ img_camera
+
+        imgr = @inferred(invwarpedview(img_camera, tfm))
+        @test imgr == @inferred(InvWarpedView(img_camera, tfm))
+        @test summary(imgr) == "-78:591×-78:591 InvWarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test parent(imgr) === img_camera
+        @test typeof(imgr) <: InvWarpedView
+        @test indices(imgr) == ref_inds
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg" imgr
+
+        imgr2 = imgr[indices(img_camera)...]
+        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr2
+
+        imgr = @inferred(invwarpedview(img_camera, tfm, indices(img_camera)))
+        @test imgr == @inferred(InvWarpedView(img_camera, tfm, indices(img_camera)))
+        @test summary(imgr) == "512×512 InvWarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test @inferred(size(imgr)) == size(img_camera)
+        @test @inferred(size(imgr,3)) == 1
+        @test parent(imgr) === img_camera
+        @test indices(imgr) === indices(img_camera)
+        @test typeof(imgr) <: InvWarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr
+
+        imgr = @inferred(invwarpedview(img_camera, tfm, indices(img_camera), 1))
+        @test summary(imgr) == "512×512 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test @inferred(size(imgr)) == size(img_camera)
+        @test @inferred(size(imgr,3)) == 1
+        @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test indices(imgr) === indices(img_camera)
+        @test typeof(imgr) <: InvWarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+
+        imgr = @inferred(invwarpedview(img_camera, tfm, indices(img_camera), Linear(), 1))
+        @test summary(imgr) == "512×512 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test @inferred(size(imgr)) == size(img_camera)
+        @test @inferred(size(imgr,3)) == 1
+        @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test indices(imgr) === indices(img_camera)
+        @test typeof(imgr) <: InvWarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+
+        imgr = @inferred(invwarpedview(img_camera, tfm, 1))
+        @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test typeof(imgr) <: InvWarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_white" imgr
+
+        imgr = @inferred(invwarpedview(img_camera, tfm, Flat()))
+        @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test typeof(parent(imgr)) <: Interpolations.Extrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test typeof(imgr) <: InvWarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        imgr = @inferred(invwarpedview(img_camera, tfm, ref_inds, Flat()))
+        @test eltype(imgr) == eltype(img_camera)
+        @test indices(imgr) === ref_inds
+        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+
+        imgr = @inferred(invwarpedview(img_camera, tfm, Constant(), Periodic()))
+        @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test typeof(parent(imgr)) <: Interpolations.Extrapolation
+        @test parent(imgr).itp.coefs === img_camera
+        @test typeof(imgr) <: InvWarpedView
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+
+        imgr = @inferred(invwarpedview(img_camera, tfm, ref_inds, Constant(), Periodic()))
+        @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_throws ErrorException size(imgr)
+        @test_throws ErrorException size(imgr, 1)
+        @test_throws ErrorException size(imgr, 5)
+        @test eltype(imgr) == eltype(img_camera)
+        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
     end
 end
 

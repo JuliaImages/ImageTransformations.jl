@@ -5,7 +5,7 @@ end
 
 function InvWarpedView{T,N,TA,F,I,E}(inner::WarpedView{T,N,TA,F,I,E})
     tinv = inv(inner.transform)
-    InvWarpedView{T,N,TA,F,I,typeof(inv),E}(inner, tinv)
+    InvWarpedView{T,N,TA,F,I,typeof(tinv),E}(inner, tinv)
 end
 
 function InvWarpedView(A::AbstractArray, tinv::Transformation, inds::Tuple = autorange(A, tinv))
@@ -23,8 +23,8 @@ Base.parent(A::InvWarpedView) = parent(A.inner)
 @compat Compat.IndexStyle{T<:InvWarpedView}(::Type{T}) = IndexCartesian()
 @inline Base.getindex{T,N}(A::InvWarpedView{T,N}, I::Vararg{Int,N}) = A.inner[I...]
 
-Base.size(A::InvWarpedView)    = OffsetArrays.errmsg(A)
-Base.size(A::InvWarpedView, d) = OffsetArrays.errmsg(A)
+Base.size(A::InvWarpedView)    = size(A.inner)
+Base.size(A::InvWarpedView, d) = size(A.inner, d)
 
 function ShowItLikeYouBuildIt.showarg(io::IO, A::InvWarpedView)
     print(io, "InvWarpedView(")
@@ -46,15 +46,30 @@ function invwarpedview{T}(
         A::AbstractArray{T},
         tinv::Transformation,
         degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T),
-        args...)
-    invwarpedview(box_extrapolation(A, degree, fill), tinv, args...)
+        fill::FillType = _default_fill(T))
+    invwarpedview(box_extrapolation(A, degree, fill), tinv)
+end
+
+function invwarpedview{T}(
+        A::AbstractArray{T},
+        tinv::Transformation,
+        indices::Tuple,
+        degree::Union{Linear,Constant},
+        fill::FillType = _default_fill(T))
+    invwarpedview(box_extrapolation(A, degree, fill), tinv, indices)
 end
 
 function invwarpedview(
         A::AbstractArray,
         tinv::Transformation,
-        fill::FillType,
-        args...)
-    invwarpedview(A, tinv, Linear(), fill, args...)
+        fill::FillType)
+    invwarpedview(A, tinv, Linear(), fill)
+end
+
+function invwarpedview(
+        A::AbstractArray,
+        tinv::Transformation,
+        indices::Tuple,
+        fill::FillType)
+    invwarpedview(A, tinv, indices, Linear(), fill)
 end
