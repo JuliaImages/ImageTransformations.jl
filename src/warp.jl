@@ -15,12 +15,18 @@ arbitrary locations `tform(I)` which do not lie on to the lattice
 of pixels. How this reconstruction is done depends on the type of
 `img` and the optional parameter `degree`.
 
-When `img` is a plain array, b-spline interpolation is used with
-`degree = Linear()` for linear interpolation or `degree =
-Constant()` for nearest neighbor interpolation. In the case
-`tform(I)` maps to indices outside the original `img`, those
-locations are set to a value `fill` (which defaults to `NaN` if
-the element type supports it, and `0` otherwise).
+When `img` is a plain array, then on-grid b-spline interpolation
+will be used. It is possible to configure what degree of b-spline
+to use with the parameter `degree`. For example one can use
+`degree = Linear()` for linear interpolation, `degree =
+Constant()` for nearest neighbor interpolation, or `degree =
+Quadratic(Flat())` for quadratic interpolation.
+
+In the case `tform(I)` maps to indices outside the original
+`img`, those locations are set to a value `fill` (which defaults
+to `NaN` if the element type supports it, and `0` otherwise). The
+parameter `fill` also accepts extrapolation schemes, such as
+`Flat()`, `Periodic()` or `Reflect()`.
 
 For more control over the reconstruction scheme --- and how
 beyond-the-edge points are handled --- pass `img` as an
