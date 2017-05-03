@@ -33,6 +33,10 @@ function box_extrapolation(parent::AbstractArray, fill::FillType)
     box_extrapolation(parent, Linear(), fill)
 end
 
+function box_extrapolation(itp::AbstractInterpolation, degree::Union{Linear,Constant}, args...)
+    throw(ArgumentError("Boxing an interpolation in another interpolation is discouraged. Did you specify the parameter \"$degree\" on purpose?"))
+end
+
 function box_extrapolation(itp::AbstractInterpolation, degree::Interpolations.Degree, args...)
     throw(ArgumentError("Boxing an interpolation in another interpolation is discouraged. Did you specify the parameter \"$degree\" on purpose?"))
 end
