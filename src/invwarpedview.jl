@@ -135,9 +135,15 @@ function invwarpedview(
     invwarpedview(A, tinv, indices, Linear(), fill)
 end
 
-function invwarpedview{T,N,W<:InvWarpedView,F<:Transformation}(inner_view::SubArray{T,N,W}, tinv::F)
+function invwarpedview{T,N,W<:InvWarpedView}(inner_view::SubArray{T,N,W}, tinv::Transformation)
     inner = parent(inner_view)
     new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
     inds = autorange(CartesianRange(inner_view.indexes), tinv)
-    view(new_inner, inds...)
+    view(new_inner, map(IdentityRange, inds)...)
+end
+
+function invwarpedview{T,N,W<:InvWarpedView}(inner_view::SubArray{T,N,W}, tinv::Transformation, indices::Tuple)
+    inner = parent(inner_view)
+    new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
+    view(new_inner, indices...)
 end
