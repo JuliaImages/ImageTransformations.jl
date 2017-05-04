@@ -31,4 +31,4 @@ build_script:
       Pkg.clone(pwd(), \"ImageTransformations\"); Pkg.build(\"ImageTransformations\")"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.test(\"ImageTransformations\")"
+  - C:\projects\julia\bin\julia --color=yes -e "Pkg.test(\"ImageTransformations\")"
