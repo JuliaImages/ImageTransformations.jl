@@ -80,12 +80,9 @@ julia> indices(imgr)
 ```
 """
 function warp_new{T}(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform)))
-    out = _allocate_array(T, inds)
+    out = similar(Array{T}, inds)
     warp!(out, img, tform)
 end
-
-_allocate_array{T,N}(::Type{T}, inds::NTuple{N,Base.OneTo}) = Array{T}(map(length, inds))
-_allocate_array{T,N}(::Type{T}, inds::NTuple{N,AbstractUnitRange}) = OffsetArray(Array{T}(map(length, inds)), inds)
 
 # this function was never exported, so no need to deprecate
 function warp!(out, img::AbstractExtrapolation, tform)

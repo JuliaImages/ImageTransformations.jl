@@ -3,8 +3,9 @@
 
 Create a view of `img` that lazily transforms any given index `I`
 passed to `wv[I]` to correspond to `img[inv(tinv)(I)]`. While
-technically this approach is known as backward mode warping,
-`InvWarpedView` is created using the forward transformation.
+technically this approach is known as backward mode warping, note
+that `InvWarpedView` is created by supplying the forward
+transformation
 
 The conceptual difference to [`WarpedView`](@ref) is that
 `InvWarpedView` is intended to be used when reasoning about the
@@ -63,11 +64,11 @@ Base.summary(A::InvWarpedView) = summary_build(A)
 
 Create a view of `img` that lazily transforms any given index `I`
 passed to `wv[I]` to correspond to `img[inv(tinv)(I)]`. While
-technically this approach is known as backward mode warping,
-`InvWarpedView` is created using the forward transformation. The
-given transformation `tinv` must accept a `SVector` as input and
-support `inv(tinv)`. A useful package to create a wide variety of
-such transformations is
+technically this approach is known as backward mode warping, note
+that `InvWarpedView` is created by supplying the forward
+transformation. The given transformation `tinv` must accept a
+`SVector` as input and support `inv(tinv)`. A useful package to
+create a wide variety of such transformations is
 [CoordinateTransformations.jl](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
 When invoking `wv[I]`, values for `img` must be reconstructed at
