@@ -40,6 +40,11 @@ function InvWarpedView(inner::InvWarpedView, outer_tinv::Transformation)
     InvWarpedView(parent(inner), tinv)
 end
 
+function InvWarpedView(inner::InvWarpedView, outer_tinv::Transformation, inds::Tuple)
+    tinv = compose(outer_tinv, inner.inverse)
+    InvWarpedView(parent(inner), tinv, inds)
+end
+
 Base.parent(A::InvWarpedView) = parent(A.inner)
 @inline Base.indices(A::InvWarpedView) = indices(A.inner)
 
@@ -57,7 +62,20 @@ function ShowItLikeYouBuildIt.showarg(io::IO, A::InvWarpedView)
     print(io, ')')
 end
 
+# showargs for SubArray{<:Colorant} is already implemented by ImageCore
+function ShowItLikeYouBuildIt.showarg{T<:Number,N,W<:InvWarpedView}(io::IO, A::SubArray{T,N,W})
+    print(io, "view(")
+    showarg(io, parent(A))
+    print(io, ", ")
+    for (i, el) in enumerate(A.indexes)
+        print(io, el)
+        i < length(A.indexes) && print(io, ", ")
+    end
+    print(io, ')')
+end
+
 Base.summary(A::InvWarpedView) = summary_build(A)
+Base.summary{T<:Number,N,W<:InvWarpedView}(A::SubArray{T,N,W}) = summary_build(A)
 
 """
     invwarpedview(img, tinv, [indices], [degree = Linear()], [fill = NaN]) -> wv
@@ -116,4 +134,22 @@ function invwarpedview(
         indices::Tuple,
         fill::FillType)
     invwarpedview(A, tinv, indices, Linear(), fill)
+end
+
+function invwarpedview{T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}(
+        inner_view::SubArray{T,N,W,I},
+        tinv::Transformation)
+    inner = parent(inner_view)
+    new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
+    inds = autorange(CartesianRange(inner_view.indexes), tinv)
+    view(new_inner, map(IdentityRange, inds)...)
+end
+
+function invwarpedview{T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}(
+        inner_view::SubArray{T,N,W,I},
+        tinv::Transformation,
+        indices::Tuple)
+    inner = parent(inner_view)
+    new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
+    view(new_inner, indices...)
 end

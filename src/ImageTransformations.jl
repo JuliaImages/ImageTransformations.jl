@@ -10,6 +10,7 @@ using OffsetArrays
 using FixedPointNumbers
 using Colors, ColorVectorSpace
 using Compat
+using IdentityRanges
 
 import Base: start, next, done, eltype, iteratorsize, size, length
 using Base: tail, Cartesian, Indices

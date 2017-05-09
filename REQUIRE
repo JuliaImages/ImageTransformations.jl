@@ -5,6 +5,7 @@ Interpolations 0.4
 AxisAlgorithms
 OffsetArrays
 StaticArrays
+IdentityRanges
 Colors 0.7.0
 ColorVectorSpace 0.2
 FixedPointNumbers 0.3

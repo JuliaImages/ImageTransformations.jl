@@ -42,7 +42,7 @@ Base.parent(A::WarpedView) = A.parent
 
 @compat Compat.IndexStyle{T<:WarpedView}(::Type{T}) = IndexCartesian()
 @inline Base.getindex{T,N}(A::WarpedView{T,N}, I::Vararg{Int,N}) =
-    _getindex(A.extrapolation, A.transform(SVector(I)))
+    T(_getindex(A.extrapolation, A.transform(SVector(I))))
 
 Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F})    = OffsetArrays.errmsg(A)
 Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F}, d) = OffsetArrays.errmsg(A)
