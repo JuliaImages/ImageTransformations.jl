@@ -1,4 +1,4 @@
-using CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers, OffsetArrays, Interpolations
+using CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers, StaticArrays, OffsetArrays, Interpolations
 using Base.Test, ImageInTerminal
 
 refambs = detect_ambiguities(CoordinateTransformations, Base, Core)
