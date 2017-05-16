@@ -68,6 +68,8 @@ img_camera = testimage("camera")
         imgr = @inferred(warpedview(img_camera, tfm))
         @test imgr == @inferred(WarpedView(img_camera, tfm))
         @test summary(imgr) == "-78:591×-78:591 WarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test @inferred(getindex(imgr,2,2)) == imgr[2,2]
+        @test typeof(imgr[2,2]) == eltype(imgr)
         @test_throws ErrorException size(imgr)
         @test_throws ErrorException size(imgr, 1)
         @test_throws ErrorException size(imgr, 5)
@@ -275,6 +277,35 @@ img_camera = testimage("camera")
         @test_throws ErrorException size(imgr, 5)
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+    end
+
+    tfm = recenter(RotMatrix(-pi/8), center(img_camera))
+    @testset "view of invwarpedview" begin
+        wv = @inferred(InvWarpedView(img_camera, tfm))
+        # tight crop that barely contains head and camera
+        v = @inferred view(wv, 75:195, 245:370)
+        @test summary(v) == "121×126 view(InvWarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])), 75:195, 245:370) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        tfm2 = AffineMap(@SMatrix([0.6 0.;0. 0.8]), @SVector([10.,50.]))
+        # this should still be a tight crop that
+        # barely contains head and camera !
+        wv2 = @inferred invwarpedview(v, tfm2)
+        @test indices(wv2) == (55:127,246:346)
+        @test typeof(wv2) <: SubArray
+        @test typeof(parent(wv2)) <: InvWarpedView
+        @test typeof(parent(wv2)) <: InvWarpedView
+        @test parent(parent(wv2)) === img_camera
+        @test summary(wv2) == "55:127×246:346 view(InvWarpedView(::Array{Gray{N0f8},2}, AffineMap([0.554328 0.22961; -0.306147 0.739104], [-37.18,$(SPACE)144.147])), IdentityRange(55:127), IdentityRange(246:346)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+        @test_reference "warp_cameraman_rotate_crop_scale" wv2
+        wv3 = @inferred invwarpedview(v, tfm2, wv2.indexes)
+        @test wv3 == wv2
+        @test indices(wv3) == (55:127,246:346)
+
+        # test summary for a view(InvWarpedView,...) for number eltypes
+        float_array = rand(10,10)
+        tfm = recenter(RotMatrix(-pi/8), center(float_array))
+        wv = @inferred(InvWarpedView(float_array, tfm))
+        v = @inferred view(wv, 1:10, 1:10)
+        @test summary(v) == "10×10 view(InvWarpedView(::Array{Float64,2}, AffineMap([0.92388 0.382683; -0.382683 0.92388], [-1.6861,$(SPACE)2.52342])), 1:10, 1:10) with element type Float64"
     end
 end
 
