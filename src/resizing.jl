@@ -259,6 +259,6 @@ end
 @inline map3(f, a, b, c) = (f(a[1], b[1], c[1]), map3(f, tail(a), tail(b), tail(c))...)
 @inline map3(f, ::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
 
-function clampR{N}(I::NTuple{N}, R::CartesianRange{CartesianIndex{N}})
+@compat function clampR{N}(I::NTuple{N}, R::CartesianRange{N})
     map3(clamp, I, first(R).I, last(R).I)
 end

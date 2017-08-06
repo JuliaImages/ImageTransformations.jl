@@ -22,7 +22,7 @@ immutable CornerIterator{I<:CartesianIndex}
     start::I
     stop::I
 end
-CornerIterator{I<:CartesianIndex}(R::CartesianRange{I}) = CornerIterator{I}(first(R), last(R))
+CornerIterator(R::CartesianRange) = CornerIterator(first(R), last(R))
 
 eltype{I}(::Type{CornerIterator{I}}) = I
 iteratorsize{I}(::Type{CornerIterator{I}}) = Base.HasShape()
