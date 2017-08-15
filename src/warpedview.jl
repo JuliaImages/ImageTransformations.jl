@@ -14,41 +14,41 @@ transformation `tform` does not support `inv`, then the parameter
 
 see [`warpedview`](@ref) for more information.
 """
-immutable WarpedView{T,N,A<:AbstractArray,F<:Transformation,I<:Tuple,E<:AbstractExtrapolation} <: AbstractArray{T,N}
+struct WarpedView{T,N,A<:AbstractArray,F<:Transformation,I<:Tuple,E<:AbstractExtrapolation} <: AbstractArray{T,N}
     parent::A
     transform::F
     indices::I
     extrapolation::E
 
-    function (::Type{WarpedView{T,N,TA,F,I}}){T,N,TA<:AbstractArray,F<:Transformation,I<:Tuple}(
+    function WarpedView{T,N,TA,F,I}(
             parent::TA,
             tform::F,
-            indices::I)
+            indices::I) where {T,N,TA<:AbstractArray,F<:Transformation,I<:Tuple}
         @assert eltype(parent) == T
         etp = box_extrapolation(parent)
         new{T,N,TA,F,I,typeof(etp)}(parent, tform, indices, etp)
     end
 end
 
-function WarpedView{T,N,F<:Transformation,I<:Tuple}(
+function WarpedView(
         A::AbstractArray{T,N},
         tform::F,
-        inds::I = autorange(A, inv(tform)))
+        inds::I = autorange(A, inv(tform))) where {T,N,F<:Transformation,I<:Tuple}
     WarpedView{T,N,typeof(A),F,I}(A, tform, inds)
 end
 
 Base.parent(A::WarpedView) = A.parent
 @inline Base.indices(A::WarpedView) = A.indices
 
-@compat Compat.IndexStyle{T<:WarpedView}(::Type{T}) = IndexCartesian()
-@inline Base.getindex{T,N}(A::WarpedView{T,N}, I::Vararg{Int,N}) =
+Compat.IndexStyle(::Type{T}) where {T<:WarpedView} = IndexCartesian()
+@inline Base.getindex(A::WarpedView{T,N}, I::Vararg{Int,N}) where {T,N} =
     T(_getindex(A.extrapolation, A.transform(SVector(I))))
 
-Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F})    = OffsetArrays.errmsg(A)
-Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F}, d) = OffsetArrays.errmsg(A)
+Base.size(A::WarpedView{T,N,TA,F}) where {T,N,TA,F}    = OffsetArrays.errmsg(A)
+Base.size(A::WarpedView{T,N,TA,F}, d) where {T,N,TA,F} = OffsetArrays.errmsg(A)
 
-Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}})    = map(length, A.indices)
-Base.size{T,N,TA,F}(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}, d) = d <= N ? length(A.indices[d]) : 1
+Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}) where {T,N,TA,F}    = map(length, A.indices)
+Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}, d) where {T,N,TA,F} = d <= N ? length(A.indices[d]) : 1
 
 function ShowItLikeYouBuildIt.showarg(io::IO, A::WarpedView)
     print(io, "WarpedView(")
@@ -105,20 +105,20 @@ insist that the resulting `WarpedView` will be a view of `img`
 @inline warpedview(A::AbstractArray, tform::Transformation, args...) =
     WarpedView(A, tform, args...)
 
-function warpedview{T}(
+function warpedview(
         A::AbstractArray{T},
         tform::Transformation,
         degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T))
+        fill::FillType = _default_fill(T)) where T
     warpedview(box_extrapolation(A, degree, fill), tform)
 end
 
-function warpedview{T}(
+function warpedview(
         A::AbstractArray{T},
         tform::Transformation,
         indices::Tuple,
         degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T))
+        fill::FillType = _default_fill(T)) where T
     warpedview(box_extrapolation(A, degree, fill), tform, indices)
 end
 

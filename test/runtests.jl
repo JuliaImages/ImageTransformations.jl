@@ -8,7 +8,7 @@ ambs = detect_ambiguities(ImageTransformations, CoordinateTransformations, Base,
 
 reference_path(filename) = joinpath(dirname(@__FILE__), "reference", "$(filename).txt")
 
-function test_reference_impl{T<:Colorant}(filename, img::AbstractArray{T})
+function test_reference_impl(filename, img::AbstractArray{T}) where T<:Colorant
     old_color = Base.have_color
     res = try
         eval(Base, :(have_color = true))
@@ -19,7 +19,7 @@ function test_reference_impl{T<:Colorant}(filename, img::AbstractArray{T})
     test_reference_impl(filename, res)
 end
 
-function test_reference_impl{T<:String}(filename, actual::AbstractArray{T})
+function test_reference_impl(filename, actual::AbstractArray{T}) where T<:String
     try
         reference = replace.(readlines(reference_path(filename)), ["\n"], [""])
         try
