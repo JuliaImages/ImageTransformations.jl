@@ -5,7 +5,7 @@
 @inline _nan{T}(::Type{T}) = nan(T)
 
 # The default values used by extrapolation for off-domain points
-@compat const FillType = Union{Number,Colorant,Flat,Periodic,Reflect}
+const FillType = Union{Number,Colorant,Flat,Periodic,Reflect}
 @compat const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}
 @compat const FloatColorant{T<:AbstractFloat} = Colorant{T}
 @inline _default_fill{T<:FloatLike}(::Type{T}) = convert(T, NaN)
