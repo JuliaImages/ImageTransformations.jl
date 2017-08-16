@@ -2,29 +2,29 @@
 @inline _nan(::Type{HSV{Float16}}) = HSV{Float16}(NaN16,NaN16,NaN16)
 @inline _nan(::Type{HSV{Float32}}) = HSV{Float32}(NaN32,NaN32,NaN32)
 @inline _nan(::Type{HSV{Float64}}) = HSV{Float64}(NaN,NaN,NaN)
-@inline _nan{T}(::Type{T}) = nan(T)
+@inline _nan(::Type{T}) where {T} = nan(T)
 
 # The default values used by extrapolation for off-domain points
-@compat const FillType = Union{Number,Colorant,Flat,Periodic,Reflect}
-@compat const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}
-@compat const FloatColorant{T<:AbstractFloat} = Colorant{T}
-@inline _default_fill{T<:FloatLike}(::Type{T}) = convert(T, NaN)
-@inline _default_fill{T<:FloatColorant}(::Type{T}) = _nan(T)
-@inline _default_fill{T}(::Type{T}) = zero(T)
+const FillType = Union{Number,Colorant,Flat,Periodic,Reflect}
+const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}
+const FloatColorant{T<:AbstractFloat} = Colorant{T}
+@inline _default_fill(::Type{T}) where {T<:FloatLike} = convert(T, NaN)
+@inline _default_fill(::Type{T}) where {T<:FloatColorant} = _nan(T)
+@inline _default_fill(::Type{T}) where {T} = zero(T)
 
 box_extrapolation(etp::AbstractExtrapolation) = etp
 
-function box_extrapolation{T}(itp::AbstractInterpolation{T}, fill::FillType = _default_fill(T))
+function box_extrapolation(itp::AbstractInterpolation{T}, fill::FillType = _default_fill(T)) where T
     etp = extrapolate(itp, fill)
     box_extrapolation(etp)
 end
 
-function box_extrapolation{T,N,D<:Union{Linear,Constant}}(parent::AbstractArray{T,N}, degree::D = Linear(), args...)
+function box_extrapolation(parent::AbstractArray{T,N}, degree::D = Linear(), args...) where {T,N,D<:Union{Linear,Constant}}
     itp = Interpolations.BSplineInterpolation{T,N,typeof(parent),BSpline{D},OnGrid,0}(parent)
     box_extrapolation(itp, args...)
 end
 
-function box_extrapolation{T,N}(parent::AbstractArray{T,N}, degree::Interpolations.Degree, args...)
+function box_extrapolation(parent::AbstractArray{T,N}, degree::Interpolations.Degree, args...) where {T,N}
     itp = interpolate(parent, BSpline(degree), OnGrid())
     box_extrapolation(itp, args...)
 end

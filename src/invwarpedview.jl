@@ -21,12 +21,12 @@ in such a way that `wv` contains all the original pixels in
 
 see [`invwarpedview`](@ref) for more information.
 """
-immutable InvWarpedView{T,N,A,F,I,FI<:Transformation,E} <: AbstractArray{T,N}
+struct InvWarpedView{T,N,A,F,I,FI<:Transformation,E} <: AbstractArray{T,N}
     inner::WarpedView{T,N,A,F,I,E}
     inverse::FI
 end
 
-function InvWarpedView{T,N,TA,F,I,E}(inner::WarpedView{T,N,TA,F,I,E})
+function InvWarpedView(inner::WarpedView{T,N,TA,F,I,E}) where {T,N,TA,F,I,E}
     tinv = inv(inner.transform)
     InvWarpedView{T,N,TA,F,I,typeof(tinv),E}(inner, tinv)
 end
@@ -48,8 +48,8 @@ end
 Base.parent(A::InvWarpedView) = parent(A.inner)
 @inline Base.indices(A::InvWarpedView) = indices(A.inner)
 
-@compat Compat.IndexStyle{T<:InvWarpedView}(::Type{T}) = IndexCartesian()
-@inline Base.getindex{T,N}(A::InvWarpedView{T,N}, I::Vararg{Int,N}) = A.inner[I...]
+Compat.IndexStyle(::Type{T}) where {T<:InvWarpedView} = IndexCartesian()
+@inline Base.getindex(A::InvWarpedView{T,N}, I::Vararg{Int,N}) where {T,N} = A.inner[I...]
 
 Base.size(A::InvWarpedView)    = size(A.inner)
 Base.size(A::InvWarpedView, d) = size(A.inner, d)
@@ -63,7 +63,7 @@ function ShowItLikeYouBuildIt.showarg(io::IO, A::InvWarpedView)
 end
 
 # showargs for SubArray{<:Colorant} is already implemented by ImageCore
-function ShowItLikeYouBuildIt.showarg{T<:Number,N,W<:InvWarpedView}(io::IO, A::SubArray{T,N,W})
+function ShowItLikeYouBuildIt.showarg(io::IO, A::SubArray{T,N,W}) where {T<:Number,N,W<:InvWarpedView}
     print(io, "view(")
     showarg(io, parent(A))
     print(io, ", ")
@@ -75,7 +75,7 @@ function ShowItLikeYouBuildIt.showarg{T<:Number,N,W<:InvWarpedView}(io::IO, A::S
 end
 
 Base.summary(A::InvWarpedView) = summary_build(A)
-Base.summary{T<:Number,N,W<:InvWarpedView}(A::SubArray{T,N,W}) = summary_build(A)
+Base.summary(A::SubArray{T,N,W}) where {T<:Number,N,W<:InvWarpedView} = summary_build(A)
 
 """
     invwarpedview(img, tinv, [indices], [degree = Linear()], [fill = NaN]) -> wv
@@ -104,20 +104,20 @@ in such a way that `wv` contains all the original pixels in
 @inline invwarpedview(A::AbstractArray, tinv::Transformation, args...) =
     InvWarpedView(A, tinv, args...)
 
-function invwarpedview{T}(
+function invwarpedview(
         A::AbstractArray{T},
         tinv::Transformation,
         degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T))
+        fill::FillType = _default_fill(T)) where T
     invwarpedview(box_extrapolation(A, degree, fill), tinv)
 end
 
-function invwarpedview{T}(
+function invwarpedview(
         A::AbstractArray{T},
         tinv::Transformation,
         indices::Tuple,
         degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T))
+        fill::FillType = _default_fill(T)) where T
     invwarpedview(box_extrapolation(A, degree, fill), tinv, indices)
 end
 
@@ -136,19 +136,19 @@ function invwarpedview(
     invwarpedview(A, tinv, indices, Linear(), fill)
 end
 
-function invwarpedview{T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}(
+function invwarpedview(
         inner_view::SubArray{T,N,W,I},
-        tinv::Transformation)
+        tinv::Transformation) where {T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}
     inner = parent(inner_view)
     new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
     inds = autorange(CartesianRange(inner_view.indexes), tinv)
     view(new_inner, map(IdentityRange, inds)...)
 end
 
-function invwarpedview{T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}(
+function invwarpedview(
         inner_view::SubArray{T,N,W,I},
         tinv::Transformation,
-        indices::Tuple)
+        indices::Tuple) where {T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}
     inner = parent(inner_view)
     new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
     view(new_inner, indices...)

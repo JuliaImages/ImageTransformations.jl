@@ -79,7 +79,7 @@ julia> indices(imgr)
 (Base.OneTo(906),Base.OneTo(905))
 ```
 """
-function warp_new{T}(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform)))
+function warp_new(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform))) where T
     out = similar(Array{T}, inds)
     warp!(out, img, tform)
 end

@@ -16,7 +16,7 @@ function restrict(A::AbstractArray, region::Dims)
     restrict(restrict(A, region[1]), Base.tail(region))
 end
 
-function restrict{T,N}(A::AbstractArray{T,N}, dim::Integer)
+function restrict(A::AbstractArray{T,N}, dim::Integer) where {T,N}
     indsA = indices(A)
     newinds = ntuple(i->i==dim?restrict_indices(indsA[dim]):indsA[i], Val{N})
     out = similar(Array{restrict_eltype(first(A)),N}, newinds)
@@ -33,7 +33,7 @@ restrict_eltype(x::TransparentGray) = restrict_eltype_default(x)
 restrict_eltype(x::TransparentRGB)  = restrict_eltype_default(x)
 restrict_eltype(x::Colorant)        = restrict_eltype_default(convert(ARGB, x))
 
-function restrict!{T,N}(out::AbstractArray{T,N}, A::AbstractArray, dim)
+function restrict!(out::AbstractArray{T,N}, A::AbstractArray, dim) where {T,N}
     if dim > N
         return copy!(out, A)
     end
@@ -47,10 +47,10 @@ function restrict!{T,N}(out::AbstractArray{T,N}, A::AbstractArray, dim)
     _restrict!(out, indsout[dim], A, indspre, indsA[dim], indspost)
 end
 
-@generated function _restrict!{Npre,Npost}(out, indout, A,
-                                           indspre::NTuple{Npre,AbstractUnitRange},
-                                           indA,
-                                           indspost::NTuple{Npost,AbstractUnitRange})
+@generated function _restrict!(out, indout, A,
+                               indspre::NTuple{Npre,AbstractUnitRange},
+                               indA,
+                               indspost::NTuple{Npost,AbstractUnitRange}) where {Npre,Npost}
     Ipre = [Symbol(:ipre_, d) for d = 1:Npre]
     Ipost = [Symbol(:ipost_, d) for d = 1:Npost]
     quote
@@ -114,8 +114,8 @@ end
 end
 
 # If we're restricting along dimension 1, there are some additional efficiencies possible
-@generated function _restrict!{Npost}(out, indout, A, ::NTuple{0,AbstractUnitRange},
-                                      indA, indspost::NTuple{Npost,AbstractUnitRange})
+@generated function _restrict!(out, indout, A, ::NTuple{0,AbstractUnitRange},
+                               indA, indspost::NTuple{Npost,AbstractUnitRange}) where Npost
     Ipost = [Symbol(:ipost_, d) for d = 1:Npost]
     quote
         $(Expr(:meta, :noinline))
@@ -191,12 +191,12 @@ first. For example:
 
 See also [`restrict`](@ref).
 """
-function imresize{T}(original::AbstractArray{T,0}, new_inds::Tuple{})
+function imresize(original::AbstractArray{T,0}, new_inds::Tuple{}) where T
     Tnew = imresize_type(first(original))
     copy!(similar(original, Tnew), original)
 end
 
-function imresize{T,N}(original::AbstractArray{T,N}, new_size::Dims{N})
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
     Tnew = imresize_type(first(original))
     inds = indices(original)
     if map(length, inds) == new_size
@@ -211,7 +211,7 @@ function imresize{T,N}(original::AbstractArray{T,N}, new_size::Dims{N})
     end
 end
 
-function imresize{T,N}(original::AbstractArray{T,N}, new_inds::Indices{N})
+function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}) where {T,N}
     Tnew = imresize_type(first(original))
     if indices(original) == new_inds
         copy!(similar(original, Tnew), original)
@@ -230,13 +230,13 @@ imresize_type(c::Gray) = Gray{imresize_type(gray(c))}
 imresize_type(c::FixedPoint) = typeof(c)
 imresize_type(c) = typeof((c*1)/1)
 
-function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractArray{S,N})
+function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}) where {T,S,N}
     # FIXME: avoid allocation for interpolation
     itp = interpolate(original, BSpline(Linear()), OnGrid())
     imresize!(resized, itp)
 end
 
-function imresize!{T,S,N}(resized::AbstractArray{T,N}, original::AbstractInterpolation{S,N})
+function imresize!(resized::AbstractArray{T,N}, original::AbstractInterpolation{S,N}) where {T,S,N}
     # Define the equivalent of an affine transformation for mapping
     # locations in `resized` to the corresponding position in
     # `original`. We take the viewpoint that a pixel at `i, j` is a
@@ -268,6 +268,6 @@ end
 @inline map3(f, a, b, c) = (f(a[1], b[1], c[1]), map3(f, tail(a), tail(b), tail(c))...)
 @inline map3(f, ::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
 
-@compat function clampR{N}(I::NTuple{N}, R::CartesianRange{N})
+@compat function clampR(I::NTuple{N}, R::CartesianRange{N}) where N
     map3(clamp, I, first(R).I, last(R).I)
 end
