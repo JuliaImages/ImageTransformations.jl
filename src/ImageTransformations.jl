@@ -8,13 +8,13 @@ using StaticArrays
 using Interpolations, AxisAlgorithms
 using OffsetArrays
 using FixedPointNumbers
-using Colors, ColorVectorSpace
+using ColorTypes, Colors, ColorVectorSpace
 using Compat
 using IdentityRanges
 
 import Base: start, next, done, eltype, iteratorsize, size, length
 using Base: tail, Cartesian, Indices
-using Colors.AbstractGray
+using ColorTypes: AbstractGray, TransparentGray, TransparentRGB
 
 export
 
