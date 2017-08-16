@@ -19,10 +19,19 @@ end
 function restrict{T,N}(A::AbstractArray{T,N}, dim::Integer)
     indsA = indices(A)
     newinds = ntuple(i->i==dim?restrict_indices(indsA[dim]):indsA[i], Val{N})
-    out = similar(Array{typeof(first(A)/4+first(A)/2),N}, newinds)
+    out = similar(Array{restrict_eltype(first(A)),N}, newinds)
     restrict!(out, A, dim)
     out
 end
+
+restrict_eltype_default(x)          = typeof(x/4 + x/2)
+restrict_eltype(x)                  = restrict_eltype_default(x)
+restrict_eltype(x::AbstractGray)    = restrict_eltype_default(x)
+restrict_eltype(x::AbstractRGB)     = restrict_eltype_default(x)
+restrict_eltype(x::Color)           = restrict_eltype_default(convert(RGB, x))
+restrict_eltype(x::TransparentGray) = restrict_eltype_default(x)
+restrict_eltype(x::TransparentRGB)  = restrict_eltype_default(x)
+restrict_eltype(x::Colorant)        = restrict_eltype_default(convert(ARGB, x))
 
 function restrict!{T,N}(out::AbstractArray{T,N}, A::AbstractArray, dim)
     if dim > N
@@ -76,7 +85,7 @@ end
         else
             threeeighths = convert(eltype(T), 0.375)
             oneeighth = convert(eltype(T), 0.125)
-            z = convert(T, zero(first(A)))
+            z = zero(T)
             fill!(out, zero(T))
             @nloops $Npost ipost d->indspost[d] begin
                 peakfirst = true
@@ -128,7 +137,7 @@ end
         else
             threeeighths = convert(eltype(T), 0.375)
             oneeighth = convert(eltype(T), 0.125)
-            z = convert(T, zero(first(A)))
+            z = zero(T)
             @inbounds @nloops $Npost ipost d->indspost[d] begin
                 c = d = z
                 iA = first(indA)

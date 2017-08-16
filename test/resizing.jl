@@ -38,6 +38,15 @@
     # Arrays-of-arrays
     a = Vector{Int}[[3,3,3], [2,1,7],[-11,4,2]]
     @test restrict(a) == Vector{Float64}[[2,3.5/2,6.5/2], [-5,4.5/2,5.5/2]]
+    # Images issue #652
+    img = testimage("cameraman")
+    @test eltype(@inferred(restrict(img))) == Gray{Float32}
+    img = testimage("mandrill")
+    @test eltype(@inferred(restrict(img))) == RGB{Float32}
+    @test eltype(@inferred(restrict(Lab.(img)))) == RGB{Float32}
+    img = rand(RGBA{N0f8}, 11, 11)
+    @test eltype(@inferred(restrict(img))) == RGBA{Float32}
+    @test eltype(@inferred(restrict(LabA.(img)))) == ARGB{Float32}
 end
 
 @testset "Image resize" begin
