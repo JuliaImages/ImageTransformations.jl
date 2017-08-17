@@ -79,12 +79,11 @@ julia> indices(imgr)
 (Base.OneTo(906),Base.OneTo(905))
 ```
 """
-function warp_new(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform))) where T
+function warp(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform))) where T
     out = similar(Array{T}, inds)
     warp!(out, img, tform)
 end
 
-# this function was never exported, so no need to deprecate
 function warp!(out, img::AbstractExtrapolation, tform)
     @inbounds for I in CartesianRange(indices(out))
         out[I] = _getindex(img, tform(SVector(I.I)))
@@ -92,36 +91,15 @@ function warp!(out, img::AbstractExtrapolation, tform)
     out
 end
 
-function warp_new(img::AbstractArray, tform, inds::Tuple, args...)
+function warp(img::AbstractArray, tform, inds::Tuple, args...)
     etp = box_extrapolation(img, args...)
-    warp_new(etp, tform, inds)
+    warp(etp, tform, inds)
 end
 
-function warp_new(img::AbstractArray, tform, args...)
+function warp(img::AbstractArray, tform, args...)
     etp = box_extrapolation(img, args...)
-    warp_new(etp, tform)
+    warp(etp, tform)
 end
 
-# # after deprecation period:
-# @deprecate warp_new(img::AbstractArray, tform, args...) warp(img, tform, args...)
-# @deprecate warp_old(img::AbstractArray, tform, args...) warp(img, tform, args...)
-
-"""
-    warp(img, tform, [indices], [degree = Linear()], [fill = NaN])
-
-`warp` is transitioning to a different interpretation of the
-transformation, and you are using the old version.
-
-More specifically, this method with the signature `warp(img,
-tform, args...)` is deprecated in favour of the new
-interpretation, which is equivalent to calling `warp(img,
-inv(tform), args...)` right now.
-
-To change to the new behaviour, set `const warp =
-ImageTransformations.warp_new` right after package import.
-"""
-function warp_old(img::AbstractArray, tform, args...)
-    Base.depwarn("'warp(img, tform)' is deprecated in favour of the new interpretation 'warp(img, inv(tform))'. Set 'const warp = ImageTransformations.warp_new' right after package import to change to the new behaviour right away. See https://github.com/JuliaImages/ImageTransformations.jl/issues/25 for more background information", :warp_old)
-    warp_new(img, inv(tform), args...)
-end
-const warp = warp_old
+@deprecate warp_new(img::AbstractArray, tform, args...) warp(img, tform, args...)
+@deprecate warp_old(img::AbstractArray, tform, args...) warp(img, inv(tform), args...)

@@ -1,5 +1,3 @@
-const warp = ImageTransformations.warp_new
-
 # helper function to compare NaN
 nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))
 nearlysame(A::AbstractArray, B::AbstractArray) = all(map(nearlysame, A, B))
@@ -12,7 +10,7 @@ img_camera = testimage("camera")
     tfm = recenter(RotMatrix(pi/8), center(img_camera))
     ref_inds = (-78:591, -78:591)
 
-    @testset "warp_new" begin
+    @testset "warp" begin
         imgr = @inferred(warp(img_camera, tfm))
         @test typeof(imgr) <: OffsetArray
         @test indices(imgr) == ref_inds
