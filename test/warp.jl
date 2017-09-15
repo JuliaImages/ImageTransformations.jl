@@ -15,51 +15,51 @@ img_camera = testimage("camera")
         @test typeof(imgr) <: OffsetArray
         @test indices(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg.txt" imgr
 
         imgr2 = imgr[indices(img_camera)...]
-        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr2
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr2
 
         imgr = @inferred(warp(img_camera, tfm, indices(img_camera)))
         @test typeof(imgr) <: Array
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr
 
         imgr = @inferred(warp(img_camera, tfm, indices(img_camera), 1))
         @test typeof(imgr) <: Array
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(warp(img_camera, tfm, indices(img_camera), Linear(), 1))
         @test typeof(imgr) <: Array
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(warp(img_camera, tfm, 1))
         @test typeof(imgr) <: OffsetArray
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_white.txt" imgr
         imgr2 = @inferred warp(imgr, inv(tfm))
         @test eltype(imgr2) == eltype(img_camera)
-        @test_reference "warp_cameraman" imgr2[indices(img_camera)...]
+        @test_reference "reference/warp_cameraman.txt" imgr2[indices(img_camera)...]
         # look the same but are not similar enough to pass test
         # @test imgr2[indices(img_camera)...] ≈ img_camera
 
         imgr = @inferred(warp(img_camera, tfm, Flat()))
         @test typeof(imgr) <: OffsetArray
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
         imgr = @inferred(warp(img_camera, tfm, ref_inds, Flat()))
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(warp(img_camera, tfm, Constant(), Periodic()))
         @test typeof(imgr) <: OffsetArray
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
         imgr = @inferred(warp(img_camera, tfm, ref_inds, Constant(), Periodic()))
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
     end
 
     @testset "warpedview" begin
@@ -75,10 +75,10 @@ img_camera = testimage("camera")
         @test typeof(imgr) <: WarpedView
         @test indices(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg.txt" imgr
 
         imgr2 = imgr[indices(img_camera)...]
-        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr2
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr2
 
         imgr = @inferred(warpedview(img_camera, tfm, indices(img_camera)))
         @test imgr == @inferred(WarpedView(img_camera, tfm, indices(img_camera)))
@@ -89,7 +89,7 @@ img_camera = testimage("camera")
         @test indices(imgr) === indices(img_camera)
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr
 
         imgr = @inferred(warpedview(img_camera, tfm, indices(img_camera), 1))
         @test summary(imgr) == "512×512 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -100,7 +100,7 @@ img_camera = testimage("camera")
         @test indices(imgr) === indices(img_camera)
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(warpedview(img_camera, tfm, indices(img_camera), Linear(), 1))
         @test summary(imgr) == "512×512 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -111,7 +111,7 @@ img_camera = testimage("camera")
         @test indices(imgr) === indices(img_camera)
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(warpedview(img_camera, tfm, 1))
         @test summary(imgr) == "-78:591×-78:591 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -122,10 +122,10 @@ img_camera = testimage("camera")
         @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_white.txt" imgr
         imgr2 = @inferred warpedview(imgr, inv(tfm))
         @test eltype(imgr2) == eltype(img_camera)
-        @test_reference "warp_cameraman" imgr2[indices(img_camera)...]
+        @test_reference "reference/warp_cameraman.txt" imgr2[indices(img_camera)...]
         # look the same but are not similar enough to pass test
         # @test imgr2[indices(img_camera)...] ≈ img_camera
 
@@ -138,11 +138,11 @@ img_camera = testimage("camera")
         @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
         imgr = @inferred(warpedview(img_camera, tfm, ref_inds, Flat()))
         @test eltype(imgr) == eltype(img_camera)
         @test indices(imgr) === ref_inds
-        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(warpedview(img_camera, tfm, Constant(), Periodic()))
         @test summary(imgr) == "-78:591×-78:591 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -153,7 +153,7 @@ img_camera = testimage("camera")
         @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(warpedview(img_camera, tfm, ref_inds, Constant(), Periodic()))
         @test summary(imgr) == "-78:591×-78:591 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -161,14 +161,14 @@ img_camera = testimage("camera")
         @test_throws ErrorException size(imgr, 1)
         @test_throws ErrorException size(imgr, 5)
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
     end
 
     tfm = recenter(RotMatrix(-pi/8), center(img_camera))
     @testset "invwarpedview" begin
         wv = @inferred(InvWarpedView(img_camera, tfm))
         @test wv ≈ @inferred(InvWarpedView(WarpedView(img_camera, inv(tfm))))
-        @test_reference "invwarpedview_cameraman_rotate_r22deg" wv
+        @test_reference "reference/invwarpedview_cameraman_rotate_r22deg.txt" wv
         @test_throws ErrorException size(wv)
         @test_throws ErrorException size(wv, 1)
         @test indices(wv) == ref_inds
@@ -177,7 +177,7 @@ img_camera = testimage("camera")
 
         # check nested transformation using the inverse
         wv2 = @inferred(InvWarpedView(wv, inv(tfm)))
-        @test_reference "invwarpedview_cameraman" wv2
+        @test_reference "reference/invwarpedview_cameraman.txt" wv2
         @test indices(wv2) == indices(img_camera)
         @test eltype(wv2) === eltype(img_camera)
         @test parent(wv2) === img_camera
@@ -193,10 +193,10 @@ img_camera = testimage("camera")
         @test typeof(imgr) <: InvWarpedView
         @test indices(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg.txt" imgr
 
         imgr2 = imgr[indices(img_camera)...]
-        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr2
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr2
 
         imgr = @inferred(invwarpedview(img_camera, tfm, indices(img_camera)))
         @test imgr == @inferred(InvWarpedView(img_camera, tfm, indices(img_camera)))
@@ -207,7 +207,7 @@ img_camera = testimage("camera")
         @test indices(imgr) === indices(img_camera)
         @test typeof(imgr) <: InvWarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, indices(img_camera), 1))
         @test summary(imgr) == "512×512 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -218,7 +218,7 @@ img_camera = testimage("camera")
         @test indices(imgr) === indices(img_camera)
         @test typeof(imgr) <: InvWarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, indices(img_camera), Linear(), 1))
         @test summary(imgr) == "512×512 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -229,7 +229,7 @@ img_camera = testimage("camera")
         @test indices(imgr) === indices(img_camera)
         @test typeof(imgr) <: InvWarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_crop_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, 1))
         @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -240,7 +240,7 @@ img_camera = testimage("camera")
         @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: InvWarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_white" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, Flat()))
         @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -251,11 +251,11 @@ img_camera = testimage("camera")
         @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: InvWarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
         imgr = @inferred(invwarpedview(img_camera, tfm, ref_inds, Flat()))
         @test eltype(imgr) == eltype(img_camera)
         @test indices(imgr) === ref_inds
-        @test_reference "warp_cameraman_rotate_r22deg_flat" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, Constant(), Periodic()))
         @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -266,7 +266,7 @@ img_camera = testimage("camera")
         @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: InvWarpedView
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, ref_inds, Constant(), Periodic()))
         @test summary(imgr) == "-78:591×-78:591 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Periodic()), AffineMap([0.92388 0.382683; -0.382683 0.92388], [-78.6334,$(SPACE)117.683])) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
@@ -274,7 +274,7 @@ img_camera = testimage("camera")
         @test_throws ErrorException size(imgr, 1)
         @test_throws ErrorException size(imgr, 5)
         @test eltype(imgr) == eltype(img_camera)
-        @test_reference "warp_cameraman_rotate_r22deg_periodic" imgr
+        @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
     end
 
     tfm = recenter(RotMatrix(-pi/8), center(img_camera))
@@ -293,7 +293,7 @@ img_camera = testimage("camera")
         @test typeof(parent(wv2)) <: InvWarpedView
         @test parent(parent(wv2)) === img_camera
         @test summary(wv2) == "55:127×246:346 view(InvWarpedView(::Array{Gray{N0f8},2}, AffineMap([0.554328 0.22961; -0.306147 0.739104], [-37.18,$(SPACE)144.147])), IdentityRange(55:127), IdentityRange(246:346)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
-        @test_reference "warp_cameraman_rotate_crop_scale" wv2
+        @test_reference "reference/warp_cameraman_rotate_crop_scale.txt" wv2
         wv3 = @inferred invwarpedview(v, tfm2, wv2.indexes)
         @test wv3 == wv2
         @test indices(wv3) == (55:127,246:346)
