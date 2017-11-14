@@ -12,10 +12,13 @@ const FloatColorant{T<:AbstractFloat} = Colorant{T}
 @inline _default_fill(::Type{T}) where {T<:FloatColorant} = _nan(T)
 @inline _default_fill(::Type{T}) where {T} = zero(T)
 
+@inline _make_compatible(T, fill) = fill
+@inline _make_compatible(::Type{T}, fill::Number) where {T} = T(fill)
+
 box_extrapolation(etp::AbstractExtrapolation) = etp
 
 function box_extrapolation(itp::AbstractInterpolation{T}, fill::FillType = _default_fill(T)) where T
-    etp = extrapolate(itp, fill)
+    etp = extrapolate(itp, _make_compatible(T, fill))
     box_extrapolation(etp)
 end
 
