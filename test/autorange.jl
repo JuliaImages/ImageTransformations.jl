@@ -126,4 +126,10 @@ end
             @test rnge[2].stop  ==  ceil(sin(ϕ)*last(indh)  + cos(ϕ)*last(indw))
         end
     end
+    #should also work with non-static transforms (Github #48)
+    tfm = LinearMap(eye(2))
+    tfm_s = LinearMap(SMatrix{2,2}(eye(2)))
+    tst_img = zeros(5,5)
+    rnge = ImageTransformations.autorange(tst_img, tfm_s)
+    @test rnge == ImageTransformations.autorange(tst_img, tfm)
 end

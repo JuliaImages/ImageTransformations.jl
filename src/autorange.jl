@@ -12,7 +12,7 @@ function autorange(R::CartesianRange, tform)
         mn = map(min, x, mn)
         mx = map(max, x, mx)
     end
-    _autorange(convert(Tuple, mn), convert(Tuple, mx))
+    _autorange(Tuple(mn), Tuple(mx))
 end
 
 @noinline _autorange(mn,mx) = map((a,b)->floor(Int,a):ceil(Int,b), mn, mx)
