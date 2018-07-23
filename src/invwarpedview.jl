@@ -46,9 +46,9 @@ function InvWarpedView(inner::InvWarpedView, outer_tinv::Transformation, inds::T
 end
 
 Base.parent(A::InvWarpedView) = parent(A.inner)
-@inline Base.indices(A::InvWarpedView) = indices(A.inner)
+@inline Base.axes(A::InvWarpedView) = axes(A.inner)
 
-Compat.IndexStyle(::Type{T}) where {T<:InvWarpedView} = IndexCartesian()
+IndexStyle(::Type{T}) where {T<:InvWarpedView} = IndexCartesian()
 @inline Base.getindex(A::InvWarpedView{T,N}, I::Vararg{Int,N}) where {T,N} = A.inner[I...]
 
 Base.size(A::InvWarpedView)    = size(A.inner)
@@ -67,9 +67,9 @@ function ShowItLikeYouBuildIt.showarg(io::IO, A::SubArray{T,N,W}) where {T<:Numb
     print(io, "view(")
     showarg(io, parent(A))
     print(io, ", ")
-    for (i, el) in enumerate(A.indexes)
+    for (i, el) in enumerate(A.indices)
         print(io, el)
-        i < length(A.indexes) && print(io, ", ")
+        i < length(A.indices) && print(io, ", ")
     end
     print(io, ')')
 end
@@ -141,7 +141,7 @@ function invwarpedview(
         tinv::Transformation) where {T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}
     inner = parent(inner_view)
     new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
-    inds = autorange(CartesianRange(inner_view.indexes), tinv)
+    inds = autorange(CartesianIndices(inner_view.indices), tinv)
     view(new_inner, map(IdentityRange, inds)...)
 end
 

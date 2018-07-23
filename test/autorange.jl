@@ -6,13 +6,13 @@
     # (i.e. without any singleton array dimension of size 1)
     si(num::Number) = 1
     ei(num::Number) = num
-    si(num::Range)  = minimum(num)
-    ei(num::Range)  = maximum(num)
+    si(num::AbstractRange)  = minimum(num)
+    ei(num::AbstractRange)  = maximum(num)
     for t in ((2,), (2,3), (2,3,4), (2,3,4,5),        # OneTo
               (-1:2,), (-1:2,-2:3), (-1:2,-2:3,-3:4)) # Non OneTo
         N = length(t)
         @testset "$N-d array without singleton dimension" begin
-            cr = CartesianRange(t)
+            cr = CartesianIndices(t)
             ci = @inferred(ImageTransformations.CornerIterator(cr))
             @test typeof(ci) <: ImageTransformations.CornerIterator{CartesianIndex{N}}
             @test ci.start === first(cr)
@@ -55,7 +55,7 @@
     @testset "0-element and 1-element edge cases" begin
         for t in ((),(1,),(1,1),(1,1,1))
             N = length(t)
-            cr = CartesianRange(t)
+            cr = CartesianIndices(t)
             ci = @inferred(ImageTransformations.CornerIterator(cr))
             @test ci.start === first(cr)
             @test ci.stop === last(cr)
@@ -69,7 +69,7 @@
     end
 
     @testset "arrays with singleton dimensions" begin
-        cr = CartesianRange((1,3))
+        cr = CartesianIndices((1,3))
         ci = @inferred(ImageTransformations.CornerIterator(cr))
         @test ci.start === first(cr)
         @test ci.stop === last(cr)
@@ -81,7 +81,7 @@
             CartesianIndex{2}((1,1)) CartesianIndex{2}((1,3))
         ]
         # two singleton dimensions
-        cr = CartesianRange((1,3,1,3))
+        cr = CartesianIndices((1,3,1,3))
         ci = @inferred(ImageTransformations.CornerIterator(cr))
         @test ci.start === first(cr)
         @test ci.stop === last(cr)
@@ -127,8 +127,8 @@ end
         end
     end
     #should also work with non-static transforms (Github #48)
-    tfm = LinearMap(eye(2))
-    tfm_s = LinearMap(SMatrix{2,2}(eye(2)))
+    tfm = LinearMap(Matrix(1.0*I,2,2))
+    tfm_s = LinearMap(SMatrix{2,2}(Matrix(1.0*I,2,2)))
     tst_img = zeros(5,5)
     rnge = ImageTransformations.autorange(tst_img, tfm_s)
     @test rnge == ImageTransformations.autorange(tst_img, tfm)

@@ -38,14 +38,14 @@ function WarpedView(
 end
 
 Base.parent(A::WarpedView) = A.parent
-@inline Base.indices(A::WarpedView) = A.indices
+@inline Base.axes(A::WarpedView) = A.indices
 
-Compat.IndexStyle(::Type{T}) where {T<:WarpedView} = IndexCartesian()
+IndexStyle(::Type{T}) where {T<:WarpedView} = IndexCartesian()
 @inline Base.getindex(A::WarpedView{T,N}, I::Vararg{Int,N}) where {T,N} =
     T(_getindex(A.extrapolation, A.transform(SVector(I))))
 
-Base.size(A::WarpedView{T,N,TA,F}) where {T,N,TA,F}    = OffsetArrays.errmsg(A)
-Base.size(A::WarpedView{T,N,TA,F}, d) where {T,N,TA,F} = OffsetArrays.errmsg(A)
+Base.size(A::WarpedView{T,N,TA,F}) where {T,N,TA,F}    = size(parent(A))
+Base.size(A::WarpedView{T,N,TA,F}, d) where {T,N,TA,F} = size(parent(A),d)
 
 Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}) where {T,N,TA,F}    = map(length, A.indices)
 Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}, d) where {T,N,TA,F} = d <= N ? length(A.indices[d]) : 1

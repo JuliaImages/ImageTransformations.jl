@@ -1,9 +1,9 @@
 function autorange(img, tform)
-    R = CartesianRange(indices(img))
+    R = CartesianIndices(axes(img))
     autorange(R, tform)
 end
 
-function autorange(R::CartesianRange, tform)
+function autorange(R::CartesianIndices, tform)
     mn = mx = tform(SVector(first(R).I))
     for I in CornerIterator(R)
         x = tform(SVector(I.I))
@@ -22,13 +22,13 @@ struct CornerIterator{I<:CartesianIndex}
     start::I
     stop::I
 end
-CornerIterator(R::CartesianRange) = CornerIterator(first(R), last(R))
+CornerIterator(R::CartesianIndices) = CornerIterator(first(R), last(R))
 
 eltype(::Type{CornerIterator{I}}) where {I} = I
-iteratorsize(::Type{CornerIterator{I}}) where {I} = Base.HasShape()
+Base.Iterators.IteratorSize(::Type{CornerIterator{I}}) where {I<:CartesianIndex{N}} where {N} = Base.Iterators.HasShape{N}()
 
 # in 0.6 we could write: 1 .+ (iter.stop.I .- iter.start.I .!= 0)
-size(iter::CornerIterator{CartesianIndex{N}}) where {N} = ntuple(d->iter.stop.I[d]-iter.start.I[d]==0 ? 1 : 2, Val{N})::NTuple{N,Int}
+size(iter::CornerIterator{CartesianIndex{N}}) where {N} = ntuple(d->iter.stop.I[d]-iter.start.I[d]==0 ? 1 : 2, Val(N))::NTuple{N,Int}
 length(iter::CornerIterator) = prod(size(iter))
 
 @inline function start(iter::CornerIterator{I}) where I<:CartesianIndex

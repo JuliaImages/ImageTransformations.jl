@@ -50,7 +50,7 @@ julia> using Images, CoordinateTransformations, TestImages, OffsetArrays
 
 julia> img = testimage("lighthouse");
 
-julia> indices(img)
+julia> axes(img)
 (Base.OneTo(512),Base.OneTo(768))
 
 # Rotate around the center of `img`
@@ -59,7 +59,7 @@ AffineMap([0.707107 0.707107; -0.707107 0.707107], [-196.755,293.99])
 
 julia> imgw = warp(img, tfm);
 
-julia> indices(imgw)
+julia> axes(imgw)
 (-196:709,-68:837)
 
 # Alternatively, specify the origin in the image itself
@@ -70,12 +70,12 @@ LinearMap([0.707107 -0.707107; 0.707107 0.707107])
 
 julia> imgw = warp(img0, rot);
 
-julia> indices(imgw)
+julia> axes(imgw)
 (-293:612,-293:611)
 
 julia> imgr = parent(imgw);
 
-julia> indices(imgr)
+julia> axes(imgr)
 (Base.OneTo(906),Base.OneTo(905))
 ```
 """
@@ -85,7 +85,7 @@ function warp(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img,
 end
 
 function warp!(out, img::AbstractExtrapolation, tform)
-    @inbounds for I in CartesianRange(indices(out))
+    @inbounds for I in CartesianIndices(axes(out))
         out[I] = _getindex(img, tform(SVector(I.I)))
     end
     out
