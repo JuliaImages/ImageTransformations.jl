@@ -14,10 +14,11 @@
     Argb = reinterpretc(RGB, reinterpret(N0f16, permutedims(A, (3,1,2))))
     B = restrict(Argb)
     Bf = permutedims(reinterpretc(eltype(eltype(B)), B), (2,3,1))
-    @test isapprox(Bf, Btarget/reinterpret(one(N0f16)), atol=1e-12)
+    # isapprox no longer lies, so atol is now serious
+    @test isapprox(Bf, Btarget/reinterpret(one(N0f16)), atol=1e-10)
     Argba = reinterpretc(RGBA{N0f16}, reinterpret(N0f16, A))
     B = restrict(Argba)
-    @test isapprox(reinterpretc(eltype(eltype(B)), B), restrict(A, (2,3))/reinterpret(one(N0f16)), atol=1e-12)
+    @test isapprox(reinterpretc(eltype(eltype(B)), B), restrict(A, (2,3))/reinterpret(one(N0f16)), atol=1e-10)
     A = reshape(1:60, 5, 4, 3)
     B = restrict(A, (1,2,3))
     @test cat(   [  2.6015625   8.71875   6.1171875;

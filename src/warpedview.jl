@@ -50,15 +50,29 @@ Base.size(A::WarpedView{T,N,TA,F}, d) where {T,N,TA,F} = size(parent(A),d)
 Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}) where {T,N,TA,F}    = map(length, A.indices)
 Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}, d) where {T,N,TA,F} = d <= N ? length(A.indices[d]) : 1
 
-function ShowItLikeYouBuildIt.showarg(io::IO, A::WarpedView)
-    print(io, "WarpedView(")
-    showarg(io, parent(A))
-    print(io, ", ")
-    print(io, A.transform)
-    print(io, ')')
-end
+if VERSION < v"0.7.0-DEV.1790"
+    function ShowItLikeYouBuildIt.showarg(io::IO, A::WarpedView)
+        print(io, "WarpedView(")
+        showarg(io, parent(A))
+        print(io, ", ")
+        print(io, A.transform)
+        print(io, ')')
+    end
 
-Base.summary(A::WarpedView) = summary_build(A)
+    Base.summary(A::WarpedView) = summary_build(A)
+else
+    function Base.showarg(io::IO, A::WarpedView, toplevel)
+        print(io, "WarpedView(")
+        Base.showarg(io, parent(A), false)
+        print(io, ", ")
+        print(io, A.transform)
+        if toplevel
+            print(io, ") with element type ", eltype(parent(A)))
+        else
+            print(io, ')')
+        end
+    end
+end
 
 """
     warpedview(img, tform, [indices], [degree = Linear()], [fill = NaN]) -> wv

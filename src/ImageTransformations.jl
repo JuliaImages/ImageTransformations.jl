@@ -1,7 +1,9 @@
 __precompile__()
 module ImageTransformations
 
-using ShowItLikeYouBuildIt
+if VERSION < v"0.7.0-DEV.1790"
+    using ShowItLikeYouBuildIt
+end
 using ImageCore
 using CoordinateTransformations
 using StaticArrays
