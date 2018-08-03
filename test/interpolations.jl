@@ -1,3 +1,6 @@
+ctqual = "ColorTypes."
+fpqual = "FixedPointNumbers."
+
 @testset "_default_fill" begin
     @test_throws UndefVarError _default_fill
     @test typeof(ImageTransformations._default_fill) <: Function
@@ -41,7 +44,7 @@ end
 
     etp = @inferred ImageTransformations.box_extrapolation(img)
     @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.fillvalue === Gray{N0f8}(0.0)
     @test etp.itp.coefs === img
@@ -56,37 +59,37 @@ end
     @test_throws ArgumentError ImageTransformations.box_extrapolation(etp.itp, Constant(), Flat())
 
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp)
-    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp2) <: Interpolations.FilledExtrapolation
     @test etp2.fillvalue === Gray{N0f8}(0.0)
     @test etp2 !== etp
     @test etp2.itp === etp.itp
 
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp, Flat())
-    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp2) <: Interpolations.Extrapolation
     @test etp2 !== etp
     @test etp2.itp === etp.itp
 
     etp = @inferred ImageTransformations.box_extrapolation(img, 1)
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(1.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.fillvalue === Gray{N0f8}(1.0)
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Flat())
     @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Flat()) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Constant())
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Gray{N0f8}(0.0)) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Constant(), Flat())
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Flat()) with element type ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant()), OnGrid()), Flat()) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
 

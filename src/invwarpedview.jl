@@ -46,36 +46,25 @@ function InvWarpedView(inner::InvWarpedView, outer_tinv::Transformation, inds::T
 end
 
 Base.parent(A::InvWarpedView) = parent(A.inner)
-@inline Base.indices(A::InvWarpedView) = indices(A.inner)
+@inline Base.axes(A::InvWarpedView) = axes(A.inner)
 
-Compat.IndexStyle(::Type{T}) where {T<:InvWarpedView} = IndexCartesian()
+IndexStyle(::Type{T}) where {T<:InvWarpedView} = IndexCartesian()
 @inline Base.getindex(A::InvWarpedView{T,N}, I::Vararg{Int,N}) where {T,N} = A.inner[I...]
 
 Base.size(A::InvWarpedView)    = size(A.inner)
 Base.size(A::InvWarpedView, d) = size(A.inner, d)
 
-function ShowItLikeYouBuildIt.showarg(io::IO, A::InvWarpedView)
+function Base.showarg(io::IO, A::InvWarpedView, toplevel)
     print(io, "InvWarpedView(")
-    showarg(io, parent(A))
+    Base.showarg(io, parent(A), false)
     print(io, ", ")
     print(io, A.inverse)
-    print(io, ')')
-end
-
-# showargs for SubArray{<:Colorant} is already implemented by ImageCore
-function ShowItLikeYouBuildIt.showarg(io::IO, A::SubArray{T,N,W}) where {T<:Number,N,W<:InvWarpedView}
-    print(io, "view(")
-    showarg(io, parent(A))
-    print(io, ", ")
-    for (i, el) in enumerate(A.indexes)
-        print(io, el)
-        i < length(A.indexes) && print(io, ", ")
+    if toplevel
+        print(io, ") with eltype ", eltype(parent(A)))
+    else
+        print(io, ')')
     end
-    print(io, ')')
 end
-
-Base.summary(A::InvWarpedView) = summary_build(A)
-Base.summary(A::SubArray{T,N,W}) where {T<:Number,N,W<:InvWarpedView} = summary_build(A)
 
 """
     invwarpedview(img, tinv, [indices], [degree = Linear()], [fill = NaN]) -> wv
@@ -141,8 +130,8 @@ function invwarpedview(
         tinv::Transformation) where {T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}
     inner = parent(inner_view)
     new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
-    inds = autorange(CartesianRange(inner_view.indexes), tinv)
-    view(new_inner, map(IdentityRange, inds)...)
+    inds = autorange(CartesianIndices(inner_view.indices), tinv)
+    view(new_inner, map(x->IdentityRange(first(x),last(x)), inds)...)
 end
 
 function invwarpedview(

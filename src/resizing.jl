@@ -10,15 +10,15 @@ See also [`imresize`](@ref).
 """
 restrict(img::AbstractArray, ::Tuple{}) = img
 
-restrict(A::AbstractArray, region::Vector{Int}) = restrict(A, (region...))
+restrict(A::AbstractArray, region::Vector{Int}) = restrict(A, (region...,))
 restrict(A::AbstractArray) = restrict(A, coords_spatial(A))
 function restrict(A::AbstractArray, region::Dims)
     restrict(restrict(A, region[1]), Base.tail(region))
 end
 
 function restrict(A::AbstractArray{T,N}, dim::Integer) where {T,N}
-    indsA = indices(A)
-    newinds = ntuple(i->i==dim?restrict_indices(indsA[dim]):indsA[i], Val{N})
+    indsA = axes(A)
+    newinds = ntuple(i->i==dim ? restrict_indices(indsA[dim]) : indsA[i], Val(N))
     out = similar(Array{restrict_eltype(first(A)),N}, newinds)
     restrict!(out, A, dim)
     out
@@ -35,9 +35,9 @@ restrict_eltype(x::Colorant)        = restrict_eltype_default(convert(ARGB, x))
 
 function restrict!(out::AbstractArray{T,N}, A::AbstractArray, dim) where {T,N}
     if dim > N
-        return copy!(out, A)
+        return copyto!(out, A)
     end
-    indsout, indsA = indices(out), indices(A)
+    indsout, indsA = axes(out), axes(A)
     ndims(out) == ndims(A) || throw(DimensionMismatch("input and output must have the same number of dimensions"))
     for d = 1:length(indsA)
         target = d==dim ? restrict_indices(indsA[d]) : indsA[d]
@@ -155,7 +155,11 @@ end
 end
 
 restrict_size(len::Integer) = isodd(len) ? (len+1)>>1 : (len>>1)+1
-
+function restrict_indices(r::Base.Slice)
+    f, l = first(r), last(r)
+    isodd(f) && return (f+1)>>1:restrict_size(l)
+    f>>1 : (isodd(l) ? (l+1)>>1 : l>>1)
+end
 restrict_indices(r::Base.OneTo) = Base.OneTo(restrict_size(length(r)))
 function restrict_indices(r::UnitRange)
     f, l = first(r), last(r)
@@ -173,8 +177,8 @@ function imresize(original::AbstractArray, short_size::Tuple)
     imresize(original, new_size)
 end
 odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
-odims(original, i, short_size::Tuple{}) = indices(original, i)
-odims(original, i, short_size) = oftype(first(short_size), indices(original, i))
+odims(original, i, short_size::Tuple{}) = axes(original, i)
+odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
 
 """
     imresize(img, sz) -> imgr
@@ -193,18 +197,18 @@ See also [`restrict`](@ref).
 """
 function imresize(original::AbstractArray{T,0}, new_inds::Tuple{}) where T
     Tnew = imresize_type(first(original))
-    copy!(similar(original, Tnew), original)
+    copyto!(similar(original, Tnew), original)
 end
 
 function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
     Tnew = imresize_type(first(original))
-    inds = indices(original)
+    inds = axes(original)
     if map(length, inds) == new_size
         dest = similar(original, Tnew, new_size)
-        if indices(dest) == inds
-            copy!(dest, original)
+        if axes(dest) == inds
+            copyto!(dest, original)
         else
-            copy!(dest, CartesianRange(indices(dest)), original, CartesianRange(inds))
+            copyto!(dest, CartesianIndices(axes(dest)), original, CartesianIndices(inds))
         end
     else
         imresize!(similar(original, Tnew, new_size), original)
@@ -213,8 +217,8 @@ end
 
 function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}) where {T,N}
     Tnew = imresize_type(first(original))
-    if indices(original) == new_inds
-        copy!(similar(original, Tnew), original)
+    if axes(original) == new_inds
+        copyto!(similar(original, Tnew), original)
     else
         imresize!(similar(original, Tnew, new_inds), original)
     end
@@ -247,8 +251,8 @@ function imresize!(resized::AbstractArray{T,N}, original::AbstractInterpolation{
     #     (0.5, 0.5) -> (0.5, 0.5)  (outer corner, top left)
     #     size(resized)+0.5 -> size(original)+0.5  (outer corner, lower right)
     # This ensures that both images cover exactly the same area.
-    Ro, Rr = CartesianRange(indices(original)), CartesianRange(indices(resized))
-    sf = map(/, (last(Ro)-first(Ro)+1).I, (last(Rr)-first(Rr)+1).I) # +1 for outer corners
+    Ro, Rr = CartesianIndices(axes(original)), CartesianIndices(axes(resized))
+    sf = map(/, (last(Ro)-first(Ro)).I .+ 1, (last(Rr)-first(Rr)).I .+ 1) # +1 for outer corners
     offset = map((io,ir,s)->io - 0.5 - s*(ir-0.5), first(Ro).I, first(Rr).I, sf)
     if all(x->x >= 1, sf)
         @inbounds for I in Rr
@@ -268,6 +272,6 @@ end
 @inline map3(f, a, b, c) = (f(a[1], b[1], c[1]), map3(f, tail(a), tail(b), tail(c))...)
 @inline map3(f, ::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
 
-@compat function clampR(I::NTuple{N}, R::CartesianRange{N}) where N
+function clampR(I::NTuple{N}, R::CartesianIndices{N}) where N
     map3(clamp, I, first(R).I, last(R).I)
 end

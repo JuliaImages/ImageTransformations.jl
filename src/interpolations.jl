@@ -51,11 +51,11 @@ end
 # This is type-piracy, but necessary if we want Interpolations to be
 # independent of OffsetArrays.
 function AxisAlgorithms.A_ldiv_B_md!(dest::OffsetArray, F, src::OffsetArray, dim::Integer, b::AbstractVector)
-    indsdim = indices(parent(src), dim)
-    indsF = indices(F)[2]
+    indsdim = axes(parent(src), dim)
+    indsF = axes(F)[2]
     if indsF == indsdim
         AxisAlgorithms.A_ldiv_B_md!(parent(dest), F, parent(src), dim, b)
         return dest
     end
-    throw(DimensionMismatch("indices $(indices(parent(src))) do not match $(indices(F))"))
+    throw(DimensionMismatch("indices $(axes(parent(src))) do not match $(axes(F))"))
 end
