@@ -54,59 +54,17 @@ IndexStyle(::Type{T}) where {T<:InvWarpedView} = IndexCartesian()
 Base.size(A::InvWarpedView)    = size(A.inner)
 Base.size(A::InvWarpedView, d) = size(A.inner, d)
 
-if VERSION < v"0.7.0-DEV.1790"
-    function ShowItLikeYouBuildIt.showarg(io::IO, A::InvWarpedView)
-        print(io, "InvWarpedView(")
-        showarg(io, parent(A))
-        print(io, ", ")
-        print(io, A.inverse)
+function Base.showarg(io::IO, A::InvWarpedView, toplevel)
+    print(io, "InvWarpedView(")
+    Base.showarg(io, parent(A), false)
+    print(io, ", ")
+    print(io, A.inverse)
+    if toplevel
+        print(io, ") with eltype ", eltype(parent(A)))
+    else
         print(io, ')')
-    end
-
-    # showargs for SubArray{<:Colorant} is already implemented by ImageCore
-    function ShowItLikeYouBuildIt.showarg(io::IO, A::SubArray{T,N,W}) where {T<:Number,N,W<:InvWarpedView}
-        print(io, "view(")
-        showarg(io, parent(A))
-        print(io, ", ")
-        for (i, el) in enumerate(A.indices)
-            print(io, el)
-            i < length(A.indices) && print(io, ", ")
-        end
-        print(io, ')')
-    end
-
-    Base.summary(A::InvWarpedView) = summary_build(A)
-    Base.summary(A::SubArray{T,N,W}) where {T<:Number,N,W<:InvWarpedView} = summary_build(A)
-else
-    function Base.showarg(io::IO, A::InvWarpedView, toplevel)
-        print(io, "InvWarpedView(")
-        Base.showarg(io, parent(A), false)
-        print(io, ", ")
-        print(io, A.inverse)
-        if toplevel
-            print(io, ") with element type ", eltype(parent(A)))
-        else
-            print(io, ')')
-        end
-    end
-
-    # showargs for SubArray{<:Colorant} is already implemented by ImageCore
-    function Base.showarg(io::IO, A::SubArray{T,N,W}, toplevel) where {T<:Number,N,W<:InvWarpedView}
-        print(io, "view(")
-        Base.showarg(io, parent(A), false)
-        print(io, ", ")
-        for (i, el) in enumerate(A.indices)
-            print(io, el)
-            i < length(A.indices) && print(io, ", ")
-        end
-        if toplevel
-            print(io, ") with element type ", eltype(parent(A)))
-        else
-            print(io, ')')
-        end
     end
 end
-
 
 """
     invwarpedview(img, tinv, [indices], [degree = Linear()], [fill = NaN]) -> wv

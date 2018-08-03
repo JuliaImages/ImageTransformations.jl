@@ -1,10 +1,5 @@
-if VERSION < v"0.7-"
-    ctqual = "ColorTypes."
-    fpqual = "FixedPointNumbers."
-else
-    ctqual = ""
-    fpqual = ""
-end
+ctqual = "ColorTypes."
+fpqual = "FixedPointNumbers."
 
 @testset "_default_fill" begin
     @test_throws UndefVarError _default_fill

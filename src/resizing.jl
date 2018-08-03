@@ -155,7 +155,6 @@ end
 end
 
 restrict_size(len::Integer) = isodd(len) ? (len+1)>>1 : (len>>1)+1
-# CHECKME: wild guess here
 function restrict_indices(r::Base.Slice)
     f, l = first(r), last(r)
     isodd(f) && return (f+1)>>1:restrict_size(l)
@@ -253,8 +252,6 @@ function imresize!(resized::AbstractArray{T,N}, original::AbstractInterpolation{
     #     size(resized)+0.5 -> size(original)+0.5  (outer corner, lower right)
     # This ensures that both images cover exactly the same area.
     Ro, Rr = CartesianIndices(axes(original)), CartesianIndices(axes(resized))
-    # CHECKME: is this general enough? previously had
-    # sf = map(/, (last(Ro)-first(Ro)+1).I, (last(Rr)-first(Rr)+1).I) # +1 for outer corners
     sf = map(/, (last(Ro)-first(Ro)).I .+ 1, (last(Rr)-first(Rr)).I .+ 1) # +1 for outer corners
     offset = map((io,ir,s)->io - 0.5 - s*(ir-0.5), first(Ro).I, first(Rr).I, sf)
     if all(x->x >= 1, sf)
