@@ -1,5 +1,7 @@
-ctqual = "ColorTypes."
-fpqual = "FixedPointNumbers."
+#ctqual = "ColorTypes."
+ctqual = ""
+# fpqual = "FixedPointNumbers."
+fpqual = ""
 
 @testset "_default_fill" begin
     @test_throws UndefVarError _default_fill

@@ -4,17 +4,18 @@ os:
   - linux
   - osx
 julia:
-  - 0.6
+  - 0.7
+  - 1.0
   - nightly
 matrix:
   allow_failures:
     - julia: nightly
 notifications:
   email: false
-# uncomment the following lines to override the default test script
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("ImageTransformations"); Pkg.test("ImageTransformations"; coverage=VERSION >= v"0.6.0-alpha")'
+  - julia --color=yes -e 'using InteractiveUtils; versioninfo(); import Pkg; Pkg.clone(pwd()); Pkg.build("ImageTransformations")'
+  - julia --color=yes --check-bounds=yes -e 'import Pkg; Pkg.test("ImageTransformations"; coverage=true)'
 after_success:
   # push coverage results to Codecov
-  - julia -e 'if VERSION >= v"0.6.0-alpha" cd(Pkg.dir("ImageTransformations")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder()); end'
+  - julia -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

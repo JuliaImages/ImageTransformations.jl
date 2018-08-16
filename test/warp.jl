@@ -7,8 +7,10 @@ SPACE = " " # julia PR #20288
 
 # These module qualifications (used in showarg output) vanished for a while;
 # they are left as variables in case that happens again.
-ctqual = "ColorTypes."
-fpqual = "FixedPointNumbers."
+#ctqual = "ColorTypes."
+#fpqual = "FixedPointNumbers."
+ctqual = ""
+fpqual = ""
 
 sumfmt(ax,rest) = rest * " with indices " * ax
 
@@ -74,7 +76,7 @@ img_camera = testimage("camera")
         imgr = @inferred(warpedview(img_camera, tfm))
         @test imgr == @inferred(WarpedView(img_camera, tfm))
         @test summary(imgr) == sumfmt("-78:591×-78:591","WarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with eltype $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}")
-        @test @inferred(getindex(imgr,2,2)) == imgr[2,2]
+        @test_broken @inferred(getindex(imgr,2,2)) == imgr[2,2]
         @test typeof(imgr[2,2]) == eltype(imgr)
         @test size(imgr) == ref_size
         @test parent(imgr) === img_camera
