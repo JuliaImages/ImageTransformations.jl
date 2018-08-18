@@ -31,16 +31,19 @@ Base.Iterators.IteratorSize(::Type{CornerIterator{I}}) where {I<:CartesianIndex{
 size(iter::CornerIterator{CartesianIndex{N}}) where {N} = ntuple(d->iter.stop.I[d]-iter.start.I[d]==0 ? 1 : 2, Val(N))::NTuple{N,Int}
 length(iter::CornerIterator) = prod(size(iter))
 
-@inline function start(iter::CornerIterator{I}) where I<:CartesianIndex
+@inline function Base.iterate(iter::CornerIterator{<:CartesianIndex})
     if any(map(>, iter.start.I, iter.stop.I))
-        return iter.stop+1
+        return nothing
     end
-    iter.start
+    iterate(iter, iter.start)
 end
-@inline function next(iter::CornerIterator{I}, state) where I<:CartesianIndex
+
+@inline function Base.iterate(iter::CornerIterator{I}, state) where I<:CartesianIndex
+    if state.I[end] > iter.stop.I[end]
+        return nothing
+    end
     state, I(inc(state.I, iter.start.I, iter.stop.I))
 end
-@inline done(iter::CornerIterator{I}, state) where {I<:CartesianIndex} = state.I[end] > iter.stop.I[end]
 
 # increment & carry
 @inline inc(::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
@@ -57,6 +60,5 @@ end
 end
 
 # 0-d is special-cased to iterate once and only once
-start(iter::CornerIterator{I}) where {I<:CartesianIndex{0}} = false
-next(iter::CornerIterator{I}, state) where {I<:CartesianIndex{0}} = (iter.start, true)
-done(iter::CornerIterator{I}, state) where {I<:CartesianIndex{0}} = state
+Base.iterate(iter::CornerIterator{<:CartesianIndex{0}}) = (iter.start, nothing)
+Base.iterate(iter::CornerIterator{<:CartesianIndex{0}}, state) = nothing
