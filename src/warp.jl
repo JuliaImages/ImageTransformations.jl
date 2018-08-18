@@ -100,6 +100,3 @@ function warp(img::AbstractArray, tform, args...)
     etp = box_extrapolation(img, args...)
     warp(etp, tform)
 end
-
-@deprecate warp_new(img::AbstractArray, tform, args...) warp(img, tform, args...)
-@deprecate warp_old(img::AbstractArray, tform, args...) warp(img, inv(tform), args...)
