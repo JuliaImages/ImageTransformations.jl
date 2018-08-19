@@ -46,7 +46,7 @@ end
 
     etp = @inferred ImageTransformations.box_extrapolation(img)
     @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
-    @test_broken summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test_skip summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear()), OnGrid()), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.fillvalue === Gray{N0f8}(0.0)
     @test etp.itp.coefs === img
