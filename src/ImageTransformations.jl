@@ -9,7 +9,7 @@ using FixedPointNumbers
 using ColorTypes, Colors, ColorVectorSpace
 using IdentityRanges
 
-import Base: start, next, done, eltype, size, length
+import Base: eltype, size, length
 using Base: tail, Indices
 using Base.Cartesian
 using ColorTypes: AbstractGray, TransparentGray, TransparentRGB
