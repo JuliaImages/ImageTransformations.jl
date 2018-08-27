@@ -12,10 +12,6 @@ matrix:
     - julia: nightly
 notifications:
   email: false
-script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia --color=yes -e 'using InteractiveUtils; versioninfo(); import Pkg; Pkg.clone(pwd()); Pkg.build("ImageTransformations")'
-  - julia --color=yes --check-bounds=yes -e 'import Pkg; Pkg.test("ImageTransformations"; coverage=true)'
 after_success:
   # push coverage results to Codecov
   - julia -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
