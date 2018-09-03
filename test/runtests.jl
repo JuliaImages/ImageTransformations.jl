@@ -9,7 +9,7 @@ ambs = detect_ambiguities(ImageTransformations, CoordinateTransformations, Base,
 tests = [
     "autorange.jl",
     "resizing.jl",
-    "rotation.jl"
+    "rotation.jl",
     "interpolations.jl",
     "warp.jl",
 ]
