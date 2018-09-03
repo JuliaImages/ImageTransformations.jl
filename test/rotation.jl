@@ -1,4 +1,3 @@
-using Test, FixedPointNumbers
 const test_types = (Float32, Float64, N0f8, N0f16)
 
 @testset "imrotate" begin
