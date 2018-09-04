@@ -399,9 +399,9 @@ ref_img_pyramid_grid = Float64[
                 @test_nowarn imrotate(img, 45)
                 @test_nowarn imrotate(img, 45, method = "nearest")
                 @test_nowarn imrotate(img, 45, method = "bilinear")
-                @test_nowarn imrotate(img, 45, bbox = "crop")
-                @test size(imrotate(img, 45, bbox = "crop")) == size(img)
-                @test_nowarn imrotate(img, 45, bbox = "loose")
+                @test_nowarn imrotate(img, 45, crop = true)
+                @test size(imrotate(img, 45, crop = true)) == size(img)
+                @test_nowarn imrotate(img, 45, crop = false)
                 @test_nowarn imrotate(img, 45, fill = 0)
             end
         end
@@ -412,7 +412,7 @@ ref_img_pyramid_grid = Float64[
                 img = Gray{T}.(graybar)
                 for i in 1:repeats
                     p = 2pi*randn()
-                    @test imrotate(img,p-2pi) == imrotate(img,p+2pi)
+                    @test imrotate(img,p) == imrotate(img,p+2pi)
                 end
             end
             # FIXME: Floats are not accurate enough due to RotMatrix is not accurate

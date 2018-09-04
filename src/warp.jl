@@ -102,20 +102,20 @@ function warp(img::AbstractArray, tform, args...)
 end
 
 """
-    imrotate(img, rad; [fill::Real], [method::String], [bbox::String]) -> imgout
+    imrotate(img::AbstractArray, θ::Real; [fill::Real], [method::String], [crop::Bool]) -> imgout
 
-Rotate image `img` by `rad` in a clockwise direction around its center point. To rotate the image counterclockwise, specify a negative value for angle.
+Rotate image `img` by `θ` in a clockwise direction around its center point. To rotate the image counterclockwise, specify a negative value for angle.
 
 # Arguments
 - `img::AbstractArray`: image to be rotated.
-- `rad::Real`: amount of rotation in radians ∈[0,2π).
+- `θ::Real`: amount of rotation in radians ∈[0,2π).
 - `fill::Real`: filling value for pixel outside of original image. Defaults: `NaN` if the element type supports it, and `0` otherwise.
-- `method::String = "nearest"`: the interpolation method used in rotation. Options are "nearest" or "bilinear".
-- `bbox::String = "loose"`: the bounding box defines the size of output image. Options are "loose" or "crop". If `bbox = "crop"`, then output image `imgout` are cropped to has the same size of input image `img`. If `bbox = "loose"`, then `imgout` is large enough to contain the entire rotated image; `imgout` is larger than `img`.
+- `method::String = "nearest"`: the interpolation method used in rotation. Options are `"nearest"` or `"bilinear"`.
+- `crop::Bool = false`: `true` to crop the output image into its original size
 
 See also [`warp`](@ref).
 """
-function imrotate(img::AbstractArray{T}, rad::Real; fill::Real = NaN, method::String = "nearest", bbox::String = "loose")::AbstractArray{T} where T
+function imrotate(img::AbstractArray{T}, θ::Real; fill::Real = NaN, method::String = "nearest", crop::Bool = false)::AbstractArray{T} where T
 
     # FIXME: Bicubic method does not support N0f8 type.
     args = []
@@ -131,15 +131,10 @@ function imrotate(img::AbstractArray{T}, rad::Real; fill::Real = NaN, method::St
         push!(args, fill)
     end
 
-    rotate_fun(img, tform, args...) =
-    if bbox == "loose"
+    rotate_fun(img, tform, args...) = crop ?
+        warp(img, tform, axes(img), args...) :
         warp(img, tform, args...)
-    elseif bbox == "crop"
-        warp(img, tform, axes(img), args...)
-    else
-        ArgumentError("bbox should be: loose, crop")
-    end
 
-    tfm = recenter(RotMatrix{2}(mod2pi(1.0*rad)), center(img))
+    tfm = recenter(RotMatrix{2}(mod2pi(1.0*θ)), center(img))
     rotate_fun(img, tfm, args...)
 end
