@@ -76,7 +76,7 @@ img_camera = testimage("camera")
         imgr = @inferred(warpedview(img_camera, tfm))
         @test imgr == @inferred(WarpedView(img_camera, tfm))
         @test_skip summary(imgr) == sumfmt("-78:591×-78:591","WarpedView(::Array{Gray{N0f8},2}, AffineMap([0.92388 -0.382683; 0.382683 0.92388], [117.683,$(SPACE)-78.6334])) with eltype $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}")
-        @test_broken @inferred(getindex(imgr,2,2)) == imgr[2,2]
+        @test @inferred(getindex(imgr,2,2)) == imgr[2,2]
         @test typeof(imgr[2,2]) == eltype(imgr)
         @test size(imgr) == ref_size
         @test parent(imgr) === img_camera

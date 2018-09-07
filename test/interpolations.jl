@@ -51,6 +51,9 @@ end
     @test etp.fillvalue === Gray{N0f8}(0.0)
     @test etp.itp.coefs === img
 
+    # to catch regressions like #60
+    @test @inferred(ImageTransformations._getindex(img, @SVector([1,2]))) isa Gray{N0f8}
+
     @test_throws ArgumentError ImageTransformations.box_extrapolation(etp, 0)
     @test_throws ArgumentError ImageTransformations.box_extrapolation(etp, Flat())
     @test_throws ArgumentError ImageTransformations.box_extrapolation(etp, Quadratic(Flat()))
