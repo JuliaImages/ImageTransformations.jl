@@ -389,7 +389,7 @@ ref_img_pyramid_grid = Float64[
     end
 
     @testset "imrotate" begin
-        # imrotate is a wrapper, hence only need to guarantee the interface
+        # imrotate is a wrapper, hence only need to guarantee the interface works as expected
 
         test_types = (Float32, Float64, N0f8, N0f16)
         graybar = repeat(range(0,stop=1,length=100),1,100)
@@ -397,12 +397,10 @@ ref_img_pyramid_grid = Float64[
             for T in test_types
                 img = Gray{T}.(graybar)
                 @test_nowarn imrotate(img, 45)
-                @test_nowarn imrotate(img, 45, method = "nearest")
-                @test_nowarn imrotate(img, 45, method = "bilinear")
-                @test_nowarn imrotate(img, 45, crop = true)
-                @test size(imrotate(img, 45, crop = true)) == size(img)
-                @test_nowarn imrotate(img, 45, crop = false)
-                @test_nowarn imrotate(img, 45, fill = 0)
+                @test_nowarn imrotate(img, 45, Constant())
+                @test_nowarn imrotate(img, 45, Linear())
+                @test_nowarn imrotate(img, 45, axes(img))
+                @test_nowarn imrotate(img, 45, axes(img), Constant())
             end
         end
 

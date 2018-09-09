@@ -102,39 +102,34 @@ function warp(img::AbstractArray, tform, args...)
 end
 
 """
-    imrotate(img::AbstractArray, θ::Real; [fill::Real], [method::String], [crop::Bool]) -> imgout
+    imrotate(img, θ, [indices], [degree = Linear()], [fill = NaN]) -> imgr
 
-Rotate image `img` by `θ` in a clockwise direction around its center point. To rotate the image counterclockwise, specify a negative value for angle.
+Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center point. To rotate the image counterclockwise, specify a negative value for angle.
 
-# Arguments
-- `img::AbstractArray`: image to be rotated.
-- `θ::Real`: amount of rotation in radians ∈[0,2π).
-- `fill::Real`: filling value for pixel outside of original image. Defaults: `NaN` if the element type supports it, and `0` otherwise.
-- `method::String = "nearest"`: the interpolation method used in rotation. Options are `"nearest"` or `"bilinear"`.
-- `crop::Bool = false`: `true` to crop the output image into its original size
+By default, rotated image `imgr` will not be cropped. Bilinear interpolation will be used and values outside the image are filled with `NaN` if possible, otherwise with `0`.
+
+# Example:
+```julia
+julia> using Images, TestImages, Interpolations
+julia> img = testimage("cameraman")
+
+# rotate without crop and with bilinear interpolation 
+julia> imrotate(img, π/4)
+
+# rotate with crop
+julia> imrotate(img, π/4, axes(img))
+
+# rotate with nearest interpolation
+julia> imrotate(img, π/4, Constant())
+```
 
 See also [`warp`](@ref).
 """
-function imrotate(img::AbstractArray{T}, θ::Real; fill::Real = NaN, method::String = "nearest", crop::Bool = false)::AbstractArray{T} where T
-
-    # FIXME: Bicubic method does not support N0f8 type.
-    args = []
-    push!(args,
-        if method == "nearest"
-            Constant()
-        elseif method == "bilinear"
-            Linear()
-        else
-            ArgumentError("method should be: nearest, bilinear")
-        end)
-    if !isnan(fill)
-        push!(args, fill)
-    end
-
-    rotate_fun(img, tform, args...) = crop ?
-        warp(img, tform, axes(img), args...) :
-        warp(img, tform, args...)
-
-    tfm = recenter(RotMatrix{2}(mod2pi(1.0*θ)), center(img))
-    rotate_fun(img, tfm, args...)
+function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
+    tform = recenter(RotMatrix{2}(mod2pi(1.0*θ)), center(img))
+    warp(img, tform, args...)
+end
+function imrotate(img::AbstractArray{T}, θ::Real, inds::Tuple, args...) where T  
+    tform = recenter(RotMatrix{2}(mod2pi(1.0*θ)), center(img))
+    warp(img, tform, inds, args...)
 end
