@@ -129,7 +129,3 @@ function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
     tform = recenter(RotMatrix{2}(mod2pi(1.0*θ)), center(img))
     warp(img, tform, args...)
 end
-function imrotate(img::AbstractArray{T}, θ::Real, inds::Tuple, args...) where T  
-    tform = recenter(RotMatrix{2}(mod2pi(1.0*θ)), center(img))
-    warp(img, tform, inds, args...)
-end
