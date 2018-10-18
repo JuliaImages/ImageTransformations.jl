@@ -169,11 +169,9 @@ end
 
 # imresize
 imresize(original::AbstractArray, dim1::T, dimN::T...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
-imresize(original::AbstractArray, short_size::AbstractArray{T,1}) where T <:Union{Integer,AbstractUnitRange} = imresize(original, (short_size...))
-
-function imresize(original::AbstractArray, ratio::Real)
-    # use ceil to avoid 0
-    new_size = ratio > 0 ? ceil.(Int, size(original).* ratio) : throw(ArgumentError("$ratio should be positive"))
+function imresize(original::AbstractArray; ratio::Real)
+    ratio > 0 || throw(ArgumentError("ratio $ratio should be positive"))
+    new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
     imresize(original, new_size)
 end
 
@@ -191,30 +189,23 @@ odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
 """
     imresize(img, sz) -> imgr
     imresize(img, inds) -> imgr
-    imresize(img, ratio::Real) -> imgr
+    imresize(img; ratio) -> imgr
 
 Change `img` to be of size `sz` (or to have indices `inds`). If `ratio` is used, then
 `sz = ceil(Int, size(img).*ratio)`. This interpolates the values at sub-pixel locations.
 If you are shrinking the image, you risk aliasing unless you low-pass filter `img` first.
 
-# Example:
+# Examples
 ```julia
 julia> img = testimage("lena_gray_256") # 256*256
 julia> imresize(img, 128, 128) # 128*128
 julia> imresize(img, 1:128, 1:128) # 128*128
-julia> imresize(img, [128, 128]) # 128*128
-julia> imresize(img, [1:128, 1:128]) # 128*128
 julia> imresize(img, (128, 128)) # 128*128
 julia> imresize(img, (1:128, 1:128)) # 128*128
 julia> imresize(img, (1:128, )) # 128*256
 julia> imresize(img, 128) # 128*256
-julia> imresize(img, 0.5) # 128*128
+julia> imresize(img, ratio = 0.5) # 128*128
 ```
-
-!!! info
-
-    for N-dimensional image/signal, `imresize(img, arg)` treats `arg::Real` as `ratio`, and `arg::Integer` as `sz`. In the latter case, only the first dimension will be resized.
-
 
 See also [`restrict`](@ref).
 """

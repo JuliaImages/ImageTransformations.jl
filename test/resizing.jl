@@ -55,9 +55,9 @@ end
     testtype = (Float32, Float64, N0f8, N0f16)
 
     @testset "Interface" begin
-        function test_imresize_interface(img, outsz, args...)
-            img2 = @test_broken @inferred imresize(img, args...) # FIXME: @inferred failed
-            img2 = @test_nowarn imresize(img, args...)
+        function test_imresize_interface(img, outsz, args...; kargs...)
+            img2 = @test_broken @inferred imresize(img, args...; kargs...) # FIXME: @inferred failed
+            img2 = @test_nowarn imresize(img, args...; kargs...)
             @test size(img2) == outsz
             @test eltype(img2) == eltype(img)
         end
@@ -66,19 +66,18 @@ end
 
             test_imresize_interface(img, (5,5), (5,5))
             test_imresize_interface(img, (5,5), (1:5,1:5)) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,5), [5,5]) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,5), [1:5,1:5]) # FIXME: @inferred failed
             test_imresize_interface(img, (5,5), 5,5)
             test_imresize_interface(img, (5,5), 1:5,1:5) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,5), 0.5)
+            test_imresize_interface(img, (5,5), ratio = 0.5)
+            test_imresize_interface(img, (20,20), ratio = 2)
             test_imresize_interface(img, (5,10), 5)
             test_imresize_interface(img, (5,10), 1:5) # FIXME: @inferred failed
             test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,10), [1:5,]) # FIXME: @inferred failed
 
             @test_throws MethodError imresize(img,(5.0,5.0))
+            @test_throws MethodError imresize(img,[5,5])
             @test_throws DimensionMismatch imresize(img,(5,5,5))
-            @test_throws ArgumentError imresize(img, -0.5)
+            @test_throws ArgumentError imresize(img, ratio = -0.5)
             @test_throws DimensionMismatch imresize(img,(5,5,1))
         end
     end
