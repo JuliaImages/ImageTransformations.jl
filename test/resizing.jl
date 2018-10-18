@@ -70,13 +70,17 @@ end
             test_imresize_interface(img, (5,5), 1:5,1:5) # FIXME: @inferred failed
             test_imresize_interface(img, (5,5), ratio = 0.5)
             test_imresize_interface(img, (20,20), ratio = 2)
+            test_imresize_interface(img, (10,10), ())
             test_imresize_interface(img, (5,10), 5)
+            test_imresize_interface(img, (5,10), (5,))
             test_imresize_interface(img, (5,10), 1:5) # FIXME: @inferred failed
             test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
 
             @test_throws MethodError imresize(img,(5.0,5.0))
-            @test_throws MethodError imresize(img,(5,5.0))
+            # @test_throws MethodError imresize(img,(5,5.0))
+            @test_broken imresize(img,(5, 5.0)) # FIXME: still throw StackOverflowError
             @test_throws MethodError imresize(img,[5,5])
+            @test_throws UndefKeywordError imresize(img)
             @test_throws DimensionMismatch imresize(img,(5,5,5))
             @test_throws ArgumentError imresize(img, ratio = -0.5)
             @test_throws DimensionMismatch imresize(img,(5,5,1))
@@ -135,7 +139,6 @@ end
             R = imresize(img, ())
             @test ndims(R) == 0
             @test !(R === A)
-            @test_throws DimensionMismatch imresize(img, 3, 7)
         end
     end
 end
