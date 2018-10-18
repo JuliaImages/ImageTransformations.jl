@@ -168,8 +168,16 @@ function restrict_indices(r::UnitRange)
 end
 
 # imresize
-imresize(original::AbstractArray, dim1, dimN...) = imresize(original, (dim1,dimN...))
+imresize(original::AbstractArray, dim1::T, dimN::T...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
+imresize(original::AbstractArray, short_size::AbstractArray{T,1}) where T <:Union{Integer,AbstractUnitRange} = imresize(original, (short_size...))
 
+function imresize(original::AbstractArray, ratio::Real)
+    # use ceil to avoid 0
+    new_size = ratio > 0 ? ceil.(Int, size(original).* ratio) : throw(ArgumentError("$ratio should be positive"))
+    imresize(original, new_size)
+end
+
+imresize(original::AbstractArray, short_size::Tuple{T,Vararg{T}}) where T<:AbstractFloat = throw(MethodError(imresize, original, short_size))
 function imresize(original::AbstractArray, short_size::Tuple)
     len_short = length(short_size)
     len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
@@ -183,15 +191,30 @@ odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
 """
     imresize(img, sz) -> imgr
     imresize(img, inds) -> imgr
+    imresize(img, ratio::Real) -> imgr
 
-Change `img` to be of size `sz` (or to have indices `inds`). This
-interpolates the values at sub-pixel locations. If you are shrinking
-the image, you risk aliasing unless you low-pass filter `img`
-first. For example:
+Change `img` to be of size `sz` (or to have indices `inds`). If `ratio` is used, then
+`sz = ceil(Int, size(img).*ratio)`. This interpolates the values at sub-pixel locations.
+If you are shrinking the image, you risk aliasing unless you low-pass filter `img` first.
 
-    σ = map((o,n)->0.75*o/n, size(img), sz)
-    kern = KernelFactors.gaussian(σ)   # from ImageFiltering
-    imgr = imresize(imfilter(img, kern, NA()), sz)
+# Example:
+```julia
+julia> img = testimage("lena_gray_256") # 256*256
+julia> imresize(img, 128, 128) # 128*128
+julia> imresize(img, 1:128, 1:128) # 128*128
+julia> imresize(img, [128, 128]) # 128*128
+julia> imresize(img, [1:128, 1:128]) # 128*128
+julia> imresize(img, (128, 128)) # 128*128
+julia> imresize(img, (1:128, 1:128)) # 128*128
+julia> imresize(img, (1:128, )) # 128*256
+julia> imresize(img, 128) # 128*256
+julia> imresize(img, 0.5) # 128*128
+```
+
+!!! info
+
+    for N-dimensional image/signal, `imresize(img, arg)` treats `arg::Real` as `ratio`, and `arg::Integer` as `sz`. In the latter case, only the first dimension will be resized.
+
 
 See also [`restrict`](@ref).
 """
