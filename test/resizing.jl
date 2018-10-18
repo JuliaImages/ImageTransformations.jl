@@ -75,6 +75,7 @@ end
             test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
 
             @test_throws MethodError imresize(img,(5.0,5.0))
+            @test_throws MethodError imresize(img,(5,5.0))
             @test_throws MethodError imresize(img,[5,5])
             @test_throws DimensionMismatch imresize(img,(5,5,5))
             @test_throws ArgumentError imresize(img, ratio = -0.5)
