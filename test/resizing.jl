@@ -76,6 +76,7 @@ end
             test_imresize_interface(img, (5,10), 1:5) # FIXME: @inferred failed
             test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
 
+            @test_throws MethodError imresize(img,5.0,5.0)
             @test_throws MethodError imresize(img,(5.0,5.0))
             # @test_throws MethodError imresize(img,(5,5.0))
             @test_broken imresize(img,(5, 5.0)) # FIXME: still throw StackOverflowError
