@@ -175,10 +175,7 @@ function imresize(original::AbstractArray; ratio::Real)
     imresize(original, new_size)
 end
 
-# temporary patch for issue #57
-imresize(original::AbstractArray, short_size::Tuple{T,Vararg{T}}) where T<:AbstractFloat = throw(MethodError(imresize, original, short_size))
-
-function imresize(original::AbstractArray, short_size::Tuple)
+function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}) where M
     len_short = length(short_size)
     len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
     new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
