@@ -236,7 +236,7 @@ imresize_type(c) = typeof((c*1)/1)
 
 function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}) where {T,S,N}
     # FIXME: avoid allocation for interpolation
-    itp = interpolate(original, BSpline(Linear()), OnGrid())
+    itp = interpolate(original, BSpline(Linear()))
     imresize!(resized, itp)
 end
 
@@ -257,12 +257,12 @@ function imresize!(resized::AbstractArray{T,N}, original::AbstractInterpolation{
     if all(x->x >= 1, sf)
         @inbounds for I in Rr
             I_o = map3((i,s,off)->s*i+off, I.I, sf, offset)
-            resized[I] = original[I_o...]
+            resized[I] = original(I_o...)
         end
     else
         @inbounds for I in Rr
             I_o = clampR(map3((i,s,off)->s*i+off, I.I, sf, offset), Ro)
-            resized[I] = original[I_o...]
+            resized[I] = original(I_o...)
         end
     end
     resized

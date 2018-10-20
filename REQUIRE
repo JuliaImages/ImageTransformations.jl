@@ -1,7 +1,7 @@
 julia 0.7
 ImageCore 0.7
 CoordinateTransformations 0.4.0
-Interpolations 0.4
+Interpolations 0.9
 AxisAlgorithms
 OffsetArrays
 StaticArrays

@@ -23,12 +23,13 @@ function box_extrapolation(itp::AbstractInterpolation{T}, fill::FillType = _defa
 end
 
 function box_extrapolation(parent::AbstractArray{T,N}, degree::D = Linear(), args...) where {T,N,D<:Union{Linear,Constant}}
-    itp = Interpolations.BSplineInterpolation{T,N,typeof(parent),BSpline{D},OnGrid,0}(parent)
+    axs = axes(parent)
+    itp = Interpolations.BSplineInterpolation{T,N,typeof(parent),BSpline{D},typeof(axs)}(parent, axs, BSpline(degree))
     box_extrapolation(itp, args...)
 end
 
 function box_extrapolation(parent::AbstractArray{T,N}, degree::Interpolations.Degree, args...) where {T,N}
-    itp = interpolate(parent, BSpline(degree), OnGrid())
+    itp = interpolate(parent, BSpline(degree))
     box_extrapolation(itp, args...)
 end
 
