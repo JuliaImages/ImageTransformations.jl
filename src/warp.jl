@@ -125,6 +125,7 @@ julia> imrotate(img, π/4, Constant())
 See also [`warp`](@ref).
 """
 function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
-    tform = recenter(RotMatrix{2}(mod2pi(1.0*θ)), center(img))
+    θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
+    tform = recenter(RotMatrix{2}(θ), center(img))
     warp(img, tform, args...)
 end

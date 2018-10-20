@@ -389,36 +389,27 @@ ref_img_pyramid_grid = Float64[
     end
 
     @testset "imrotate" begin
-        # imrotate is a wrapper, hence only need to guarantee the interface works as expected
+    # imrotate is a wrapper, hence only need to guarantee the interface works as expected
 
         test_types = (Float32, Float64, N0f8, N0f16)
         graybar = repeat(range(0,stop=1,length=100),1,100)
         @testset "interface" begin
             for T in test_types
                 img = Gray{T}.(graybar)
-                @test_nowarn imrotate(img, 45)
-                @test_nowarn imrotate(img, 45, Constant())
-                @test_nowarn imrotate(img, 45, Linear())
-                @test_nowarn imrotate(img, 45, axes(img))
-                @test_nowarn imrotate(img, 45, axes(img), Constant())
+                @test_nowarn imrotate(img, π/4)
+                @test_nowarn imrotate(img, π/4, Constant())
+                @test_nowarn imrotate(img, π/4, Linear())
+                @test_nowarn imrotate(img, π/4, axes(img))
+                @test_nowarn imrotate(img, π/4, axes(img), Constant())
+                @test isequal(channelview(imrotate(img,π/4)), channelview(imrotate(img, π/4, Linear()))) # TODO: if we remove channelview the test will break
             end
         end
 
         @testset "numerical" begin
-            repeats = 50
-            for T in test_types[3:4]
+            for T in test_types
                 img = Gray{T}.(graybar)
-                for i in 1:repeats
-                    p = 2pi*randn()
-                    @test imrotate(img,p) == imrotate(img,p+2pi)
-                end
-            end
-            # FIXME: Floats are not accurate enough due to RotMatrix is not accurate
-            for T in test_types[1:2]
-                img = Gray{T}.(graybar)
-                for i in 1:repeats
-                    p = 2pi*randn()
-                    @test_broken imrotate(img,p) ≈ imrotate(img,p)
+                for θ in range(0,stop=2π,length = 100)
+                    @test isequal(channelview(imrotate(img,θ)), channelview(imrotate(img,θ+2π))) # TODO: if we remove channelview the test will break
                 end
             end
         end
