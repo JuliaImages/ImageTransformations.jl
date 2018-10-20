@@ -108,18 +108,17 @@ Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center 
 
 By default, rotated image `imgr` will not be cropped. Bilinear interpolation will be used and values outside the image are filled with `NaN` if possible, otherwise with `0`.
 
-# Example:
+# Examples
 ```julia
-julia> using Images, TestImages, Interpolations
 julia> img = testimage("cameraman")
 
 # rotate with bilinear interpolation but without cropping 
 julia> imrotate(img, π/4)
 
-# rotate with cropping
+# rotate with bilinear interpolation and with cropping
 julia> imrotate(img, π/4, axes(img))
 
-# rotate with nearest interpolation
+# rotate with nearest interpolation but without cropping
 julia> imrotate(img, π/4, Constant())
 ```
 
