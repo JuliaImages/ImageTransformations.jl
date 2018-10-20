@@ -401,7 +401,7 @@ ref_img_pyramid_grid = Float64[
                 @test_nowarn imrotate(img, π/4, Linear())
                 @test_nowarn imrotate(img, π/4, axes(img))
                 @test_nowarn imrotate(img, π/4, axes(img), Constant())
-                @test isequal(channelview(imrotate(img,π/4)), channelview(imrotate(img, π/4, Linear()))) # TODO: if we remove channelview the test will break
+                @test isequal(channelview(imrotate(img,π/4)), channelview(imrotate(img, π/4, Linear()))) # TODO: if we remove channelview the test will break for Float
             end
         end
 
@@ -409,7 +409,7 @@ ref_img_pyramid_grid = Float64[
             for T in test_types
                 img = Gray{T}.(graybar)
                 for θ in range(0,stop=2π,length = 100)
-                    @test isequal(channelview(imrotate(img,θ)), channelview(imrotate(img,θ+2π))) # TODO: if we remove channelview the test will break
+                    @test isequal(channelview(imrotate(img,θ)), channelview(imrotate(img,θ+2π))) # TODO: if we remove channelview the test will break for Float
                 end
             end
         end
