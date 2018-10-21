@@ -204,6 +204,10 @@ julia> imresize(img, (1:128, 1:128)) # 128*128
 julia> imresize(img, (1:128, )) # 128*256
 julia> imresize(img, 128) # 128*256
 julia> imresize(img, ratio = 0.5) # 128*128
+
+σ = map((o,n)->0.75*o/n, size(img), sz)
+kern = KernelFactors.gaussian(σ)   # from ImageFiltering
+imgr = imresize(imfilter(img, kern, NA()), sz)
 ```
 
 See also [`restrict`](@ref).
