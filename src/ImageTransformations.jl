@@ -23,7 +23,8 @@ export
     WarpedView,
     warpedview,
     InvWarpedView,
-    invwarpedview
+    invwarpedview,
+    imrotate
 
 include("autorange.jl")
 include("resizing.jl")

@@ -100,3 +100,32 @@ function warp(img::AbstractArray, tform, args...)
     etp = box_extrapolation(img, args...)
     warp(etp, tform)
 end
+
+"""
+    imrotate(img, θ, [indices], [degree = Linear()], [fill = NaN]) -> imgr
+
+Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center point. To rotate the image counterclockwise, specify a negative value for angle.
+
+By default, rotated image `imgr` will not be cropped. Bilinear interpolation will be used and values outside the image are filled with `NaN` if possible, otherwise with `0`.
+
+# Examples
+```julia
+julia> img = testimage("cameraman")
+
+# rotate with bilinear interpolation but without cropping 
+julia> imrotate(img, π/4)
+
+# rotate with bilinear interpolation and with cropping
+julia> imrotate(img, π/4, axes(img))
+
+# rotate with nearest interpolation but without cropping
+julia> imrotate(img, π/4, Constant())
+```
+
+See also [`warp`](@ref).
+"""
+function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
+    θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
+    tform = recenter(RotMatrix{2}(θ), center(img))
+    warp(img, tform, args...)
+end

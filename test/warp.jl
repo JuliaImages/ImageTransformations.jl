@@ -387,4 +387,31 @@ ref_img_pyramid_grid = Float64[
             @test nearlysame(round.(Float64.(imgrq_cntr[axes(imgrq_cntr)...]), digits=3), round.(ref_img_pyramid_quad, digits=3))
         end
     end
+
+    @testset "imrotate" begin
+    # imrotate is a wrapper, hence only need to guarantee the interface works as expected
+
+        test_types = (Float32, Float64, N0f8, N0f16)
+        graybar = repeat(range(0,stop=1,length=100),1,100)
+        @testset "interface" begin
+            for T in test_types
+                img = Gray{T}.(graybar)
+                @test_nowarn imrotate(img, π/4)
+                @test_nowarn imrotate(img, π/4, Constant())
+                @test_nowarn imrotate(img, π/4, Linear())
+                @test_nowarn imrotate(img, π/4, axes(img))
+                @test_nowarn imrotate(img, π/4, axes(img), Constant())
+                @test isequal(channelview(imrotate(img,π/4)), channelview(imrotate(img, π/4, Linear()))) # TODO: if we remove channelview the test will break for Float
+            end
+        end
+
+        @testset "numerical" begin
+            for T in test_types
+                img = Gray{T}.(graybar)
+                for θ in range(0,stop=2π,length = 100)
+                    @test isequal(channelview(imrotate(img,θ)), channelview(imrotate(img,θ+2π))) # TODO: if we remove channelview the test will break for Float
+                end
+            end
+        end
+    end
 end
