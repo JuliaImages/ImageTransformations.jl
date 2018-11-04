@@ -51,68 +51,94 @@
 end
 
 @testset "Image resize" begin
-    img = zeros(10,10)
-    img2 = @inferred(imresize(img, (5,5)))
-    @test length(img2) == 25
-    img2 = imresize(img, 5)
-    @test size(img2) == (5,10)
-    img = rand(RGB{Float32}, 10, 10)
-    img2 = imresize(img, (6,7))
-    @test size(img2) == (6,7)
-    @test eltype(img2) == RGB{Float32}
+    testcolor = (RGB,Gray)
+    testtype = (Float32, Float64, N0f8, N0f16)
 
-    A = [1 0; 0 1]
-    @test imresize(A, (1, 1)) ≈ reshape([0.5], 1, 1)
-    # if only 1 of 4 pixels is nonzero, check that you get 1/4 the
-    # value (no matter where it is)
-    for i = 1:4
-        fill!(A, 0)
-        A[i] = 1
-        @test imresize(A, (1, 1)) ≈ reshape([0.25], 1, 1)
-    end
-    A = [1 0; 0 0]
-    @test imresize(A, (2, 1)) ≈ reshape([0.5, 0], (2, 1))
-    @test imresize(A, (1, 2)) ≈ reshape([0.5, 0], (1, 2))
-    A = [1 0 0; 0 0 0; 0 0 0]
-    @test imresize(A, (2, 2)) ≈ [0.75^2 0; 0 0]
+    @testset "Interface" begin
+        function test_imresize_interface(img, outsz, args...; kargs...)
+            img2 = @test_broken @inferred imresize(img, args...; kargs...) # FIXME: @inferred failed
+            img2 = @test_nowarn imresize(img, args...; kargs...)
+            @test size(img2) == outsz
+            @test eltype(img2) == eltype(img)
+        end
+        for C in testcolor, T in testtype
+            img = rand(C{T},10,10)
 
-    A = Gray{N0f8}[1 0; 0 0]
-    R = imresize(A, (1, 1))
-    @test eltype(R) == Gray{N0f8} && R[1,1] == Gray(N0f8(0.25f0))
-    @test gray.(imresize(A, (2, 1))) ≈ reshape([N0f8(0.5f0), 0], (2, 1))
-    @test gray.(imresize(A, (1, 2))) ≈ reshape([N0f8(0.5f0), 0], (1, 2))
+            test_imresize_interface(img, (5,5), (5,5))
+            test_imresize_interface(img, (5,5), (1:5,1:5)) # FIXME: @inferred failed
+            test_imresize_interface(img, (5,5), 5,5)
+            test_imresize_interface(img, (5,5), 1:5,1:5) # FIXME: @inferred failed
+            test_imresize_interface(img, (5,5), ratio = 0.5)
+            test_imresize_interface(img, (20,20), ratio = 2)
+            test_imresize_interface(img, (10,10), ())
+            test_imresize_interface(img, (5,10), 5)
+            test_imresize_interface(img, (5,10), (5,))
+            test_imresize_interface(img, (5,10), 1:5) # FIXME: @inferred failed
+            test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
 
-    A = ones(5,5)
-    for l2 = 3:7, l1 = 3:7
-        R = imresize(A, (l1, l2))
-        @test all(x->x==1, R)
+            @test_throws MethodError imresize(img,5.0,5.0)
+            @test_throws MethodError imresize(img,(5.0,5.0))
+            @test_throws MethodError imresize(img,(5, 5.0))
+            @test_throws MethodError imresize(img,[5,5])
+            @test_throws UndefKeywordError imresize(img)
+            @test_throws DimensionMismatch imresize(img,(5,5,5))
+            @test_throws ArgumentError imresize(img, ratio = -0.5)
+            @test_throws DimensionMismatch imresize(img,(5,5,1))
+        end
     end
-    for l2 = 3:7, l1 = 3:7
-        R = imresize(A, (0:l1-1, 0:l2-1))
-        @test all(x->x==1, R)
-        @test axes(R) == (0:l1-1, 0:l2-1)
+
+    @testset "Numerical" begin
+        # RGB is skipped
+        for C in (Gray,), T in testtype
+            A = [1 0; 0 1] .|> C{T}
+            @test imresize(A, (1, 1)) ≈ reshape([0.5], 1, 1) .|> C{T}
+            # if only 1 of 4 pixels is nonzero, check that you get 1/4 the
+            # value (no matter where it is)
+            for i = 1:4
+                fill!(A, 0)
+                A[i] = 1
+                A = C{T}.(A)
+                @test imresize(A, (1, 1)) ≈ reshape([0.25], 1, 1) .|> C{T}
+            end
+            A = [1 0; 0 0] .|> C{T}
+            @test imresize(A, (2, 1)) ≈ reshape([0.5, 0], (2, 1)) .|> C{T}
+            @test imresize(A, (1, 2)) ≈ reshape([0.5, 0], (1, 2)) .|> C{T}
+            A = [1 0 0; 0 0 0; 0 0 0] .|> C{T}
+            @test imresize(A, (2, 2)) ≈ [0.75^2 0; 0 0] .|> C{T}
+
+            A = ones(5,5) .|> C{T}
+            for l2 = 3:7, l1 = 3:7
+                R = imresize(A, (l1, l2))
+                @test all(x->x==1, R)
+            end
+            for l2 = 3:7, l1 = 3:7
+                R = imresize(A, (0:l1-1, 0:l2-1))
+                @test all(x->x==1, R)
+                @test axes(R) == (0:l1-1, 0:l2-1)
+            end
+            for l1 = 3:7
+                R = imresize(A, (0:l1-1,))
+                @test all(x->x==1, R)
+                @test axes(R) == (0:l1-1, 1:5)
+            end
+
+            R = imresize(A, (2:6, 0:4))
+            @test all(x->x==1, R)
+            @test axes(R) == (2:6, 0:4)
+            R = imresize(A, ())
+            @test all(x->x==1, R)
+            @test axes(R) == axes(A)
+            @test !(R === A)
+            Ao = OffsetArray(A, -2:2, 0:4)
+            R = imresize(Ao, (5,5))
+            @test axes(R) === axes(A)
+            R = imresize(Ao, axes(Ao))
+            @test axes(R) === axes(Ao)
+            @test !(R === A)
+            img = reshape([0.5])
+            R = imresize(img, ())
+            @test ndims(R) == 0
+            @test !(R === A)
+        end
     end
-    for l1 = 3:7
-        R = imresize(A, (0:l1-1,))
-        @test all(x->x==1, R)
-        @test axes(R) == (0:l1-1, 1:5)
-    end
-    R = imresize(A, (2:6, 0:4))
-    @test all(x->x==1, R)
-    @test axes(R) == (2:6, 0:4)
-    R = imresize(A, ())
-    @test all(x->x==1, R)
-    @test axes(R) == axes(A)
-    @test !(R === A)
-    Ao = OffsetArray(A, -2:2, 0:4)
-    R = imresize(Ao, (5,5))
-    @test axes(R) === axes(A)
-    R = imresize(Ao, axes(Ao))
-    @test axes(R) === axes(Ao)
-    @test !(R === A)
-    img = reshape([0.5])
-    R = imresize(img, ())
-    @test ndims(R) == 0
-    @test !(R === A)
-    @test_throws DimensionMismatch imresize(img, 3, 7)
 end

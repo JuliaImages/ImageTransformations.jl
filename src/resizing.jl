@@ -168,9 +168,14 @@ function restrict_indices(r::UnitRange)
 end
 
 # imresize
-imresize(original::AbstractArray, dim1, dimN...) = imresize(original, (dim1,dimN...))
+imresize(original::AbstractArray, dim1::T, dimN::T...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
+function imresize(original::AbstractArray; ratio::Real)
+    ratio > 0 || throw(ArgumentError("ratio $ratio should be positive"))
+    new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
+    imresize(original, new_size)
+end
 
-function imresize(original::AbstractArray, short_size::Tuple)
+function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}) where M
     len_short = length(short_size)
     len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
     new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
@@ -183,15 +188,27 @@ odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
 """
     imresize(img, sz) -> imgr
     imresize(img, inds) -> imgr
+    imresize(img; ratio) -> imgr
 
-Change `img` to be of size `sz` (or to have indices `inds`). This
-interpolates the values at sub-pixel locations. If you are shrinking
-the image, you risk aliasing unless you low-pass filter `img`
-first. For example:
+Change `img` to be of size `sz` (or to have indices `inds`). If `ratio` is used, then
+`sz = ceil(Int, size(img).*ratio)`. This interpolates the values at sub-pixel locations.
+If you are shrinking the image, you risk aliasing unless you low-pass filter `img` first.
 
-    σ = map((o,n)->0.75*o/n, size(img), sz)
-    kern = KernelFactors.gaussian(σ)   # from ImageFiltering
-    imgr = imresize(imfilter(img, kern, NA()), sz)
+# Examples
+```julia
+julia> img = testimage("lena_gray_256") # 256*256
+julia> imresize(img, 128, 128) # 128*128
+julia> imresize(img, 1:128, 1:128) # 128*128
+julia> imresize(img, (128, 128)) # 128*128
+julia> imresize(img, (1:128, 1:128)) # 128*128
+julia> imresize(img, (1:128, )) # 128*256
+julia> imresize(img, 128) # 128*256
+julia> imresize(img, ratio = 0.5) # 128*128
+
+σ = map((o,n)->0.75*o/n, size(img), sz)
+kern = KernelFactors.gaussian(σ)   # from ImageFiltering
+imgr = imresize(imfilter(img, kern, NA()), sz)
+```
 
 See also [`restrict`](@ref).
 """
