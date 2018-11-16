@@ -70,6 +70,16 @@ img_camera = testimage("camera")
         imgr = @inferred(warp(img_camera, tfm, ref_inds, Constant(), Periodic()))
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
+
+        # Ensure that dynamic arrays work as transformations
+        tfmd = AffineMap(Matrix(tfm.linear), Vector(tfm.translation))
+        imgrd = @inferred(warp(img_camera, tfmd))
+        @test imgrd == warp(img_camera, tfm)
+        tfmd = LinearMap(Matrix(tfm.linear))
+        @test @inferred(warp(img_camera, tfmd)) == warp(img_camera, LinearMap(tfm.linear))
+        tfmd = Translation([-2, 2])
+        @test @inferred(warp(img_camera, tfmd)) == warp(img_camera, Translation(-2, 2))
+        @test_throws DimensionMismatch("expected input array of length 2, got length 3") warp(img_camera, Translation([1,2,3]))
     end
 
     @testset "warpedview" begin
