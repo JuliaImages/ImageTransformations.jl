@@ -1,3 +1,6 @@
+using CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
+using Test, ReferenceTests
+
 # helper function to compare NaN
 nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))
 nearlysame(A::AbstractArray, B::AbstractArray) = all(map(nearlysame, A, B))
@@ -13,6 +16,8 @@ ctqual = ""
 fpqual = ""
 
 sumfmt(ax,rest) = rest * " with indices " * ax
+
+include("twoints.jl")
 
 img_camera = testimage("camera")
 @testset "Interface tests" begin
@@ -70,6 +75,23 @@ img_camera = testimage("camera")
         imgr = @inferred(warp(img_camera, tfm, ref_inds, Constant(), Periodic()))
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
+
+        # Ensure that dynamic arrays work as transformations
+        tfmd = AffineMap(Matrix(tfm.linear), Vector(tfm.translation))
+        imgrd = @inferred(warp(img_camera, tfmd))
+        @test imgrd == warp(img_camera, tfm)
+        tfmd = LinearMap(Matrix(tfm.linear))
+        @test @inferred(warp(img_camera, tfmd)) == warp(img_camera, LinearMap(tfm.linear))
+        tfmd = Translation([-2, 2])
+        @test @inferred(warp(img_camera, tfmd)) == warp(img_camera, Translation(-2, 2))
+        @test_throws DimensionMismatch("expected input array of length 2, got length 3") warp(img_camera, Translation([1,2,3]))
+
+        # Since Translation can be constructed from any iterable, check that we support this too.
+        # (This ensures the fallback for `_getindex` gets called even if we fix the issue by other means)
+        tfmt = Translation(TwoInts(1, 2))
+        @test tfmt isa Translation{TwoInts}
+        imgt = warp(img_camera, tfmt)  # not necessarily inferrable, that's OK
+        @test imgt == warp(img_camera, Translation(1,2))
     end
 
     @testset "warpedview" begin

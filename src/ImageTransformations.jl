@@ -35,6 +35,8 @@ include("invwarpedview.jl")
 
 @inline _getindex(A, v::StaticVector) = A[Tuple(v)...]
 @inline _getindex(A::AbstractInterpolation, v::StaticVector) = A(Tuple(v)...)
+@inline _getindex(A, v) = A[v...]
+@inline _getindex(A::AbstractInterpolation, v) = A(v...)
 
 center(img::AbstractArray{T,N}) where {T,N} = SVector{N}(map(_center, axes(img)))
 _center(ind::AbstractUnitRange) = (first(ind)+last(ind))/2

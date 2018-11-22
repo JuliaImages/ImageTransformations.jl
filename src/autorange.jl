@@ -62,3 +62,15 @@ end
 # 0-d is special-cased to iterate once and only once
 Base.iterate(iter::CornerIterator{<:CartesianIndex{0}}) = (iter.start, nothing)
 Base.iterate(iter::CornerIterator{<:CartesianIndex{0}}, state) = nothing
+
+# Ensure that we use StaticArrays for linear transformations
+try_static(tfm, img) = tfm   # fallback
+try_static(tfm::AffineMap{<:SMatrix, <:SVector}, img::AbstractArray{T,N}) where {T,N} = tfm
+try_static(tfm::AffineMap{<:AbstractMatrix, <:AbstractVector}, img::AbstractArray{T,N}) where {T,N} =
+    AffineMap(SMatrix{N,N}(tfm.linear), SVector{N}(tfm.translation))
+try_static(tfm::LinearMap{<:SMatrix}, img::AbstractArray{T,N}) where {T,N} = tfm
+try_static(tfm::LinearMap{<:AbstractMatrix}, img::AbstractArray{T,N}) where {T,N} =
+    LinearMap(SMatrix{N,N}(tfm.linear))
+try_static(tfm::Translation{<:SVector}, img::AbstractArray{T,N}) where {T,N} = tfm
+try_static(tfm::Translation{<:AbstractVector}, img::AbstractArray{T,N}) where {T,N} =
+    Translation(SVector{N}(tfm.translation))

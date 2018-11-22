@@ -81,7 +81,7 @@ julia> axes(imgr)
 """
 function warp(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform))) where T
     out = similar(Array{T}, inds)
-    warp!(out, img, tform)
+    warp!(out, img, try_static(tform, img))
 end
 
 function warp!(out, img::AbstractExtrapolation, tform)
@@ -93,12 +93,12 @@ end
 
 function warp(img::AbstractArray, tform, inds::Tuple, args...)
     etp = box_extrapolation(img, args...)
-    warp(etp, tform, inds)
+    warp(etp, try_static(tform, img), inds)
 end
 
 function warp(img::AbstractArray, tform, args...)
     etp = box_extrapolation(img, args...)
-    warp(etp, tform)
+    warp(etp, try_static(tform, img))
 end
 
 """
