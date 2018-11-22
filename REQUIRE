@@ -4,7 +4,7 @@ CoordinateTransformations 0.4.0
 Interpolations 0.9
 AxisAlgorithms
 OffsetArrays
-StaticArrays
+StaticArrays 0.10
 IdentityRanges
 ColorTypes
 Colors 0.7.0
