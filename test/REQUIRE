@@ -1,6 +1,0 @@
-TestImages
-FixedPointNumbers 0.3.0
-ReferenceTests 0.4.0
-@windows ImageMagick
-@linux ImageMagick
-@osx QuartzImageIO
