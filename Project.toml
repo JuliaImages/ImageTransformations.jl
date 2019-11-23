@@ -16,6 +16,7 @@ OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+AxisAlgorithms = "1.0"
 ColorVectorSpace = ">= 0.2"
 Colors = ">= 0.7.0"
 CoordinateTransformations = ">= 0.4.0"
