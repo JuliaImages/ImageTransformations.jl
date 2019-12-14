@@ -112,7 +112,7 @@ By default, rotated image `imgr` will not be cropped. Bilinear interpolation wil
 ```julia
 julia> img = testimage("cameraman")
 
-# rotate with bilinear interpolation but without cropping 
+# rotate with bilinear interpolation but without cropping
 julia> imrotate(img, π/4)
 
 # rotate with bilinear interpolation and with cropping
@@ -125,7 +125,28 @@ julia> imrotate(img, π/4, Constant())
 See also [`warp`](@ref).
 """
 function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
-    θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
-    tform = recenter(RotMatrix{2}(θ), center(img))
-    warp(img, tform, args...)
+    # 1. discretize periodic for numerical stability to make sure
+    # imrotate(img, θ+2pi) == imrotate(img, θ)
+    # 2. typemax(Int16) is 32767, we choose 32760 to make sure the
+    # discretization result of pi/2 is exactly pi/2 (or 90°)
+    max_num_angles = 32760
+    θ = round(Int, 180*floor(mod(θ, 2pi)/pi*max_num_angles)/max_num_angles)
+    tform = recenter(RotMatrix{2}(θ/180*pi), center(img))
+    if θ in (0, 90, 180, 270)
+        # do auto cropping for these special cases since image is not expected to expand
+        # if indices is explicitly provided, then we take user's choice
+        if isempty(args) || !isa(args[1], Tuple)
+            if  θ in (90, 270)
+                c = Tuple(center(img))
+                offset = (reverse(size(img)) .- 1)./2
+                indices = map(c, offset) do x, δ
+                    Int(x-δ):Int(x+δ)
+                end
+            else
+                indices = axes(img)
+            end
+            return warp(img, tform, indices, args...)
+        end
+    end
+    return warp(img, tform, args...)
 end

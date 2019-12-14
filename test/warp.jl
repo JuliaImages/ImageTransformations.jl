@@ -427,15 +427,24 @@ ref_img_pyramid_grid = Float64[
                 @test_nowarn imrotate(img, π/4, Linear())
                 @test_nowarn imrotate(img, π/4, axes(img))
                 @test_nowarn imrotate(img, π/4, axes(img), Constant())
-                @test isequal(channelview(imrotate(img,π/4)), channelview(imrotate(img, π/4, Linear()))) # TODO: if we remove channelview the test will break for Float
+                @test isequal(channelview(imrotate(img, π/4)), channelview(imrotate(img, π/4, Linear()))) # NaN != NaN
             end
+
+            # check special rotation degrees
+            img = rand(Gray{N0f8}, 100, 50)
+            @test size(imrotate(img, pi/2)) == (50, 100)
+            @test size(imrotate(img, pi)) == (100, 50)
+            @test size(imrotate(img, 3pi/2)) == (50, 100)
+            @test size(imrotate(img, 2pi)) == (100, 50)
+            rotated_img = imrotate(imrotate(imrotate(imrotate(img, pi/2), pi/2), pi/2), pi/2)
+            @test rotated_img == img
         end
 
         @testset "numerical" begin
             for T in test_types
                 img = Gray{T}.(graybar)
                 for θ in range(0,stop=2π,length = 100)
-                    @test isequal(channelview(imrotate(img,θ)), channelview(imrotate(img,θ+2π))) # TODO: if we remove channelview the test will break for Float
+                    @test isequal(channelview(imrotate(img,θ)), channelview(imrotate(img,θ+2π))) # NaN != NaN
                 end
             end
         end
