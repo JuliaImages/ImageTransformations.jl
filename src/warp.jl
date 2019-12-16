@@ -112,7 +112,7 @@ By default, rotated image `imgr` will not be cropped. Bilinear interpolation wil
 ```julia
 julia> img = testimage("cameraman")
 
-# rotate with bilinear interpolation but without cropping 
+# rotate with bilinear interpolation but without cropping
 julia> imrotate(img, π/4)
 
 # rotate with bilinear interpolation and with cropping
@@ -124,8 +124,28 @@ julia> imrotate(img, π/4, Constant())
 
 See also [`warp`](@ref).
 """
-function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
-    θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
-    tform = recenter(RotMatrix{2}(θ), center(img))
-    warp(img, tform, args...)
+function imrotate(img::AbstractMatrix{T}, θ::Real, args...) where T
+    # 1. discretize periodic for numerical stability to make sure
+    # imrotate(img, θ+2pi) == imrotate(img, θ)
+    # 2. typemax(Int16) is 32767, we choose 32760 to make sure the
+    # discretization result of pi/2 is exactly pi/2 (or 90°)
+    max_num_angles = 32760
+    θ = round(Int, 180*floor(mod(θ, 2pi)/pi*max_num_angles)/max_num_angles)
+    tform = recenter(RotMatrix{2}(θ/180*pi), center(img))
+    if θ == 0
+        return img
+    elseif θ == 90
+        idx = StepRange.(axes(img))
+        perm_img = PermutedDimsArray(img, (2, 1))
+        return view(perm_img, idx[2], reverse(idx[1]))
+    elseif θ == 180
+        idx = map(i->1:1:length(i), axes(img))
+        return view(img, reverse(idx[1]), reverse(idx[2]))
+    elseif θ == 270
+        idx = StepRange.(axes(img))
+        perm_img = PermutedDimsArray(img, (2, 1))
+        return view(perm_img, reverse(idx[2]), idx[1])
+    else
+        return warp(img, tform, args...)
+    end
 end
