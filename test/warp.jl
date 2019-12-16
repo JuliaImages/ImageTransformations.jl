@@ -438,6 +438,8 @@ ref_img_pyramid_grid = Float64[
             @test size(imrotate(img, 2pi)) == (100, 50)
             rotated_img = imrotate(imrotate(imrotate(imrotate(img, pi/2), pi/2), pi/2), pi/2)
             @test rotated_img == img
+            rotated_img = imrotate(imrotate(img, pi), pi)
+            @test rotated_img == img
         end
 
         @testset "numerical" begin
