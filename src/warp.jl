@@ -124,7 +124,7 @@ julia> imrotate(img, π/4, Constant())
 
 See also [`warp`](@ref).
 """
-function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
+function imrotate(img::AbstractMatrix{T}, θ::Real, args...) where T
     # 1. discretize periodic for numerical stability to make sure
     # imrotate(img, θ+2pi) == imrotate(img, θ)
     # 2. typemax(Int16) is 32767, we choose 32760 to make sure the
@@ -132,21 +132,20 @@ function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
     max_num_angles = 32760
     θ = round(Int, 180*floor(mod(θ, 2pi)/pi*max_num_angles)/max_num_angles)
     tform = recenter(RotMatrix{2}(θ/180*pi), center(img))
-    if θ in (0, 90, 180, 270)
-        # do auto cropping for these special cases since image is not expected to expand
-        # if indices is explicitly provided, then we take user's choice
-        if isempty(args) || !isa(args[1], Tuple)
-            if  θ in (90, 270)
-                c = Tuple(center(img))
-                offset = (reverse(size(img)) .- 1)./2
-                indices = map(c, offset) do x, δ
-                    Int(x-δ):Int(x+δ)
-                end
-            else
-                indices = axes(img)
-            end
-            return warp(img, tform, indices, args...)
-        end
+    if θ == 0
+        return img
+    elseif θ == 90
+        idx = StepRange.(axes(img))
+        perm_img = PermutedDimsArray(img, (2, 1))
+        return view(perm_img, idx[2], reverse(idx[1]))
+    elseif θ == 180
+        idx = map(i->1:1:length(i), axes(img))
+        return view(img, reverse(idx[1]), reverse(idx[2]))
+    elseif θ == 270
+        idx = StepRange.(axes(img))
+        perm_img = PermutedDimsArray(img, (2, 1))
+        return view(perm_img, reverse(idx[2]), idx[1])
+    else
+        return warp(img, tform, args...)
     end
-    return warp(img, tform, args...)
 end
