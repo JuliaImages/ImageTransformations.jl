@@ -5,14 +5,13 @@ using CoordinateTransformations
 using StaticArrays
 using Interpolations, AxisAlgorithms
 using OffsetArrays
-using FixedPointNumbers
-using ColorTypes, Colors, ColorVectorSpace
+using ColorVectorSpace
 using IdentityRanges
 
 import Base: eltype, size, length
 using Base: tail, Indices
 using Base.Cartesian
-using ColorTypes: AbstractGray, TransparentGray, TransparentRGB
+using .ColorTypes: AbstractGray, TransparentGray, TransparentRGB
 
 export
 

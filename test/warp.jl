@@ -1,4 +1,4 @@
-using CoordinateTransformations, TestImages, ImageCore, Colors, FixedPointNumbers, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
+using CoordinateTransformations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
 using Test, ReferenceTests
 
 # helper function to compare NaN
