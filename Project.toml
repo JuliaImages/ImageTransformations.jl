@@ -19,7 +19,7 @@ CoordinateTransformations = "0.5"
 IdentityRanges = "0.3"
 ImageCore = "0.8.1"
 Interpolations = "0.9, 0.10, 0.11, 0.12"
-OffsetArrays = "0.10, 0.11"
+OffsetArrays = "0.10, 0.11, 1.0"
 StaticArrays = "0.10, 0.11, 0.12"
 julia = "1"
 
