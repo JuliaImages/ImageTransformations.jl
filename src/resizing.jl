@@ -214,7 +214,7 @@ end
 end
 
 restrict_size(len::Integer) = isodd(len) ? (len+1)>>1 : (len>>1)+1
-function restrict_indices(r::OffsetArrays.IdentityUnitRange)
+function restrict_indices(r::AbstractUnitRange)
     f, l = first(r), last(r)
     isodd(f) && return (f+1)>>1:restrict_size(l)
     f>>1 : (isodd(l) ? (l+1)>>1 : l>>1)
