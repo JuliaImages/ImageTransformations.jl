@@ -15,6 +15,8 @@ const FloatColorant{T<:AbstractFloat} = Colorant{T}
 @inline _make_compatible(T, fill) = fill
 @inline _make_compatible(::Type{T}, fill::Number) where {T} = T(fill)
 
+Interpolations.tweight(A::AbstractArray{C}) where C<:Colorant{T} where T = T
+
 box_extrapolation(etp::AbstractExtrapolation) = etp
 
 function box_extrapolation(itp::AbstractInterpolation{T}, fill::FillType = _default_fill(T)) where T
@@ -22,9 +24,10 @@ function box_extrapolation(itp::AbstractInterpolation{T}, fill::FillType = _defa
     box_extrapolation(etp)
 end
 
-function box_extrapolation(parent::AbstractArray{T,N}, degree::D = Linear(), args...) where {T,N,D<:Union{Linear,Constant}}
+function box_extrapolation(parent::AbstractArray, degree::D = Linear(), args...) where D<:Union{Linear,Constant}
     axs = axes(parent)
-    itp = Interpolations.BSplineInterpolation{T,N,typeof(parent),BSpline{D},typeof(axs)}(parent, axs, BSpline(degree))
+    T = typeof(zero(Interpolations.tweight(parent))*zero(eltype(parent)))
+    itp = Interpolations.BSplineInterpolation{T,ndims(parent),typeof(parent),BSpline{D},typeof(axs)}(parent, axs, BSpline(degree))
     box_extrapolation(itp, args...)
 end
 
