@@ -370,6 +370,12 @@ ref_img_pyramid_grid = Float64[
         # Use map and === because of the NaNs
         @test nearlysame(round.(Float64.(parent(imgr)), digits=3), round.(ref_img_pyramid,digits=3))
 
+        # https://discourse.julialang.org/t/translate-images-by-subpixel-amounts/30248/4
+        a = [1 2 3; 4 5 6]
+        t = Translation(.9, .9)
+        b = warp(a, t, indices_spatial(a), 0)
+        @test b[1,1] ≈ 0.9^2*5 + 0.1*0.9*(4+2) + 0.1^2*1
+
         @testset "OffsetArray" begin
             imgr_cntr = warp(img_pyramid_cntr, tfm2)
             @test axes(imgr_cntr) == (-3:3, -3:3)
