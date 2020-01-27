@@ -16,6 +16,12 @@ const FloatColorant{T<:AbstractFloat} = Colorant{T}
 @inline _make_compatible(::Type{T}, fill::Number) where {T} = T(fill)
 
 Interpolations.tweight(A::AbstractArray{C}) where C<:Colorant{T} where T = T
+if all(map((FixedPoint, Normed)) do T
+        isempty(methodswith(AbstractArray{<:T}, Interpolations.tweight))
+    end)
+    # Reached when upstream package (e.g., FixedPoint) doesn't provide a specialization
+    Interpolations.tweight(A::AbstractArray{T}) where T<:FixedPoint = T
+end
 
 box_extrapolation(etp::AbstractExtrapolation) = etp
 

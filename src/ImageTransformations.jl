@@ -12,6 +12,7 @@ import Base: eltype, size, length
 using Base: tail, Indices
 using Base.Cartesian
 using .ColorTypes: AbstractGray, TransparentGray, TransparentRGB
+using InteractiveUtils: methodswith
 
 export
 

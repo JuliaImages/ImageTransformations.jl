@@ -88,6 +88,13 @@ end
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
 
+    img_n0f8 = N0f8.(img)
+    etp = @inferred ImageTransformations.box_extrapolation(img_n0f8, Flat())
+    @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{N0f8,2}, BSpline(Linear())), Flat()) with element type Normed{UInt8,8}"
+    @test typeof(etp) <: Interpolations.Extrapolation
+    @test etp.itp.coefs === img_n0f8
+
     etp = @inferred ImageTransformations.box_extrapolation(img, Constant())
     @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
