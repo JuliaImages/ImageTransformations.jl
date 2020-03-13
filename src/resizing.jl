@@ -77,13 +77,13 @@ end
 
 function restrict(A::AbstractArray{T,N}, dim::Integer) where {T,N}
     indsA = axes(A)
-    newinds = ntuple(i->i == dim ? restrict_indices(indsA[dim]) : indsA[i], Val(N))
+    newinds = ntuple(i->i==dim ? restrict_indices(indsA[dim]) : indsA[i], Val(N))
     out = similar(Array{restrict_eltype(first(A)),N}, newinds)
     restrict!(out, A, dim)
     out
 end
 
-restrict_eltype_default(x)          = typeof(x / 4 + x / 2)
+restrict_eltype_default(x)          = typeof(x/4 + x/2)
 restrict_eltype(x)                  = restrict_eltype_default(x)
 restrict_eltype(x::AbstractGray)    = restrict_eltype_default(x)
 restrict_eltype(x::AbstractRGB)     = restrict_eltype_default(x)
@@ -99,10 +99,10 @@ function restrict!(out::AbstractArray{T,N}, A::AbstractArray, dim) where {T,N}
     indsout, indsA = axes(out), axes(A)
     ndims(out) == ndims(A) || throw(DimensionMismatch("input and output must have the same number of dimensions"))
     for d = 1:length(indsA)
-        target = d == dim ? restrict_indices(indsA[d]) : indsA[d]
+        target = d==dim ? restrict_indices(indsA[d]) : indsA[d]
         indsout[d] == target || error("input and output must have corresponding indices; to be consistent with the input indices,\ndimension $d should be $target, got $(indsout[d])")
     end
-    indspre, indspost = indsA[1:dim - 1], indsA[dim + 1:end]
+    indspre, indspost = indsA[1:dim-1], indsA[dim+1:end]
     _restrict!(out, indsout[dim], A, indspre, indsA[dim], indspost)
 end
 
@@ -128,13 +128,13 @@ end
                     if ispeak
                         @inbounds @nloops $Npre ipre d->indspre[d] begin
                             out[$(Ipre...), iout, $(Ipost...)] +=
-                                half * convert(T, A[$(Ipre...), iA, $(Ipost...)])
+                                half*convert(T, A[$(Ipre...), iA, $(Ipost...)])
                         end
                     else
                         @inbounds @nloops $Npre ipre d->indspre[d] begin
-                            tmp = quarter * convert(T, A[$(Ipre...), iA, $(Ipost...)])
+                            tmp = quarter*convert(T, A[$(Ipre...), iA, $(Ipost...)])
                             out[$(Ipre...), iout, $(Ipost...)]   += tmp
-                            out[$(Ipre...), iout + 1, $(Ipost...)] = tmp
+                            out[$(Ipre...), iout+1, $(Ipost...)] = tmp
                         end
                     end
                     ispeak = !ispeak
@@ -153,14 +153,14 @@ end
                     if peakfirst
                         @inbounds @nloops $Npre ipre d->indspre[d] begin
                             tmp = convert(T, A[$(Ipre...), iA, $(Ipost...)])
-                            out[$(Ipre...), iout, $(Ipost...)] += threeeighths * tmp
-                            out[$(Ipre...), iout + 1, $(Ipost...)] += oneeighth * tmp
+                            out[$(Ipre...), iout, $(Ipost...)] += threeeighths*tmp
+                            out[$(Ipre...), iout+1, $(Ipost...)] += oneeighth*tmp
                         end
                     else
                         @inbounds @nloops $Npre ipre d->indspre[d] begin
                             tmp = convert(T, A[$(Ipre...), iA, $(Ipost...)])
-                            out[$(Ipre...), iout, $(Ipost...)]   += oneeighth * tmp
-                            out[$(Ipre...), iout + 1, $(Ipost...)] += threeeighths * tmp
+                            out[$(Ipre...), iout, $(Ipost...)]   += oneeighth*tmp
+                            out[$(Ipre...), iout+1, $(Ipost...)] += threeeighths*tmp
                         end
                     end
                     peakfirst = !peakfirst
@@ -184,14 +184,14 @@ end
             quarter = convert(eltype(T), 0.25)
             @inbounds @nloops $Npost ipost d->indspost[d] begin
                 iout, iA = first(indout), first(indA)
-                nxt = convert(T, A[iA + 1, $(Ipost...)])
-                out[iout, $(Ipost...)] = half * convert(T, A[iA, $(Ipost...)]) + quarter * nxt
-                for iA in first(indA) + 2:2:last(indA) - 2
+                nxt = convert(T, A[iA+1, $(Ipost...)])
+                out[iout, $(Ipost...)] = half*convert(T, A[iA, $(Ipost...)]) + quarter*nxt
+                for iA in first(indA)+2:2:last(indA)-2
                     prv = nxt
-                    nxt = convert(T, A[iA + 1, $(Ipost...)])
-                    out[iout += 1, $(Ipost...)] = quarter * (prv + nxt) + half * convert(T, A[iA, $(Ipost...)])
+                    nxt = convert(T, A[iA+1, $(Ipost...)])
+                    out[iout+=1, $(Ipost...)] = quarter*(prv+nxt) + half*convert(T, A[iA, $(Ipost...)])
                 end
-                out[iout + 1, $(Ipost...)] = quarter * nxt + half * convert(T, A[last(indA), $(Ipost...)])
+                out[iout+1, $(Ipost...)] = quarter*nxt + half*convert(T, A[last(indA), $(Ipost...)])
             end
         else
             threeeighths = convert(eltype(T), 0.375)
@@ -200,34 +200,34 @@ end
             @inbounds @nloops $Npost ipost d->indspost[d] begin
                 c = d = z
                 iA = first(indA)
-                for iout = first(indout):last(indout) - 1
+                for iout = first(indout):last(indout)-1
                     a, b = c, d
-                    c, d = convert(T, A[iA, $(Ipost...)]), convert(T, A[iA + 1, $(Ipost...)])
+                    c, d = convert(T, A[iA, $(Ipost...)]), convert(T, A[iA+1, $(Ipost...)])
                     iA += 2
-                    out[iout, $(Ipost...)] = oneeighth * (a + d) + threeeighths * (b + c)
+                    out[iout, $(Ipost...)] = oneeighth*(a+d) + threeeighths*(b+c)
                 end
-                out[last(indout), $(Ipost...)] = oneeighth * c + threeeighths * d
+                out[last(indout), $(Ipost...)] = oneeighth*c + threeeighths*d
             end
         end
         out
     end
 end
 
-restrict_size(len::Integer) = isodd(len) ? (len + 1) >> 1 : (len >> 1) + 1
+restrict_size(len::Integer) = isodd(len) ? (len+1)>>1 : (len>>1)+1
 function restrict_indices(r::AbstractUnitRange)
     f, l = first(r), last(r)
-    isodd(f) && return (f + 1) >> 1:restrict_size(l)
-    f >> 1:(isodd(l) ? (l + 1) >> 1 : l >> 1)
+    isodd(f) && return (f+1)>>1:restrict_size(l)
+    f>>1 : (isodd(l) ? (l+1)>>1 : l>>1)
 end
 restrict_indices(r::Base.OneTo) = Base.OneTo(restrict_size(length(r)))
 function restrict_indices(r::UnitRange)
     f, l = first(r), last(r)
-    isodd(f) && return (f + 1) >> 1:restrict_size(l)
-    f >> 1:(isodd(l) ? (l + 1) >> 1 : l >> 1)
+    isodd(f) && return (f+1)>>1:restrict_size(l)
+    f>>1 : (isodd(l) ? (l+1)>>1 : l>>1)
 end
 
 # imresize
-imresize(original::AbstractArray, dim1::T, dimN::T...) where T <: Union{Integer,AbstractUnitRange} = imresize(original, (dim1, dimN...))
+imresize(original::AbstractArray, dim1::T, dimN::T...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
 function imresize(original::AbstractArray; ratio)
     all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
     new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
@@ -237,7 +237,7 @@ end
 function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}) where M
     len_short = length(short_size)
     len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
-    new_size = ntuple(i->(i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
+    new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
     imresize(original, new_size)
 end
 odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
@@ -262,8 +262,8 @@ julia> imresize(img, (128, 128)) # 128*128
 julia> imresize(img, (1:128, 1:128)) # 128*128
 julia> imresize(img, (1:128, )) # 128*256
 julia> imresize(img, 128) # 128*256
-julia> imresize(img, ratio = 0.5) # 128*128
-julia> imresize(img, ratio = (0.5, 1)) # 128*256
+julia> imresize(img, ratio = 0.5) # 
+julia> imresize(img, ratio = (2, 1)) # 256*128
 
 σ = map((o,n)->0.75*o/n, size(img), sz)
 kern = KernelFactors.gaussian(σ)   # from ImageFiltering
@@ -309,7 +309,7 @@ end
 imresize_type(c::Colorant) = base_colorant_type(c){eltype(imresize_type(Gray(c)))}
 imresize_type(c::Gray) = Gray{imresize_type(gray(c))}
 imresize_type(c::FixedPoint) = typeof(c)
-imresize_type(c) = typeof((c * 1) / 1)
+imresize_type(c) = typeof((c*1)/1)
 
 function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}) where {T,S,N}
     # FIXME: avoid allocation for interpolation
@@ -329,16 +329,16 @@ function imresize!(resized::AbstractArray{T,N}, original::AbstractInterpolation{
     #     size(resized)+0.5 -> size(original)+0.5  (outer corner, lower right)
     # This ensures that both images cover exactly the same area.
     Ro, Rr = CartesianIndices(axes(original)), CartesianIndices(axes(resized))
-    sf = map(/, (last(Ro) - first(Ro)).I .+ 1, (last(Rr) - first(Rr)).I .+ 1) # +1 for outer corners
-    offset = map((io, ir, s)->io - 0.5 - s * (ir - 0.5), first(Ro).I, first(Rr).I, sf)
+    sf = map(/, (last(Ro)-first(Ro)).I .+ 1, (last(Rr)-first(Rr)).I .+ 1) # +1 for outer corners
+    offset = map((io,ir,s)->io - 0.5 - s*(ir-0.5), first(Ro).I, first(Rr).I, sf)
     if all(x->x >= 1, sf)
         @inbounds for I in Rr
-            I_o = map3((i, s, off)->s * i + off, I.I, sf, offset)
+            I_o = map3((i,s,off)->s*i+off, I.I, sf, offset)
             resized[I] = original(I_o...)
         end
     else
         @inbounds for I in Rr
-            I_o = clampR(map3((i, s, off)->s * i + off, I.I, sf, offset), Ro)
+            I_o = clampR(map3((i,s,off)->s*i+off, I.I, sf, offset), Ro)
             resized[I] = original(I_o...)
         end
     end
