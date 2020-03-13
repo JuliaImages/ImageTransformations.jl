@@ -86,6 +86,7 @@ end
             @test_throws DimensionMismatch imresize(img,(5,5,5))
             @test_throws ArgumentError imresize(img, ratio = -0.5)
             @test_throws ArgumentError imresize(img, ratio = (-0.5, 1))
+            @test_throws DimensionMismatch imresize(img, ratio=(5,5,5))
             @test_throws DimensionMismatch imresize(img,(5,5,1))
         end
     end
