@@ -70,6 +70,8 @@ end
             test_imresize_interface(img, (5,5), 1:5,1:5) # FIXME: @inferred failed
             test_imresize_interface(img, (5,5), ratio = 0.5)
             test_imresize_interface(img, (20,20), ratio = 2)
+            test_imresize_interface(img, (20,20), ratio = (2, 2))
+            test_imresize_interface(img, (20,10), ratio = (2, 1))
             test_imresize_interface(img, (10,10), ())
             test_imresize_interface(img, (5,10), 5)
             test_imresize_interface(img, (5,10), (5,))
@@ -83,6 +85,8 @@ end
             @test_throws UndefKeywordError imresize(img)
             @test_throws DimensionMismatch imresize(img,(5,5,5))
             @test_throws ArgumentError imresize(img, ratio = -0.5)
+            @test_throws ArgumentError imresize(img, ratio = (-0.5, 1))
+            @test_throws DimensionMismatch imresize(img, ratio=(5,5,5))
             @test_throws DimensionMismatch imresize(img,(5,5,1))
         end
     end

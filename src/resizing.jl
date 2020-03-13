@@ -228,8 +228,8 @@ end
 
 # imresize
 imresize(original::AbstractArray, dim1::T, dimN::T...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
-function imresize(original::AbstractArray; ratio::Real)
-    ratio > 0 || throw(ArgumentError("ratio $ratio should be positive"))
+function imresize(original::AbstractArray; ratio)
+    all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
     new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
     imresize(original, new_size)
 end
@@ -262,7 +262,8 @@ julia> imresize(img, (128, 128)) # 128*128
 julia> imresize(img, (1:128, 1:128)) # 128*128
 julia> imresize(img, (1:128, )) # 128*256
 julia> imresize(img, 128) # 128*256
-julia> imresize(img, ratio = 0.5) # 128*128
+julia> imresize(img, ratio = 0.5) # 
+julia> imresize(img, ratio = (2, 1)) # 256*128
 
 σ = map((o,n)->0.75*o/n, size(img), sz)
 kern = KernelFactors.gaussian(σ)   # from ImageFiltering
