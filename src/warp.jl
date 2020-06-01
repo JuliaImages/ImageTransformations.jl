@@ -46,7 +46,7 @@ indices with `parent(imgw)`.
 # Examples: a 2d rotation (see JuliaImages documentation for pictures)
 
 ```
-julia> using Images, CoordinateTransformations, TestImages, OffsetArrays
+julia> using Images, CoordinateTransformations, Rotations, TestImages, OffsetArrays
 
 julia> img = testimage("lighthouse");
 

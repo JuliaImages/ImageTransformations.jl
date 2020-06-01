@@ -2,6 +2,7 @@ module ImageTransformations
 
 using ImageCore
 using CoordinateTransformations
+using Rotations
 using StaticArrays
 using Interpolations, AxisAlgorithms
 using OffsetArrays
