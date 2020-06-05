@@ -1,4 +1,4 @@
-using CoordinateTransformations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
+using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
 using Test, ReferenceTests
 
 refambs = detect_ambiguities(CoordinateTransformations, Base, Core)
