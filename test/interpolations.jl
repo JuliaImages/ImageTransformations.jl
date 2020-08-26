@@ -43,10 +43,12 @@ end
     @test typeof(ImageTransformations.box_extrapolation) <: Function
 
     img = rand(Gray{N0f8}, 2, 2)
+    n0f8_str = typestring(N0f8)
+    matrixf64_str = typestring(Matrix{Float64})
 
     etp = @inferred ImageTransformations.box_extrapolation(img)
     @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.fillvalue === Gray{N0f8}(0.0)
     @test etp.itp.coefs === img
@@ -64,48 +66,48 @@ end
     @test_throws ArgumentError ImageTransformations.box_extrapolation(etp.itp, Constant(), Flat())
 
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp)
-    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp2) <: Interpolations.FilledExtrapolation
     @test etp2.fillvalue === Gray{N0f8}(0.0)
     @test etp2 !== etp
     @test etp2.itp === etp.itp
 
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp, Flat())
-    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Flat()) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Flat()) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp2) <: Interpolations.Extrapolation
     @test etp2 !== etp
     @test etp2.itp === etp.itp
 
     etp = @inferred ImageTransformations.box_extrapolation(img, 1)
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.fillvalue === Gray{N0f8}(1.0)
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Flat())
     @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Flat()) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Flat()) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Constant())
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Constant(), Flat())
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Flat()) with element type $(ctqual)Gray{$(fpqual)Normed{UInt8,8}}"
+    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Flat()) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
 
     imgfloat = Float64.(img)
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, Quadratic(Flat(OnGrid())))
     @test typeof(etp) <: Interpolations.FilledExtrapolation
-    @test summary(etp) == "2×2 extrapolate(interpolate(OffsetArray(::Array{Float64,2}, 0:3, 0:3), BSpline(Quadratic(Flat(OnGrid())))), NaN) with element type Float64"
+    @test summary(etp) == "2×2 extrapolate(interpolate(OffsetArray(::$matrixf64_str, 0:3, 0:3), BSpline(Quadratic(Flat(OnGrid())))), NaN) with element type Float64"
 
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, Cubic(Flat(OnGrid())), Flat())
     @test typeof(etp) <: Interpolations.Extrapolation
-    @test summary(etp) == "2×2 extrapolate(interpolate(OffsetArray(::Array{Float64,2}, 0:3, 0:3), BSpline(Cubic(Flat(OnGrid())))), Flat()) with element type Float64"
+    @test summary(etp) == "2×2 extrapolate(interpolate(OffsetArray(::$matrixf64_str, 0:3, 0:3), BSpline(Cubic(Flat(OnGrid())))), Flat()) with element type Float64"
 end
 
 @testset "AxisAlgorithms.A_ldiv_B_md" begin
