@@ -16,8 +16,10 @@ ctqual = ""
 fpqual = ""
 
 if VERSION >= v"1.2.0-DEV.229"
+    sumfmt(rest,img) = Base.dims2string(size(img)) * ' ' * rest
     sumfmt(ax,rest,img) = Base.dims2string(size(img)) * ' ' * rest * " with indices " * ax
 else
+    sumfmt(rest,img) = rest
     sumfmt(ax,rest,img) = rest * " with indices " * ax
 end
 
@@ -177,7 +179,10 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(warpedview(img_camera, tfm, Constant(), Periodic()))
-        @test summary(imgr) == sumfmt("-78:591×-78:591","WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Periodic()), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        str = summary(imgr)
+        @test occursin(sumfmt("WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
+              occursin("Periodic()), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
+              occursin("with indices -78:591×-78:591", str)
         @test size(imgr) == ref_size
         @test typeof(parent(imgr)) <: Interpolations.Extrapolation
         @test parent(imgr).itp.coefs === img_camera
@@ -186,7 +191,10 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(warpedview(img_camera, tfm, ref_inds, Constant(), Periodic()))
-        @test summary(imgr) == sumfmt("-78:591×-78:591","WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Periodic()), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        str = summary(imgr)
+        @test occursin(sumfmt("WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
+              occursin("Periodic()), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
+              occursin("with indices -78:591×-78:591", str)
         @test size(imgr) == ref_size
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
@@ -279,7 +287,10 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, Constant(), Periodic()))
-        @test summary(imgr) == sumfmt("-78:591×-78:591","InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Periodic()), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        str = summary(imgr)
+        @test occursin(sumfmt("InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
+              occursin("Periodic()), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
+              occursin("with indices -78:591×-78:591", str)
         @test size(imgr) == ref_size
         @test typeof(parent(imgr)) <: Interpolations.Extrapolation
         @test parent(imgr).itp.coefs === img_camera
@@ -288,7 +299,10 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, ref_inds, Constant(), Periodic()))
-        @test summary(imgr) == sumfmt("-78:591×-78:591","InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Periodic()), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        str = summary(imgr)
+        @test occursin(sumfmt("InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
+              occursin("Periodic()), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
+              occursin("with indices -78:591×-78:591", str)
         @test size(imgr) == ref_size
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr

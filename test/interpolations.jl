@@ -91,12 +91,14 @@ end
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Constant())
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
+    str = summary(etp)
+    @test occursin("2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", str) && occursin("Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}", str)
     @test typeof(etp) <: Interpolations.FilledExtrapolation
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, Constant(), Flat())
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant())), Flat()) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
+    str = summary(etp)
+    @test occursin("2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", str) && occursin("Flat()) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}", str)
     @test typeof(etp) <: Interpolations.Extrapolation
     @test etp.itp.coefs === img
 
