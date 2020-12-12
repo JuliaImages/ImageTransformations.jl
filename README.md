@@ -1,6 +1,6 @@
 # ImageTransformations
 
-[![][travis-img]][travis-url]
+[![][action-img]][action-url]
 [![][pkgeval-img]][pkgeval-url]
 [![][codecov-img]][codecov-url]
 
@@ -11,7 +11,7 @@ other spatial transformations of arrays.
 
 [pkgeval-img]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/I/ImageTransformations.svg
 [pkgeval-url]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html
-[travis-img]: https://travis-ci.org/JuliaImages/ImageTransformations.jl.svg?branch=master
-[travis-url]: https://travis-ci.org/JuliaImages/ImageTransformations.jl
+[action-img]: https://github.com/JuliaImages/ImageTransformations.jl/workflows/Unit%20test/badge.svg
+[action-url]: https://github.com/JuliaImages/ImageTransformations.jl/actions
 [codecov-img]: https://codecov.io/github/JuliaImages/ImageTransformations.jl/coverage.svg?branch=master
 [codecov-url]: https://codecov.io/github/JuliaImages/ImageTransformations.jl?branch=master
