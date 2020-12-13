@@ -85,6 +85,7 @@ function warp(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img,
 end
 
 function warp!(out, img::AbstractExtrapolation, tform)
+    tform = _round(tform)
     @inbounds for I in CartesianIndices(axes(out))
         out[I] = _getindex(img, tform(SVector(I.I)))
     end
