@@ -4,6 +4,7 @@ function autorange(img, tform)
 end
 
 function autorange(R::CartesianIndices, tform)
+    tform = _round(tform)
     mn = mx = tform(SVector(first(R).I))
     for I in CornerIterator(R)
         x = tform(SVector(I.I))
@@ -74,3 +75,23 @@ try_static(tfm::LinearMap{<:AbstractMatrix}, img::AbstractArray{T,N}) where {T,N
 try_static(tfm::Translation{<:SVector}, img::AbstractArray{T,N}) where {T,N} = tfm
 try_static(tfm::Translation{<:AbstractVector}, img::AbstractArray{T,N}) where {T,N} =
     Translation(SVector{N}(tfm.translation))
+
+# Slightly round/discretize the transformation so that the warpped image size isn't affected by
+# numerical stability
+# https://github.com/JuliaImages/ImageTransformations.jl/issues/104
+_default_digits(::Type{T}) where T<:Number = _default_digits(floattype(T))
+# these constants come from eps() digits
+_default_digits(::Type{<:AbstractFloat}) = 16
+_default_digits(::Type{Float64}) = 16
+_default_digits(::Type{Float32}) = 7
+
+function _round(tform::T; kwargs...) where T<:CoordinateTransformations.Transformation
+    rounded_fields = map(Base.OneTo(fieldcount(T))) do i
+        __round(getfield(tform, i); kwargs...)
+    end
+    T(rounded_fields...)
+end
+
+__round(x; kwargs...) = x
+__round(x::AbstractArray; digits=_default_digits(eltype(x)), kwargs...) = round.(x; digits=digits, kwargs...)
+__round(x::T; digits=_default_digits(T), kwargs...) where T<:Number = round(x; digits=digits, kwargs...)

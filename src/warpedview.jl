@@ -26,7 +26,7 @@ struct WarpedView{T,N,A<:AbstractArray,F<:Transformation,I<:Tuple,E<:AbstractExt
             indices::I) where {T,N,TA<:AbstractArray,F<:Transformation,I<:Tuple}
         @assert eltype(parent) == T
         etp = box_extrapolation(parent)
-        new{T,N,TA,F,I,typeof(etp)}(parent, tform, indices, etp)
+        new{T,N,TA,F,I,typeof(etp)}(parent, _round(tform), indices, etp)
     end
 end
 
