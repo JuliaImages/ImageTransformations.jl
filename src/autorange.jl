@@ -91,7 +91,9 @@ function _round(tform::T; kwargs...) where T<:CoordinateTransformations.Transfor
     end
     T(rounded_fields...)
 end
-_round(tform::ComposedFunction; kwargs...) = _round(tform.outer; kwargs...) ∘ _round(tform.inner; kwargs...)
+if isdefined(Base, :ComposedFunction)
+    _round(tform::ComposedFunction; kwargs...) = _round(tform.outer; kwargs...) ∘ _round(tform.inner; kwargs...)
+end
 _round(tform; kwargs...) = tform
 
 __round(x; kwargs...) = x
