@@ -91,6 +91,8 @@ function _round(tform::T; kwargs...) where T<:CoordinateTransformations.Transfor
     end
     T(rounded_fields...)
 end
+_round(tform::ComposedFunction; kwargs...) = _round(tform.outer; kwargs...) ∘ _round(tform.inner; kwargs...)
+_round(tform; kwargs...) = tform
 
 __round(x; kwargs...) = x
 __round(x::AbstractArray; digits=_default_digits(eltype(x)), kwargs...) = round.(x; digits=digits, kwargs...)
