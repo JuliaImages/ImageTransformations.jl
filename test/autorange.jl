@@ -132,4 +132,12 @@ end
     tst_img = zeros(5,5)
     rnge = ImageTransformations.autorange(tst_img, tfm_s)
     @test rnge == ImageTransformations.autorange(tst_img, tfm)
+    #more complicated PerspectiveMap example from https://stackoverflow.com/a/45782741
+    M = @SMatrix [1 0 0; 0 1 0; -1/1000 0 1] 
+    push1(x) = push(x, 1)
+    tfm = PerspectiveMap() ∘ inv(LinearMap(M)) ∘ push1
+    n = 5
+    tst_img = zeros(n,n)
+    rnge = ImageTransformations.autorange(tst_img, tfm)
+    @test rnge == (0:n, 0:n)
 end
