@@ -100,30 +100,30 @@ end
 @testset "autorange" begin
     for (h, w) in ((10,20), (20,10), (7,9))
         d = sqrt(h^2 + w^2)
-        α = atan(h/w)
+        α = atand(h/w)
         tst_img = zeros(h,w)
         # We compare the result of autorange against manually computed
         # values using basic trigonometry
-        for ϕ in deg2rad.(1:1:89)
-            rot = LinearMap(RotMatrix(ϕ))
+        for θ in 1:1:89
+            rot = LinearMap(RotMatrix(deg2rad(θ)))
             rnge = @inferred ImageTransformations.autorange(tst_img, rot)
-            @test rnge[1].start == floor(cos(ϕ)*1 - sin(ϕ)*w)
-            @test rnge[1].stop  ==  ceil(cos(ϕ)*h - sin(ϕ)*1)
+            @test rnge[1].start == floor(cosd(θ)*1 - sind(θ)*w)
+            @test rnge[1].stop  ==  ceil(cosd(θ)*h - sind(θ)*1)
             @test rnge[2].start == 1
-            @test rnge[2].stop  == ceil(cos(α-ϕ)*d)
+            @test rnge[2].stop  == ceil(cosd(α-θ)*d)
         end
     end
     # Non-1 indices
     for (indh, indw) in ((-1:10,0:20), (-1:20,-2:10), (0:7,-3:9))
         h, w = length(indh), length(indw)
         tst_img = OffsetArray(zeros(h,w), indh, indw)
-        for ϕ in deg2rad.(1:1:89)
-            rot = LinearMap(RotMatrix(ϕ))
+        for θ in 1:1:89
+            rot = LinearMap(RotMatrix(deg2rad(θ)))
             rnge = @inferred ImageTransformations.autorange(tst_img, rot)
-            @test rnge[1].start == floor(cos(ϕ)*first(indh) - sin(ϕ)*last(indw))
-            @test rnge[1].stop  ==  ceil(cos(ϕ)*last(indh)  - sin(ϕ)*first(indw))
-            @test rnge[2].start == floor(sin(ϕ)*first(indh) + cos(ϕ)*first(indw))
-            @test rnge[2].stop  ==  ceil(sin(ϕ)*last(indh)  + cos(ϕ)*last(indw))
+            @test rnge[1].start == floor(cosd(θ)*first(indh) - sind(θ)*last(indw))
+            @test rnge[1].stop  ==  ceil(cosd(θ)*last(indh)  - sind(θ)*first(indw))
+            @test rnge[2].start == floor(sind(θ)*first(indh) + cosd(θ)*first(indw))
+            @test rnge[2].stop  ==  ceil(sind(θ)*last(indh)  + cosd(θ)*last(indw))
         end
     end
     #should also work with non-static transforms (Github #48)

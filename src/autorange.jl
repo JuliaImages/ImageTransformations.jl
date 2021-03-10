@@ -81,8 +81,8 @@ try_static(tfm::Translation{<:AbstractVector}, img::AbstractArray{T,N}) where {T
 # https://github.com/JuliaImages/ImageTransformations.jl/issues/104
 _default_digits(::Type{T}) where T<:Number = _default_digits(floattype(T))
 # these constants come from eps() digits
-_default_digits(::Type{<:AbstractFloat}) = 16
-_default_digits(::Type{Float64}) = 16
+_default_digits(::Type{<:AbstractFloat}) = 15
+_default_digits(::Type{Float64}) = 15
 _default_digits(::Type{Float32}) = 7
 
 function _round(tform::T; kwargs...) where T<:CoordinateTransformations.Transformation
