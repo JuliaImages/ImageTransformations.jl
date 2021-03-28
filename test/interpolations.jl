@@ -112,10 +112,7 @@ end
     @test summary(etp) == "2×2 extrapolate(interpolate(OffsetArray(::$matrixf64_str, 0:3, 0:3), BSpline(Cubic(Flat(OnGrid())))), Flat()) with element type Float64"
 
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, Lanczos4OpenCV())
-    summary(etp)
     @test typeof(etp) <: Interpolations.FilledExtrapolation
-    @test summary(etp) == "2×2 extrapolate(::Interpolations.LanczosInterpolation{Float64,2,Lanczos4OpenCV,OffsetArray{Float64,2,::$matrixf64_str},Tuple{Base.OneTo{Int64},Base.OneTo{Int64}}}, NaN) with element type Float64"
-
 end
 
 @testset "AxisAlgorithms.A_ldiv_B_md" begin
