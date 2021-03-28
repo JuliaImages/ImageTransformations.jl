@@ -36,7 +36,7 @@ function box_extrapolation(parent::AbstractArray{T,N}, degree::Interpolations.De
     box_extrapolation(itp, args...)
 end
 
-function box_extrapolation(parent::AbstractArray{T,N}, aitp::Interpolations.Lanczos4OpenCV, args...) where {T,N}
+function box_extrapolation(parent::AbstractArray{T,N}, aitp::Interpolations.AbstractLanczos, args...) where {T,N}
     itp = interpolate(parent, aitp)
     box_extrapolation(itp, args...)
 end

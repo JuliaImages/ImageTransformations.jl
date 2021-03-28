@@ -294,7 +294,7 @@ function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
     end
 end
 
-function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, aitp::Interpolations.Lanczos4OpenCV) where {T,N}
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, aitp::Interpolations.AbstractLanczos) where {T,N}
     Tnew = imresize_type(first(original))
     inds = axes(original)
     if map(length, inds) == new_size
@@ -334,7 +334,7 @@ function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}) wh
     imresize!(resized, itp)
 end
 
-function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}, aitp::Interpolations.Lanczos4OpenCV) where {T,S,N}
+function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}, aitp::Interpolations.AbstractLanczos) where {T,S,N}
     # FIXME: avoid allocation for interpolation
     itp = interpolate(original, aitp)
     imresize!(resized, itp)
