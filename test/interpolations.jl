@@ -114,8 +114,7 @@ end
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, Lanczos4OpenCV())
     summary(etp)
     @test typeof(etp) <: Interpolations.FilledExtrapolation
-    @test summary(etp) == "2×2 extrapolate(::Interpolations.LanczosInterpolation{Float64,2,Lanczos4OpenCV,OffsetArray{Float64,2,Array{Float64,2}},Tuple{Base.OneTo{Int64},Base.OneTo{Int64}}}, NaN) with element type Float64"
-
+    @test summary(etp) == "2×2 extrapolate(::Interpolations.LanczosInterpolation{Float64,2,Lanczos4OpenCV,OffsetArray{Float64,2,::$matrixf64_str},Tuple{Base.OneTo{Int64},Base.OneTo{Int64}}}, NaN) with element type Float64"
 
 end
 

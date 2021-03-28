@@ -147,11 +147,12 @@ end
 
     @testset "Interpolation" begin
         img = rand(16,16)
+        matrixf64_str = typestring(Matrix{Float64})
         etp = @inferred ImageTransformations.imresize(img,(128,128),Lanczos4OpenCV())
-        @test summary(etp) == "128×128 Array{Float64,2}"
+        @test summary(etp) == "128×128 ::$matrixf64_str"
 
         etp = @inferred ImageTransformations.imresize(img,(16,16),Lanczos4OpenCV())
-        @test summary(etp) == "16×16 Array{Float64,2}"
+        @test summary(etp) == "16×16 ::$matrixf64_str"
 
         end
     end
