@@ -144,5 +144,15 @@ end
             @test ndims(R) == 0
             @test !(R === A)
         end
+
+    @testset "Interpolation" begin
+        img = rand(16,16)
+        etp = @inferred ImageTransformations.imresize(test_img,(128,128),Lanczos4OpenCV())
+        @test summary(etp) == "128×128 Array{Float64,2}"
+
+        etp = @inferred ImageTransformations.imresize(test_img,(16,16),Lanczos4OpenCV())
+        @test summary(etp) == "16×16 Array{Float64,2}"
+
+        end
     end
 end

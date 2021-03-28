@@ -113,13 +113,16 @@ By default, rotated image `imgr` will not be cropped. Bilinear interpolation wil
 ```julia
 julia> img = testimage("cameraman")
 
-# rotate with bilinear interpolation but without cropping 
+# rotate with bilinear interpolation but without cropping
 julia> imrotate(img, π/4)
 
 # rotate with bilinear interpolation and with cropping
 julia> imrotate(img, π/4, axes(img))
 
 # rotate with nearest interpolation but without cropping
+julia> imrotate(img, π/4, Constant())
+
+# rotate with Lanczos4OpenCV interpolation without cropping
 julia> imrotate(img, π/4, Constant())
 ```
 
