@@ -153,6 +153,10 @@ end
         out = ImageTransformations.imresize(img,(16,16),Lanczos4OpenCV())
         @test size(out) == (16,16)
 
+        img = rand(8,16)
+        out = ImageTransformations.imresize(img,(16,8),Lanczos4OpenCV())
+        @test size(out) == (16,8)
+
         end
     end
 end
