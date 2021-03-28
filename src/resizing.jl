@@ -240,6 +240,7 @@ function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}
     new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
     imresize(original, new_size)
 end
+
 odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
 odims(original, i, short_size::Tuple{}) = axes(original, i)
 odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
@@ -262,7 +263,7 @@ julia> imresize(img, (128, 128)) # 128*128
 julia> imresize(img, (1:128, 1:128)) # 128*128
 julia> imresize(img, (1:128, )) # 128*256
 julia> imresize(img, 128) # 128*256
-julia> imresize(img, ratio = 0.5) # 
+julia> imresize(img, ratio = 0.5) #
 julia> imresize(img, ratio = (2, 1)) # 256*128
 
 σ = map((o,n)->0.75*o/n, size(img), sz)
@@ -292,6 +293,21 @@ function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
     end
 end
 
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, aitp::Interpolations.Lanczos4OpenCV) where {T,N}
+    Tnew = imresize_type(first(original))
+    inds = axes(original)
+    if map(length, inds) == new_size
+        dest = similar(original, Tnew, new_size)
+        if axes(dest) == inds
+            copyto!(dest, original)
+        else
+            copyto!(dest, CartesianIndices(axes(dest)), original, CartesianIndices(inds))
+        end
+    else
+        imresize!(similar(original, Tnew, new_size), original, aitp)
+    end
+end
+
 function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}) where {T,N}
     Tnew = imresize_type(first(original))
     if axes(original) == new_inds
@@ -314,6 +330,12 @@ imresize_type(c) = typeof((c*1)/1)
 function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}) where {T,S,N}
     # FIXME: avoid allocation for interpolation
     itp = interpolate(original, BSpline(Linear()))
+    imresize!(resized, itp)
+end
+
+function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}, aitp::Interpolations.Lanczos4OpenCV) where {T,S,N}
+    # FIXME: avoid allocation for interpolation
+    itp = interpolate(original, aitp)
     imresize!(resized, itp)
 end
 
