@@ -61,6 +61,10 @@ function box_extrapolation(itp::AbstractExtrapolation, fill::FillType; kwargs...
     throw(ArgumentError("Boxing an extrapolation in another extrapolation is discouraged. Did you specify the parameter \"$fill\" on purpose?"))
 end
 
+function box_extrapolation(parent::AbstractArray, itp::Interpolations.InterpolationType; kwargs...)
+    throw(ArgumentError("Argument support for interpolation is not supported. Are you looking for the method keyword to pass an interpolation method?"))
+end
+
 # This is type-piracy, but necessary if we want Interpolations to be
 # independent of OffsetArrays.
 function AxisAlgorithms.A_ldiv_B_md!(dest::OffsetArray, F, src::OffsetArray, dim::Integer, b::AbstractVector)

@@ -153,6 +153,8 @@ end
         out = ImageTransformations.imresize(img,(16,16),method=Lanczos4OpenCV())
         @test size(out) == (16,16)
 
+        @test_throws ArgumentError imresize(img, BSpline(Linear()))
+        @test_throws ArgumentError imresize(img, Linear())
         end
     end
 end

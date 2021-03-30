@@ -113,6 +113,8 @@ end
 
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, method=Lanczos4OpenCV())
     @test typeof(etp) <: Interpolations.FilledExtrapolation
+
+    @test_throws ArgumentError ImageTransformations.box_extrapolation(imgfloat, BSpline(Linear()))
 end
 
 @testset "AxisAlgorithms.A_ldiv_B_md" begin

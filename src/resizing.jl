@@ -227,7 +227,7 @@ function restrict_indices(r::UnitRange)
 end
 
 # imresize
-imresize(original::AbstractArray, dim1::T, dimN::T...; kwargs...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
+imresize(original::AbstractArray, dim1::T, dimN::T...; kwargs...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...); kwargs...)
 function imresize(original::AbstractArray; ratio, kwargs...)
     all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
     new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
@@ -239,6 +239,10 @@ function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}
     len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
     new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
     imresize(original, new_size; kwargs...)
+end
+
+function imresize(original::AbstractArray, itp::Union{Interpolations.Degree,Interpolations.InterpolationType}, args...; kwargs...)
+    throw(ArgumentError("Argument support for interpolation is not supported. Are you looking for the method keyword to pass an interpolation method?"))
 end
 
 odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
