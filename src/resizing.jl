@@ -227,18 +227,18 @@ function restrict_indices(r::UnitRange)
 end
 
 # imresize
-imresize(original::AbstractArray, dim1::T, dimN::T...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
-function imresize(original::AbstractArray; ratio)
+imresize(original::AbstractArray, dim1::T, dimN::T...; kwargs...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
+function imresize(original::AbstractArray; ratio, kwargs...)
     all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
     new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
-    imresize(original, new_size)
+    imresize(original, new_size; kwargs...)
 end
 
-function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}) where M
+function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}; kwargs...) where M
     len_short = length(short_size)
     len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
     new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
-    imresize(original, new_size)
+    imresize(original, new_size; kwargs...)
 end
 
 odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
@@ -279,7 +279,7 @@ function imresize(original::AbstractArray{T,0}, new_inds::Tuple{}) where T
     copyto!(similar(original, Tnew), original)
 end
 
-function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
     inds = axes(original)
     if map(length, inds) == new_size
@@ -290,31 +290,16 @@ function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
             copyto!(dest, CartesianIndices(axes(dest)), original, CartesianIndices(inds))
         end
     else
-        imresize!(similar(original, Tnew, new_size), original)
+        imresize!(similar(original, Tnew, new_size), original; kwargs...)
     end
 end
 
-function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, aitp::Interpolations.AbstractLanczos) where {T,N}
-    Tnew = imresize_type(first(original))
-    inds = axes(original)
-    if map(length, inds) == new_size
-        dest = similar(original, Tnew, new_size)
-        if axes(dest) == inds
-            copyto!(dest, original)
-        else
-            copyto!(dest, CartesianIndices(axes(dest)), original, CartesianIndices(inds))
-        end
-    else
-        imresize!(similar(original, Tnew, new_size), original, aitp)
-    end
-end
-
-function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}) where {T,N}
+function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
     if axes(original) == new_inds
         copyto!(similar(original, Tnew), original)
     else
-        imresize!(similar(original, Tnew, new_inds), original)
+        imresize!(similar(original, Tnew, new_inds), original; kwargs...)
     end
 end
 
@@ -328,15 +313,9 @@ imresize_type(c::Gray) = Gray{imresize_type(gray(c))}
 imresize_type(c::FixedPoint) = typeof(c)
 imresize_type(c) = typeof((c*1)/1)
 
-function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}) where {T,S,N}
+function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}; method::Interpolations.InterpolationType=BSpline(Linear()), kwargs...) where {T,S,N}
     # FIXME: avoid allocation for interpolation
-    itp = interpolate(original, BSpline(Linear()))
-    imresize!(resized, itp)
-end
-
-function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}, aitp::Interpolations.AbstractLanczos) where {T,S,N}
-    # FIXME: avoid allocation for interpolation
-    itp = interpolate(original, aitp)
+    itp = interpolate(original, method)
     imresize!(resized, itp)
 end
 
