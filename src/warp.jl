@@ -92,13 +92,13 @@ function warp!(out, img::AbstractExtrapolation, tform)
     out
 end
 
-function warp(img::AbstractArray, tform, inds::Tuple, args...)
-    etp = box_extrapolation(img, args...)
+function warp(img::AbstractArray, tform, inds::Tuple, args...; kwargs...)
+    etp = box_extrapolation(img, args...; kwargs...)
     warp(etp, try_static(tform, img), inds)
 end
 
-function warp(img::AbstractArray, tform, args...)
-    etp = box_extrapolation(img, args...)
+function warp(img::AbstractArray, tform, args...; kwargs...)
+    etp = box_extrapolation(img, args...; kwargs...)
     warp(etp, try_static(tform, img))
 end
 
@@ -128,8 +128,8 @@ julia> imrotate(img, π/4, Constant())
 
 See also [`warp`](@ref).
 """
-function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
+function imrotate(img::AbstractArray{T}, θ::Real, args...; kwargs...) where T
     θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
     tform = recenter(RotMatrix{2}(θ), center(img))
-    warp(img, tform, args...)
+    warp(img, tform, args...; kwargs...)
 end
