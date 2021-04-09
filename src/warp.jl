@@ -33,6 +33,10 @@ beyond-the-edge points are handled --- pass `img` as an
 `AbstractInterpolation` or `AbstractExtrapolation` from
 [Interpolations.jl](https://github.com/JuliaMath/Interpolations.jl).
 
+The keyword `method` now also takes any InterpolationType from Interpolations.jl
+or a Degree, which is used to define a BSpline interpolation of that degree, in
+order to set the interpolation method used.
+
 # The meaning of the coordinates
 
 The output array `imgw` has indices that would result from
@@ -92,13 +96,13 @@ function warp!(out, img::AbstractExtrapolation, tform)
     out
 end
 
-function warp(img::AbstractArray, tform, inds::Tuple, args...)
-    etp = box_extrapolation(img, args...)
+function warp(img::AbstractArray, tform, inds::Tuple, args...; kwargs...)
+    etp = box_extrapolation(img, args...; kwargs...)
     warp(etp, try_static(tform, img), inds)
 end
 
-function warp(img::AbstractArray, tform, args...)
-    etp = box_extrapolation(img, args...)
+function warp(img::AbstractArray, tform, args...; kwargs...)
+    etp = box_extrapolation(img, args...; kwargs...)
     warp(etp, try_static(tform, img))
 end
 
@@ -113,7 +117,7 @@ By default, rotated image `imgr` will not be cropped. Bilinear interpolation wil
 ```julia
 julia> img = testimage("cameraman")
 
-# rotate with bilinear interpolation but without cropping 
+# rotate with bilinear interpolation but without cropping
 julia> imrotate(img, π/4)
 
 # rotate with bilinear interpolation and with cropping
@@ -121,12 +125,23 @@ julia> imrotate(img, π/4, axes(img))
 
 # rotate with nearest interpolation but without cropping
 julia> imrotate(img, π/4, Constant())
+
+The keyword `method` now also takes any InterpolationType from Interpolations.jl
+or a Degree, which is used to define a BSpline interpolation of that degree, in
+order to set the interpolation method used during image rotation.
+
+```julia
+# rotate with Linear interpolation without cropping
+julia> imrotate(img, π/4, method = Linear())
+
+# rotate with Lanczos4OpenCV interpolation without cropping
+julia> imrotate(img, π/4, method = Lanczos4OpenCV())
 ```
 
 See also [`warp`](@ref).
 """
-function imrotate(img::AbstractArray{T}, θ::Real, args...) where T
+function imrotate(img::AbstractArray{T}, θ::Real, args...; kwargs...) where T
     θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
     tform = recenter(RotMatrix{2}(θ), center(img))
-    warp(img, tform, args...)
+    warp(img, tform, args...; kwargs...)
 end

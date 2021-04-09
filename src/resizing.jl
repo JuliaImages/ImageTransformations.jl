@@ -227,19 +227,24 @@ function restrict_indices(r::UnitRange)
 end
 
 # imresize
-imresize(original::AbstractArray, dim1::T, dimN::T...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...))
-function imresize(original::AbstractArray; ratio)
+imresize(original::AbstractArray, dim1::T, dimN::T...; kwargs...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...); kwargs...)
+function imresize(original::AbstractArray; ratio, kwargs...)
     all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
     new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
-    imresize(original, new_size)
+    imresize(original, new_size; kwargs...)
 end
 
-function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}) where M
+function imresize(original::AbstractArray, short_size::Union{Indices{M},Dims{M}}; kwargs...) where M
     len_short = length(short_size)
     len_short > ndims(original) && throw(DimensionMismatch("$short_size has too many dimensions for a $(ndims(original))-dimensional array"))
     new_size = ntuple(i -> (i > len_short ? odims(original, i, short_size) : short_size[i]), ndims(original))
-    imresize(original, new_size)
+    imresize(original, new_size; kwargs...)
 end
+
+function imresize(original::AbstractArray, itp::Union{Interpolations.Degree,Interpolations.InterpolationType}, args...; kwargs...)
+    throw(ArgumentError("Positional parameter for interpolation method is not supported; use keyword `method` instead."))
+end
+
 odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
 odims(original, i, short_size::Tuple{}) = axes(original, i)
 odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
@@ -253,6 +258,10 @@ Change `img` to be of size `sz` (or to have indices `inds`). If `ratio` is used,
 `sz = ceil(Int, size(img).*ratio)`. This interpolates the values at sub-pixel locations.
 If you are shrinking the image, you risk aliasing unless you low-pass filter `img` first.
 
+The keyword `method` takes any InterpolationType from Interpolations.jl or a Degree,
+which is used to define a BSpline interpolation of that degree, in order to set
+the interpolation method used in the image resizing.
+
 # Examples
 ```julia
 julia> img = testimage("lena_gray_256") # 256*256
@@ -262,8 +271,11 @@ julia> imresize(img, (128, 128)) # 128*128
 julia> imresize(img, (1:128, 1:128)) # 128*128
 julia> imresize(img, (1:128, )) # 128*256
 julia> imresize(img, 128) # 128*256
-julia> imresize(img, ratio = 0.5) # 
+julia> imresize(img, ratio = 0.5) #128*128
 julia> imresize(img, ratio = (2, 1)) # 256*128
+julia> imresize(img, (128,128), method=Linear()) #128*128
+julia> imresize(img, (128,128), method=BSpline(Linear())) #128*128
+julia> imresize(img, (128,128), method=Lanczos4OpenCV()) #128*128
 
 σ = map((o,n)->0.75*o/n, size(img), sz)
 kern = KernelFactors.gaussian(σ)   # from ImageFiltering
@@ -272,12 +284,12 @@ imgr = imresize(imfilter(img, kern, NA()), sz)
 
 See also [`restrict`](@ref).
 """
-function imresize(original::AbstractArray{T,0}, new_inds::Tuple{}) where T
+function imresize(original::AbstractArray{T,0}, new_inds::Tuple{}; kwargs...) where T
     Tnew = imresize_type(first(original))
     copyto!(similar(original, Tnew), original)
 end
 
-function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
     inds = axes(original)
     if map(length, inds) == new_size
@@ -288,16 +300,16 @@ function imresize(original::AbstractArray{T,N}, new_size::Dims{N}) where {T,N}
             copyto!(dest, CartesianIndices(axes(dest)), original, CartesianIndices(inds))
         end
     else
-        imresize!(similar(original, Tnew, new_size), original)
+        imresize!(similar(original, Tnew, new_size), original; kwargs...)
     end
 end
 
-function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}) where {T,N}
+function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
     if axes(original) == new_inds
         copyto!(similar(original, Tnew), original)
     else
-        imresize!(similar(original, Tnew, new_inds), original)
+        imresize!(similar(original, Tnew, new_inds), original; kwargs...)
     end
 end
 
@@ -311,9 +323,9 @@ imresize_type(c::Gray) = Gray{imresize_type(gray(c))}
 imresize_type(c::FixedPoint) = typeof(c)
 imresize_type(c) = typeof((c*1)/1)
 
-function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}) where {T,S,N}
+function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}; method::Union{Interpolations.Degree,Interpolations.InterpolationType}=BSpline(Linear()), kwargs...) where {T,S,N}
     # FIXME: avoid allocation for interpolation
-    itp = interpolate(original, BSpline(Linear()))
+    itp = interpolate(original, wrap_BSpline(method))
     imresize!(resized, itp)
 end
 

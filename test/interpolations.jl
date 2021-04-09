@@ -110,6 +110,11 @@ end
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, Cubic(Flat(OnGrid())), Flat())
     @test typeof(etp) <: Interpolations.Extrapolation
     @test summary(etp) == "2×2 extrapolate(interpolate(OffsetArray(::$matrixf64_str, 0:3, 0:3), BSpline(Cubic(Flat(OnGrid())))), Flat()) with element type Float64"
+
+    etp = @inferred ImageTransformations.box_extrapolation(imgfloat, method=Lanczos4OpenCV())
+    @test typeof(etp) <: Interpolations.FilledExtrapolation
+
+    @test_throws ArgumentError ImageTransformations.box_extrapolation(imgfloat, BSpline(Linear()))
 end
 
 @testset "AxisAlgorithms.A_ldiv_B_md" begin

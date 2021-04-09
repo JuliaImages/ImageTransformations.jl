@@ -87,7 +87,7 @@ end
             @test_throws ArgumentError imresize(img, ratio = -0.5)
             @test_throws ArgumentError imresize(img, ratio = (-0.5, 1))
             @test_throws DimensionMismatch imresize(img, ratio=(5,5,5))
-            @test_throws DimensionMismatch imresize(img,(5,5,1))
+            @test_throws DimensionMismatch imresize(img, (5,5,1))
         end
     end
 
@@ -143,6 +143,42 @@ end
             R = imresize(img, ())
             @test ndims(R) == 0
             @test !(R === A)
+        end
+
+    @testset "Interpolation" begin
+        img = rand(16,16)
+        out = imresize(img, (128,128), method=Lanczos4OpenCV())
+        @test size(out) == (128,128)
+
+        out = imresize(img, (128,128), method=Linear())
+        @test size(out) == (128,128)
+
+        out = imresize(img, (16,16), method=Lanczos4OpenCV())
+        @test size(out) == (16,16)
+
+        #test default behavior
+        @test imresize(img, (128,128)) == imresize(img, (128,128), method=Linear())
+
+        #check error handling
+        @test_throws ArgumentError imresize(img, BSpline(Linear()))
+        @test_throws ArgumentError imresize(img, Linear())
+
+        #consisency checks
+        @test imresize(img, (128, 128), method=Linear()) == imresize(OffsetArray(img, -1, -1), (128, 128), method=Linear())
+        @test imresize(img, (128, 128), method=BSpline(Linear())) == imresize(OffsetArray(img, -1, -1), (128, 128), method=BSpline(Linear()))
+        @test imresize(img, (128, 128), method=Lanczos4OpenCV()) == imresize(OffsetArray(img, -1, -1), (128, 128), method=Lanczos4OpenCV())
+
+        out = imresize(img, (0:127, 0:127), method=Linear())
+        @test axes(out) == (0:127, 0:127)
+        @test OffsetArrays.no_offset_view(out) == imresize(img, (128, 128), method=Linear())
+
+        out = imresize(img, (0:127, 0:127), method=BSpline(Linear()))
+        @test axes(out) == (0:127, 0:127)
+        @test OffsetArrays.no_offset_view(out) == imresize(img, (128, 128), method=BSpline(Linear()))
+
+        out = imresize(img, (0:127, 0:127), method=Lanczos4OpenCV())
+        @test axes(out) == (0:127, 0:127)
+        @test OffsetArrays.no_offset_view(out) == imresize(img, (128, 128), method=Lanczos4OpenCV())
         end
     end
 end
