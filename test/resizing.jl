@@ -150,6 +150,9 @@ end
         out = ImageTransformations.imresize(img,(128,128),method=Lanczos4OpenCV())
         @test size(out) == (128,128)
 
+        out = ImageTransformations.imresize(img,(128,128),method=Linear())
+        @test size(out) == (128,128)
+
         out = ImageTransformations.imresize(img,(16,16),method=Lanczos4OpenCV())
         @test size(out) == (16,16)
 
