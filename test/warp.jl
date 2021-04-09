@@ -373,7 +373,15 @@ ref_img_pyramid_grid = Float64[
     NaN  NaN         NaN           0.157977  NaN         NaN         NaN;
     NaN  NaN         NaN         NaN         NaN         NaN         NaN;
 ]
-
+ref_img_pyramid_lanczos = Float64[
+NaN  NaN      NaN      NaN      NaN      NaN      NaN
+NaN  NaN      NaN        0.204  NaN      NaN      NaN
+NaN  NaN        0.22     0.649    0.22   NaN      NaN
+NaN    0.204    0.649    1.0      0.649    0.204  NaN
+NaN  NaN        0.22     0.649    0.22   NaN      NaN
+NaN  NaN      NaN        0.204  NaN      NaN      NaN
+NaN  NaN      NaN      NaN      NaN      NaN      NaN
+]
 @testset "Result against reference" begin
 
     tfm1 = recenter(RotMatrix(pi/4), center(img_pyramid))
@@ -400,6 +408,28 @@ ref_img_pyramid_grid = Float64[
             imgr_cntr = warp(img_pyramid_cntr, tfm2, (-1:1,-1:1))
             @test axes(imgr_cntr) == (-1:1, -1:1)
             @test nearlysame(parent(imgr_cntr), imgr[2:4,2:4])
+        end
+
+        @testset "Method kwarg" begin
+            imgr_cntr = warp(img_pyramid_cntr, tfm2, method=Linear())
+            @test axes(imgr_cntr) == (-3:3, -3:3)
+            @test nearlysame(parent(warp(img_pyramid_cntr, tfm2)), parent(warp(img_pyramid_cntr, tfm2, method=Linear())))
+
+            imgr_cntr = warp(img_pyramid_cntr, tfm2, (-1:1,-1:1), method=Linear())
+            @test axes(imgr_cntr) == (-1:1, -1:1)
+            @test nearlysame(parent(imgr_cntr), imgr[2:4,2:4])
+
+            imgr_cntr = warp(img_pyramid_cntr, tfm2, method=BSpline(Linear()))
+            @test axes(imgr_cntr) == (-3:3, -3:3)
+            @test nearlysame(parent(imgr_cntr), parent(imgr))
+
+            imgr_cntr = warp(img_pyramid_cntr, tfm2, (-1:1, -1:1), method=BSpline(Linear()))
+            @test axes(imgr_cntr) == (-1:1, -1:1)
+            @test nearlysame(parent(imgr_cntr), imgr[2:4,2:4])
+
+            imgr_cntr = warp(img_pyramid_cntr, tfm2, method=Lanczos4OpenCV())
+            @test axes(imgr_cntr) == (-3:3, -3:3)
+            @test nearlysame(round.(Float64.(parent(imgr_cntr)), digits=3), round.(ref_img_pyramid_lanczos, digits=3))
         end
 
         @testset "Quadratic Interpolation" begin
@@ -447,8 +477,12 @@ ref_img_pyramid_grid = Float64[
                 @test_nowarn imrotate(img, π/4)
                 @test_nowarn imrotate(img, π/4, Constant())
                 @test_nowarn imrotate(img, π/4, Linear())
+                @test_nowarn imrotate(img, π/4, method=Linear())
+                @test_nowarn imrotate(img, π/4, method=BSpline(Linear()))
+                @test_nowarn imrotate(img, π/4, method=Lanczos4OpenCV())
                 @test_nowarn imrotate(img, π/4, axes(img))
                 @test_nowarn imrotate(img, π/4, axes(img), Constant())
+                @test_nowarn imrotate(img, π/4, axes(img), method=Constant())
                 @test isequal(channelview(imrotate(img,π/4)), channelview(imrotate(img, π/4, Linear()))) # TODO: if we remove channelview the test will break for Float
             end
         end
