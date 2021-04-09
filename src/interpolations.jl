@@ -4,6 +4,10 @@
 @inline _nan(::Type{HSV{Float64}}) = HSV{Float64}(NaN,NaN,NaN)
 @inline _nan(::Type{T}) where {T} = nan(T)
 
+#wraper to deal with degree or interpolation types
+@inline wrap_BSpline(itp::Interpolations.InterpolationType) = itp
+@inline wrap_BSpline(degree::Interpolations.Degree) = BSpline(degree)
+
 # The default values used by extrapolation for off-domain points
 const FillType = Union{Number,Colorant,Flat,Periodic,Reflect}
 const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}

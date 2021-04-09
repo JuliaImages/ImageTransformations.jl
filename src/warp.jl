@@ -33,6 +33,10 @@ beyond-the-edge points are handled --- pass `img` as an
 `AbstractInterpolation` or `AbstractExtrapolation` from
 [Interpolations.jl](https://github.com/JuliaMath/Interpolations.jl).
 
+The keyword `method` now also takes any InterpolationType from Interpolations.jl
+or a Degree, which is used to define a BSpline interpolation of that degree, in
+order to set the interpolation method used.
+
 # The meaning of the coordinates
 
 The output array `imgw` has indices that would result from
@@ -122,8 +126,16 @@ julia> imrotate(img, π/4, axes(img))
 # rotate with nearest interpolation but without cropping
 julia> imrotate(img, π/4, Constant())
 
+The keyword `method` now also takes any InterpolationType from Interpolations.jl
+or a Degree, which is used to define a BSpline interpolation of that degree, in
+order to set the interpolation method used during image rotation.
+
+```julia
+# rotate with Linear interpolation without cropping
+julia> imrotate(img, π/4, method = Linear())
+
 # rotate with Lanczos4OpenCV interpolation without cropping
-julia> imrotate(img, π/4, Constant())
+julia> imrotate(img, π/4, method = Lanczos4OpenCV())
 ```
 
 See also [`warp`](@ref).
