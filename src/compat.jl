@@ -25,7 +25,10 @@ end
 @inline _nan(::Type{T}) where {T} = nan(T)
 
 if !hasmethod(Constant{Nearest}, ())
-    # compat for Interpolations <= v0.13.2
+    # `Constant{Nearest}()` is not defined for Interpolations <= v0.13.2
     # https://github.com/JuliaMath/Interpolations.jl/pull/426
-    Interpolations.Constant{Nearest}() = Constant()
+    construct_interpolation_type(::Type{T}) where T<:Union{Linear, Constant} = T()
+    construct_interpolation_type(::Type{Constant{Nearest}}) = Constant()
+else
+    construct_interpolation_type(::Type{T}) where T<:Union{Linear, Constant} = T()
 end
