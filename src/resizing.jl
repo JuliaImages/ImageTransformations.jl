@@ -77,20 +77,26 @@ end
 
 function restrict(A::AbstractArray{T,N}, dim::Integer) where {T,N}
     indsA = axes(A)
-    newinds = ntuple(i->i==dim ? restrict_indices(indsA[dim]) : indsA[i], Val(N))
-    out = similar(Array{restrict_eltype(first(A)),N}, newinds)
+    newinds = map(UnitRange, ntuple(i->i==dim ? restrict_indices(indsA[dim]) : indsA[i], Val(N)))
+    out = similar(Array{restrict_eltype(first(A)), N}, newinds)
     restrict!(out, A, dim)
     out
 end
 
-restrict_eltype_default(x)          = typeof(x/4 + x/2)
-restrict_eltype(x)                  = restrict_eltype_default(x)
-restrict_eltype(x::AbstractGray)    = restrict_eltype_default(x)
-restrict_eltype(x::AbstractRGB)     = restrict_eltype_default(x)
-restrict_eltype(x::Color)           = restrict_eltype_default(convert(RGB, x))
-restrict_eltype(x::TransparentGray) = restrict_eltype_default(x)
-restrict_eltype(x::TransparentRGB)  = restrict_eltype_default(x)
-restrict_eltype(x::Colorant)        = restrict_eltype_default(convert(ARGB, x))
+function restrict_eltype(A::AbstractArray)
+    # infer the restrict_eltype on `eltype(A)` while preserving the container type
+    # TODO: maybe there's more efficient way than the `similar` here..
+    typeof(similar(A, _restrict_eltype(eltype(A)), ntuple(_->1, ndims(A))))
+end
+restrict_eltype(x) = _restrict_eltype(typeof(x))
+
+for CT in (:AbstractGray, :AbstractRGB, :TransparentGray, :TransparentRGB)
+    @eval _restrict_eltype(::Type{C}) where C<:$CT = __restrict_eltype(C)
+end
+_restrict_eltype(::Type{T}) where T = typeof(one(T)/4 + one(T)/2)
+_restrict_eltype(::Type{C}) where C<:Color = __restrict_eltype(RGB{eltype(C)})
+_restrict_eltype(::Type{C}) where C<:Colorant = __restrict_eltype(ARGB{eltype(C)})
+__restrict_eltype(::Type{C}) where C = base_colorant_type(C){promote_type(eltype(C), Float32)}
 
 function restrict!(out::AbstractArray{T,N}, A::AbstractArray, dim) where {T,N}
     if dim > N
