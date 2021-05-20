@@ -256,39 +256,66 @@ odims(original, i, short_size::Tuple{}) = axes(original, i)
 odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
 
 """
-    imresize(img, sz) -> imgr
-    imresize(img, inds) -> imgr
-    imresize(img; ratio) -> imgr
+    imresize(img, sz; [method]) -> imgr
+    imresize(img, inds; [method]) -> imgr
+    imresize(img; ratio, [method]) -> imgr
 
-Change `img` to be of size `sz` (or to have indices `inds`). If `ratio` is used, then
-`sz = ceil(Int, size(img).*ratio)`. This interpolates the values at sub-pixel locations.
-If you are shrinking the image, you risk aliasing unless you low-pass filter `img` first.
+upsample/downsample the image `img` to a given size `sz` or axes `inds` using interpolations. If
+`ratio` is provided, the output size is then `ceil(Int, size(img).*ratio)`.
 
-The keyword `method` takes any InterpolationType from Interpolations.jl or a Degree,
-which is used to define a BSpline interpolation of that degree, in order to set
-the interpolation method used in the image resizing.
+!!! tip
+    This interpolates the values at sub-pixel locations. If you are shrinking the image, you risk
+    aliasing unless you low-pass filter `img` first.
+
+# Arguments
+
+- `img`: the input image array
+- `sz`: the size of output array
+- `inds`: the axes of output array
+  If `inds` is passed, the output array `imgr` will be `OffsetArray`.
+
+# Parameters
+
+!!! info
+    To construct `method`, you may need to load `Interpolations` package first.
+
+- `ratio`: the upsample/downsample ratio used.
+  The output size is `ceil(Int, size(img).*ratio)`. If `ratio` is larger than `1`, it is
+  an upsample operation. Otherwise it is a downsample operation. `ratio` can also be a tuple,
+  in which case `ratio[i]` specifies the resize ratio at dimension `i`.
+- `method::InterpolationType`: 
+  specify the interpolation method used for reconstruction. conveniently, `methold` can
+  also be a `Degree` type, in which case a `BSpline` object will be created.
+  For example, `method = Linear()` is equivalent to `method = BSpline(Linear())`.
 
 # Examples
-```julia
-julia> img = testimage("lena_gray_256") # 256*256
-julia> imresize(img, 128, 128) # 128*128
-julia> imresize(img, 1:128, 1:128) # 128*128
-julia> imresize(img, (128, 128)) # 128*128
-julia> imresize(img, (1:128, 1:128)) # 128*128
-julia> imresize(img, (1:128, )) # 128*256
-julia> imresize(img, 128) # 128*256
-julia> imresize(img, ratio = 0.5) #128*128
-julia> imresize(img, ratio = (2, 1)) # 256*128
-julia> imresize(img, (128,128), method=Linear()) #128*128
-julia> imresize(img, (128,128), method=BSpline(Linear())) #128*128
-julia> imresize(img, (128,128), method=Lanczos4OpenCV()) #128*128
 
-σ = map((o,n)->0.75*o/n, size(img), sz)
-kern = KernelFactors.gaussian(σ)   # from ImageFiltering
-imgr = imresize(imfilter(img, kern, NA()), sz)
+```julia
+using ImageTransformations, TestImages, Interpolations
+
+img = testimage("lighthouse") # 512*768
+
+# pass integers as size
+imresize(img, 256, 384) # 256*384
+imresize(img, (256, 384)) # 256*384
+imresize(img, 256) # 256*768
+
+# pass indices as axes
+imresize(img, 1:256, 1:384) # 256*384
+imresize(img, (1:256, 1:384)) # 256*384
+imresize(img, (1:256, )) # 256*768
+
+# pass resize ratio
+imresize(img, ratio = 0.5) #256*384
+imresize(img, ratio = (2, 1)) # 1024*768
+
+# use different interpolation method
+imresize(img, (256, 384), method=Linear()) # 256*384 bilinear interpolation
+imresize(img, (256, 384), method=Lanczos4OpenCV()) # 256*384 OpenCV-compatible Lanczos 4 interpolation
 ```
 
-See also [`restrict`](@ref).
+For downsample with `ratio=0.5`, [`restrict`](@ref) is a much faster two-fold implementation that
+you can use.
 """
 function imresize(original::AbstractArray{T,0}, new_inds::Tuple{}; kwargs...) where T
     Tnew = imresize_type(first(original))

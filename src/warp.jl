@@ -1,87 +1,160 @@
 """
-    warp(img, tform, [indices], [degree = Linear()], [fill = NaN]) -> imgw
+    warp(img, tform, [indices]; kwargs...) -> imgw
 
-Transform the coordinates of `img`, returning a new `imgw`
-satisfying `imgw[I] = img[tform(I)]`. This approach is known as
-backward mode warping. The transformation `tform` must accept a
-`SVector` as input. A useful package to create a wide variety of
-such transformations is
-[CoordinateTransformations.jl](https://github.com/FugroRoames/CoordinateTransformations.jl).
+Transform the coordinates of `img`, returning a new `imgw` satisfying `imgw[I] = img[tform(I)]`.
 
-# Reconstruction scheme
+# Output
 
-During warping, values for `img` must be reconstructed at
-arbitrary locations `tform(I)` which do not lie on to the lattice
-of pixels. How this reconstruction is done depends on the type of
-`img` and the optional parameter `degree`.
+The output array `imgw` is an `OffsetArray`. Unless manually specified, `axes(imgw) == axes(img)`
+does not hold in general. If you just want a plain array, you can "strip" the custom indices with
+`parent(imgw)` or `OffsetArrays.no_offset_view(imgw)`.
 
-When `img` is a plain array, then on-grid b-spline interpolation
-will be used. It is possible to configure what degree of b-spline
-to use with the parameter `degree`. For example one can use
-`degree = Linear()` for linear interpolation, `degree =
-Constant()` for nearest neighbor interpolation, or `degree =
-Quadratic(Flat())` for quadratic interpolation.
+# Arguments
 
-In the case `tform(I)` maps to indices outside the original
-`img`, those locations are set to a value `fill` (which defaults
-to `NaN` if the element type supports it, and `0` otherwise). The
-parameter `fill` also accepts extrapolation schemes, such as
-`Flat()`, `Periodic()` or `Reflect()`.
+- `img`: the original image that you need coordinate transformation.
+- `tform`: the coordinate transformation function or function-like object, it must accept a
+  [`SVector`](https://github.com/JuliaArrays/StaticArrays.jl) as input. A useful package to
+  create a wide variety of such transfomrations is
+  [CoordinateTransformations.jl](https://github.com/FugroRoames/CoordinateTransformations.jl).
+- `indices` (Optional): specifies the output image axes.
+  By default, the indices are computed in such a way that `imgw` contains all the original pixels
+  in `img` using [`autorange`](@ref ImageTransformations.autorange). To do this `inv(tform)` has
+  to be computed. If the given transfomration `tform` does not support `inv` then the parameter
+  `indices` has to be specified manually.
 
-For more control over the reconstruction scheme --- and how
-beyond-the-edge points are handled --- pass `img` as an
-`AbstractInterpolation` or `AbstractExtrapolation` from
-[Interpolations.jl](https://github.com/JuliaMath/Interpolations.jl).
+# Parameters
 
-The keyword `method` now also takes any InterpolationType from Interpolations.jl
-or a Degree, which is used to define a BSpline interpolation of that degree, in
-order to set the interpolation method used.
+!!! info
+    To construct `method` and `fillvalue` values, you may need to load `Interpolations` package first.
 
-# The meaning of the coordinates
+- `method::Union{Degree, InterpolationType}`: the interpolation method you want to use. By default it is
+  `BSpline(Linear())`. To construct the method instance, one may need to load `Interpolations`.
+- `fillvalue`: the value that used to fill the new region. The default value is `NaN` if possible,
+  otherwise is `0`. One can also pass the extrapolation boundary condition: `Flat()`, `Reflect()` and `Periodic()`.
 
-The output array `imgw` has indices that would result from
-applying `inv(tform)` to the indices of `img`. This can be very
-handy for keeping track of how pixels in `imgw` line up with
+# See also
+
+There're some high-level interfaces of `warp`:
+
+- image rotation: [`imrotate`](@ref)
+- image resize: [`imresize`](@ref)
+
+There are also lazy version of `warp`:
+
+- [`WarpedView`](@ref) is almost equivalent to `warp` except that it does not allocate memory.
+- [`invwarpedview(img, tform, [indices]; kwargs...)`](@ref ImageTransformations.invwarpedview)
+  is almost equivalent to `warp(img, inv(tform), [indices]; kwargs...)` except that it does not
+  allocate memory.
+
+# Extended help
+
+## Parameters in detail
+
+This approach is known as backward mode warping. It is called "backward" because
+the internal coordinate transformation is actually an inverse map from `axes(imgr)` to `axes(img)`.
+
+You can manually specify interpolation behavior by constructing `AbstractExtrapolation` object
+and passing it to `warp` as `img`. However, this is usually cumbersome. For this reason, there 
+are two keywords `method` and `fillvalue` to conveniently construct an `AbstractExtrapolation`
+object during `warp`.
+
+!!! warning
+    If `img` is an `AbstractExtrapolation`, then additional `method` and `fillvalue` keywords
+    will be discarded.
+
+### `method::Union{Degree, InterpolationType}`
+
+The interpolation method you want to use to reconstruct values in the wrapped image.
+
+Among those possible `InterpolationType` choice, there are some commonly used methods that you may
+have used in other languages:
+
+- nearest neighbor: `BSpline(Constant())`
+- triangle/bilinear: `BSpline(Linear())`
+- bicubic: `BSpline(Cubic(Line(OnGrid())))`
+- lanczos2: `Lanczos(2)`
+- lanczos3: `Lanczos(3)`
+- lanczos4: `Lanczos(4)` or `Lanczos4OpenCV()`
+
+When passing a `Degree`, it is expected to be a `BSpline`. For example, `Linear()` is equivalent to
+`BSpline(Linear())`.
+
+### `fillvalue`
+
+In case `tform(I)` maps to indices outside the original `img`, those locations are set to a value
+`fillvalue`. The default fillvalue is `NaN` if the element type of `img` supports it, and `0`
+otherwise.
+
+The parameter `fillvalue` can be either a `Number` or `Colorant`. In this case, it will be
+converted to `eltype(imgr)` first. For example, `fillvalue = 1` will be converted to `Gray(1)` which
+will fill the outside indices with white pixels.
+
+Also, `fillvalue` can be extrapolation schemes: `Flat()`, `Periodic()` and `Reflect()`. The best
+way to understand these schemes is perhaps try it with small example:
+
+```jldoctest
+using ImageTransformations, TestImages, Interpolations
+using OffsetArrays: IdOffsetRange
+
+img = testimage("lighthouse")
+
+imgr = imrotate(img, π/4; fillvalue=Flat()) # zero extrapolation slope
+imgr = imrotate(img, π/4; fillvalue=Periodic()) # periodic boundary
+imgr = imrotate(img, π/4; fillvalue=Reflect()) # mirror boundary
+
+axes(imgr)
+
+# output
+
+(IdOffsetRange(values=-196:709, indices=-196:709), IdOffsetRange(values=-68:837, indices=-68:837))
+```
+
+## The meaning of the coordinates
+
+`imgw` keeps track of the indices that would result from applying `inv(tform)` to the indices of
+`img`. This can be very handy for keeping track of how pixels in `imgw` line up with
 pixels in `img`.
 
-If you just want a plain array, you can "strip" the custom
-indices with `parent(imgw)`.
+```jldoctest
+using ImageTransformations, TestImages, Interpolations
 
-# Examples: a 2d rotation (see JuliaImages documentation for pictures)
+img = testimage("lighthouse")
+imgr = imrotate(img, π/4)
+imgr_cropped = imrotate(img, π/4, axes(img))
 
+# No need to manually calculate the offsets
+imgr[axes(img)...] == imgr_cropped
+
+# output
+true
 ```
-julia> using Images, CoordinateTransformations, Rotations, TestImages, OffsetArrays
 
-julia> img = testimage("lighthouse");
+!!! tip
+    For performance consideration, it's recommended to pass the `inds` positional argument to
+    `warp` instead of cropping the output with `imgw[inds...]`.
 
-julia> axes(img)
-(Base.OneTo(512),Base.OneTo(768))
+# Examples: a 2d rotation
 
-# Rotate around the center of `img`
-julia> tfm = recenter(RotMatrix(-pi/4), center(img))
-AffineMap([0.707107 0.707107; -0.707107 0.707107], [-196.755,293.99])
+!!! note
+    This example only shows how to construct `tform` and calls `warp`. For common usage, it is
+    recommended to use [`imrotate`](@ref) function directly.
 
-julia> imgw = warp(img, tfm);
+Rotate around the center of `img`:
 
-julia> axes(imgw)
-(-196:709,-68:837)
+```jldoctest
+using ImageTransformations, CoordinateTransformations, Rotations, TestImages, OffsetArrays
+img = testimage("lighthouse") # axes (1:512, 1:768)
 
-# Alternatively, specify the origin in the image itself
-julia> img0 = OffsetArray(img, -30:481, -384:383);  # origin near top of image
+tfm = recenter(RotMatrix(-pi/4), center(img))
+imgw = warp(img, tfm)
 
-julia> rot = LinearMap(RotMatrix(-pi/4))
-LinearMap([0.707107 -0.707107; 0.707107 0.707107])
+axes(imgw)
 
-julia> imgw = warp(img0, rot);
+# output
 
-julia> axes(imgw)
-(-293:612,-293:611)
-
-julia> imgr = parent(imgw);
-
-julia> axes(imgr)
-(Base.OneTo(906),Base.OneTo(905))
+(IdOffsetRange(values=-196:709, indices=-196:709), IdOffsetRange(values=-68:837, indices=-68:837))
 ```
+
 """
 function warp(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform))) where T
     out = similar(Array{T}, inds)
@@ -91,57 +164,89 @@ end
 function warp!(out, img::AbstractExtrapolation, tform)
     tform = _round(tform)
     @inbounds for I in CartesianIndices(axes(out))
+        # Backward mode:
+        #   1. get the target index `I` of `out`
+        #   2. maps _back_ to original index `Ĩ` of `img`
+        #   3. interpolate/extrapolate the value of `Ĩ`
+        #   4. this value is then assigned to `out[I]`
+        # The advantage of backward mode is that all piexels
+        # in the output image will be iterated once very efficiently.
         out[I] = _getindex(img, tform(SVector(I.I)))
     end
     out
 end
 
-function warp(img::AbstractArray, tform, inds::Tuple, args...; kwargs...)
-    etp = box_extrapolation(img, args...; kwargs...)
-    warp(etp, try_static(tform, img), inds)
-end
-
 function warp(img::AbstractArray, tform, args...; kwargs...)
-    etp = box_extrapolation(img, args...; kwargs...)
-    warp(etp, try_static(tform, img))
+    etp = box_extrapolation(img; kwargs...)
+    warp(etp, try_static(tform, img), args...)
 end
 
 """
-    imrotate(img, θ, [indices], [degree = Linear()], [fill = NaN]) -> imgr
+    imrotate(img, θ, [indices]; kwargs...) -> imgr
 
-Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center point. To rotate the image counterclockwise, specify a negative value for angle.
+Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center point.
 
-By default, rotated image `imgr` will not be cropped. Bilinear interpolation will be used and values outside the image are filled with `NaN` if possible, otherwise with `0`.
+# Arguments
+
+- `img::AbstractArray`: the original image that you need to rotate.
+- `θ::Real`: the rotation angle in clockwise direction.
+  To rotate the image in conter-clockwise direction, use a negative value instead.
+  To rotate the image by `d` degree, use the formular `θ=d*π/180`.
+- `indices` (Optional): specifies the output image axes. By default, rotated image `imgr` will not be
+  cropped, and thus `axes(imgr) == axes(img)` does not hold in general.
+
+# Parameters
+
+!!! info
+    To construct `method` and `fillvalue` values, you may need to load `Interpolations` package first.
+
+- `method::Union{Degree, InterpolationType}`: the interpolation method you want to use. By default it is
+  `Linear()`.
+- `fillvalue`: the value that used to fill the new region. The default value is `NaN` if possible,
+  otherwise is `0`.
+
+This function is a simple high-level interface to `warp`, for more explaination and details,
+please refer to [`warp`](@ref).
 
 # Examples
-```julia
-julia> img = testimage("cameraman")
-
-# rotate with bilinear interpolation but without cropping
-julia> imrotate(img, π/4)
-
-# rotate with bilinear interpolation and with cropping
-julia> imrotate(img, π/4, axes(img))
-
-# rotate with nearest interpolation but without cropping
-julia> imrotate(img, π/4, Constant())
-
-The keyword `method` now also takes any InterpolationType from Interpolations.jl
-or a Degree, which is used to define a BSpline interpolation of that degree, in
-order to set the interpolation method used during image rotation.
 
 ```julia
-# rotate with Linear interpolation without cropping
-julia> imrotate(img, π/4, method = Linear())
+using TestImages, ImageTransformations
+img = testimage("cameraman")
 
-# rotate with Lanczos4OpenCV interpolation without cropping
-julia> imrotate(img, π/4, method = Lanczos4OpenCV())
+# Rotate the image by π/4 in the clockwise direction
+imgr = imrotate(img, π/4) # output axes (-105:618, -105:618)
+
+# Rotate the image by π/4 in the counter-clockwise direction
+imgr = imrotate(img, -π/4) # output axes (-105:618, -105:618)
+
+# Preserve the original axes
+# Note that this is more efficient than `@view imrotate(img, π/4)[axes(img)...]`
+imgr = imrotate(img, π/4, axes(img)) # output axes (1:512, 1:512)
 ```
 
-See also [`warp`](@ref).
+By default, `imrotate` uses bilinear interpolation with constant fill value (`NaN` or `0`). You can,
+for example, use the nearest interpolation and fill the new region with white pixels:
+
+```julia
+using Interpolations, ImageCore
+imrotate(img, π/4, method=Constant(), fillvalue=oneunit(eltype(img)))
+```
+
+And with some inspiration, maybe fill with periodic values and tile the output together to
+get a mosaic:
+
+```julia
+using Interpolations, ImageCore
+imgr = imrotate(img, π/4, fillvalue = Periodic())
+mosaicview([imgr for _ in 1:9]; nrow=3)
+```
 """
-function imrotate(img::AbstractArray{T}, θ::Real, args...; kwargs...) where T
+function imrotate(img::AbstractArray{T}, θ::Real, inds::Union{Tuple, Nothing} = nothing; kwargs...) where T
+    # TODO: expose rotation center as a keyword
     θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
     tform = recenter(RotMatrix{2}(θ), center(img))
-    warp(img, tform, args...; kwargs...)
+    # Use the `nothing` trick here because moving the `autorange` as default value is not type-stable
+    inds = isnothing(inds) ? autorange(img, inv(tform)) : inds
+    warp(img, tform, inds; kwargs...)
 end

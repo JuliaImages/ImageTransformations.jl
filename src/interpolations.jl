@@ -1,10 +1,4 @@
-# FIXME: upstream https://github.com/JuliaGraphics/ColorVectorSpace.jl/issues/75
-@inline _nan(::Type{HSV{Float16}}) = HSV{Float16}(NaN16,NaN16,NaN16)
-@inline _nan(::Type{HSV{Float32}}) = HSV{Float32}(NaN32,NaN32,NaN32)
-@inline _nan(::Type{HSV{Float64}}) = HSV{Float64}(NaN,NaN,NaN)
-@inline _nan(::Type{T}) where {T} = nan(T)
-
-#wraper to deal with degree or interpolation types
+# A helper function to let our `method` keyword correctly understands `Degree` inputs.
 @inline wrap_BSpline(itp::Interpolations.InterpolationType) = itp
 @inline wrap_BSpline(degree::Interpolations.Degree) = BSpline(degree)
 
@@ -12,61 +6,37 @@
 const FillType = Union{Number,Colorant,Flat,Periodic,Reflect}
 const FloatLike{T<:AbstractFloat} = Union{T,AbstractGray{T}}
 const FloatColorant{T<:AbstractFloat} = Colorant{T}
-@inline _default_fill(::Type{T}) where {T<:FloatLike} = convert(T, NaN)
-@inline _default_fill(::Type{T}) where {T<:FloatColorant} = _nan(T)
-@inline _default_fill(::Type{T}) where {T} = zero(T)
+@inline _default_fillvalue(::Type{T}) where {T<:FloatLike} = convert(T, NaN)
+@inline _default_fillvalue(::Type{T}) where {T<:FloatColorant} = _nan(T)
+@inline _default_fillvalue(::Type{T}) where {T} = zero(T)
 
 @inline _make_compatible(T, fill) = fill
 @inline _make_compatible(::Type{T}, fill::Number) where {T} = T(fill)
 
 Interpolations.tweight(A::AbstractArray{C}) where C<:Colorant{T} where T = T
 
+const MethodType = Union{Interpolations.Degree, Interpolations.InterpolationType}
+
+function box_extrapolation(
+        parent::AbstractArray;
+        fillvalue::FillType = _default_fillvalue(eltype(parent)),
+        method=Linear(),
+        kwargs...)
+    T = typeof(zero(Interpolations.tweight(parent)) * zero(eltype(parent)))
+    itp = maybe_lazy_interpolate(T, parent, method)
+    extrapolate(itp, _make_compatible(T, fillvalue))
+end
 box_extrapolation(etp::AbstractExtrapolation) = etp
+box_extrapolation(itp::AbstractInterpolation{T}; fillvalue=_default_fillvalue(T)) where T =
+    extrapolate(itp, _make_compatible(T, fillvalue))
 
-function box_extrapolation(itp::AbstractInterpolation{T}, fill::FillType = _default_fill(T); kwargs...) where T
-    etp = extrapolate(itp, _make_compatible(T, fill))
-    box_extrapolation(etp)
+@inline function maybe_lazy_interpolate(::Type{T}, A::AbstractArray, degree::D) where {T, D<:Union{Linear, Constant}}
+    axs = axes(A)
+    return Interpolations.BSplineInterpolation{T,ndims(A),typeof(A),BSpline{D},typeof(axs)}(A, axs, BSpline(degree))
 end
 
-function box_extrapolation(parent::AbstractArray, args...; method::Union{Interpolations.Degree,Interpolations.InterpolationType}=Linear(), kwargs...)
-    if typeof(method)<:Interpolations.Degree
-        box_extrapolation(parent, method, args...)
-    else
-        itp = interpolate(parent, method)
-        box_extrapolation(itp, args...)
-    end
-end
-
-function box_extrapolation(parent::AbstractArray{T,N}, degree::Interpolations.Degree, args...; method::Union{Interpolations.Degree,Interpolations.InterpolationType}=Linear(), kwargs...) where {T,N}
-    itp = interpolate(parent, BSpline(degree))
-    box_extrapolation(itp, args...)
-end
-
-function box_extrapolation(parent::AbstractArray, degree::D, args...; method::Union{Interpolations.Degree,Interpolations.InterpolationType}=Linear(), kwargs...) where D<:Union{Linear,Constant}
-    axs = axes(parent)
-    T = typeof(zero(Interpolations.tweight(parent))*zero(eltype(parent)))
-    itp = Interpolations.BSplineInterpolation{T,ndims(parent),typeof(parent),BSpline{D},typeof(axs)}(parent, axs, BSpline(degree))
-    box_extrapolation(itp, args...)
-end
-
-function box_extrapolation(parent::AbstractArray, fill::FillType; kwargs...)
-    box_extrapolation(parent, Linear(), fill)
-end
-
-function box_extrapolation(itp::AbstractInterpolation, degree::Union{Linear,Constant}, args...; kwargs...)
-    throw(ArgumentError("Boxing an interpolation in another interpolation is discouraged. Did you specify the parameter \"$degree\" on purpose?"))
-end
-
-function box_extrapolation(itp::AbstractInterpolation, degree::Interpolations.Degree, args...; kwargs...)
-    throw(ArgumentError("Boxing an interpolation in another interpolation is discouraged. Did you specify the parameter \"$degree\" on purpose?"))
-end
-
-function box_extrapolation(itp::AbstractExtrapolation, fill::FillType; kwargs...)
-    throw(ArgumentError("Boxing an extrapolation in another extrapolation is discouraged. Did you specify the parameter \"$fill\" on purpose?"))
-end
-
-function box_extrapolation(parent::AbstractArray, itp::Interpolations.InterpolationType; kwargs...)
-    throw(ArgumentError("Argument support for interpolation is not supported. Are you looking for the method keyword to pass an interpolation method?"))
+@inline function maybe_lazy_interpolate(::Type{T}, A::AbstractArray, method::MethodType) where T
+    return interpolate(A, wrap_BSpline(method))
 end
 
 # This is type-piracy, but necessary if we want Interpolations to be

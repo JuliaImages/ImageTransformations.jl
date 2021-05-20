@@ -12,11 +12,16 @@ function typestring(::Type{T}) where T   # from https://github.com/JuliaImages/I
     String(take!(buf))
 end
 
+# helper function to compare NaN
+nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))
+nearlysame(A::AbstractArray, B::AbstractArray) = all(map(nearlysame, A, B))
+
 tests = [
     "autorange.jl",
     "resizing.jl",
     "interpolations.jl",
     "warp.jl",
+    "deprecated.jl" # test deprecations in the last
 ]
 
 @testset "ImageTransformations" begin

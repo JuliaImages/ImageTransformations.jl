@@ -7,7 +7,6 @@ using StaticArrays
 using Interpolations, AxisAlgorithms
 using OffsetArrays
 using ColorVectorSpace
-using IdentityRanges
 
 import Base: eltype, size, length
 using Base: tail, Indices
@@ -32,7 +31,10 @@ include("interpolations.jl")
 include("warp.jl")
 include("warpedview.jl")
 include("invwarpedview.jl")
+include("compat.jl")
+include("deprecated.jl")
 
+# TODO: move to warp.jl
 @inline _getindex(A, v::StaticVector) = A[Tuple(v)...]
 @inline _getindex(A::AbstractInterpolation, v::StaticVector) = A(Tuple(v)...)
 @inline _getindex(A, v) = A[v...]
