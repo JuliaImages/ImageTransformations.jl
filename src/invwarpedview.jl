@@ -27,7 +27,7 @@ struct InvWarpedView{T,N,A,F,I,FI<:Transformation,E} <: AbstractArray{T,N}
 end
 
 function InvWarpedView(inner::WarpedView{T,N,TA,F,I,E}) where {T,N,TA,F,I,E}
-    tinv = inv(inner.transform)
+    tinv = _round(inv(inner.transform))
     InvWarpedView{T,N,TA,F,I,typeof(tinv),E}(inner, tinv)
 end
 
@@ -90,55 +90,20 @@ domain of the resulting `wv`. By default the indices are computed
 in such a way that `wv` contains all the original pixels in
 `img`.
 """
-@inline invwarpedview(A::AbstractArray, tinv::Transformation, args...) =
-    InvWarpedView(A, tinv, args...)
-
-function invwarpedview(
-        A::AbstractArray{T},
-        tinv::Transformation,
-        degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T)) where T
-    invwarpedview(box_extrapolation(A, degree, fill), tinv)
+function invwarpedview(A::AbstractArray, tinv::Transformation, indices::Tuple=autorange(A, tinv); kwargs...)
+    InvWarpedView(box_extrapolation(A; kwargs...), tinv, indices)
 end
 
-function invwarpedview(
-        A::AbstractArray{T},
-        tinv::Transformation,
-        indices::Tuple,
-        degree::Union{Linear,Constant},
-        fill::FillType = _default_fill(T)) where T
-    invwarpedview(box_extrapolation(A, degree, fill), tinv, indices)
+# For SubArray:
+# 1. We can exceed the boundary of SubArray by using its parent and thus trick Interpolations in
+#    order to get better extrapolation result around the border. Otherwise it will just fill it.
+# 2. For default indices, we use `IdentityUnitRange`, which guarantees `r[i] == i`, to preserve the view indices.
+function invwarpedview(A::SubArray, tinv::Transformation; kwargs...)
+    default_indices = map(IdentityUnitRange, autorange(CartesianIndices(A.indices), tinv))
+    invwarpedview(A, tinv, default_indices; kwargs...)
 end
-
-function invwarpedview(
-        A::AbstractArray,
-        tinv::Transformation,
-        fill::FillType)
-    invwarpedview(A, tinv, Linear(), fill)
-end
-
-function invwarpedview(
-        A::AbstractArray,
-        tinv::Transformation,
-        indices::Tuple,
-        fill::FillType)
-    invwarpedview(A, tinv, indices, Linear(), fill)
-end
-
-function invwarpedview(
-        inner_view::SubArray{T,N,W,I},
-        tinv::Transformation) where {T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}
-    inner = parent(inner_view)
-    new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
-    inds = autorange(CartesianIndices(inner_view.indices), tinv)
-    view(new_inner, map(x->IdentityRange(first(x),last(x)), inds)...)
-end
-
-function invwarpedview(
-        inner_view::SubArray{T,N,W,I},
-        tinv::Transformation,
-        indices::Tuple) where {T,N,W<:InvWarpedView,I<:Tuple{Vararg{AbstractUnitRange}}}
-    inner = parent(inner_view)
+function invwarpedview(A::SubArray, tinv::Transformation, indices::Tuple; kwargs...)
+    inner = parent(A)
     new_inner = InvWarpedView(inner, tinv, autorange(inner, tinv))
     view(new_inner, indices...)
 end

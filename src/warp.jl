@@ -1,5 +1,5 @@
 """
-    warp(img, tform, [indices], [degree = Linear()], [fill = NaN]) -> imgw
+    warp(img, tform, [indices]; kwargs...) -> imgw
 
 Transform the coordinates of `img`, returning a new `imgw`
 satisfying `imgw[I] = img[tform(I)]`. This approach is known as
@@ -7,6 +7,13 @@ backward mode warping. The transformation `tform` must accept a
 `SVector` as input. A useful package to create a wide variety of
 such transformations is
 [CoordinateTransformations.jl](https://github.com/FugroRoames/CoordinateTransformations.jl).
+
+# Parameters
+
+- `method::Union{Degree, InterpolationType}`: the interpolation method you want to use. By default it is
+  `BSpline(Linear())`. To construct the method instance, one may need to load `Interpolations`.
+- `fillvalue`: the value that used to fill the new region. The default value is `NaN` if possible,
+   otherwise is `0`. One can also pass the extrapolation boundary condition: `Flat()`, `Reflect()` and `Periodic()`.
 
 # Reconstruction scheme
 
@@ -96,52 +103,71 @@ function warp!(out, img::AbstractExtrapolation, tform)
     out
 end
 
-function warp(img::AbstractArray, tform, inds::Tuple, args...; kwargs...)
-    etp = box_extrapolation(img, args...; kwargs...)
-    warp(etp, try_static(tform, img), inds)
-end
-
 function warp(img::AbstractArray, tform, args...; kwargs...)
-    etp = box_extrapolation(img, args...; kwargs...)
-    warp(etp, try_static(tform, img))
+    etp = box_extrapolation(img; kwargs...)
+    warp(etp, try_static(tform, img), args...)
 end
 
 """
-    imrotate(img, θ, [indices], [degree = Linear()], [fill = NaN]) -> imgr
+    imrotate(img, θ, [indices]; kwargs...) -> imgr
 
-Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center point. To rotate the image counterclockwise, specify a negative value for angle.
+Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center point.
 
-By default, rotated image `imgr` will not be cropped. Bilinear interpolation will be used and values outside the image are filled with `NaN` if possible, otherwise with `0`.
+# Arguments
+
+- `img::AbstractArray`: the original image that you need to rotate.
+- `θ::Real`: the rotation angle in clockwise direction. To rotate the image in conter-clockwise 
+  direction, use a negative value instead. To rotate the image by `d` degree, use the formular `θ=d*π/180`.
+- `indices` (Optional): specifies the output image axes. By default, rotated image `imgr` will not be
+  cropped, and thus `axes(imgr) == axes(img)` does not hold in general.
+
+# Parameters
+
+- `method::Union{Degree, InterpolationType}`: the interpolation method you want to use. By default it is
+  `BSpline(Linear())`. To construct the method instance, one may need to load `Interpolations`.
+- `fillvalue`: the value that used to fill the new region. The default value is `NaN` if possible,
+   otherwise is `0`. One can also pass the extrapolation boundary condition: `Flat()`, `Reflect()` and `Periodic()`.
 
 # Examples
-```julia
-julia> img = testimage("cameraman")
-
-# rotate with bilinear interpolation but without cropping
-julia> imrotate(img, π/4)
-
-# rotate with bilinear interpolation and with cropping
-julia> imrotate(img, π/4, axes(img))
-
-# rotate with nearest interpolation but without cropping
-julia> imrotate(img, π/4, Constant())
-
-The keyword `method` now also takes any InterpolationType from Interpolations.jl
-or a Degree, which is used to define a BSpline interpolation of that degree, in
-order to set the interpolation method used during image rotation.
 
 ```julia
-# rotate with Linear interpolation without cropping
-julia> imrotate(img, π/4, method = Linear())
+using TestImages, ImageTransformations
+img = testimage("cameraman")
 
-# rotate with Lanczos4OpenCV interpolation without cropping
-julia> imrotate(img, π/4, method = Lanczos4OpenCV())
+# Rotate the image by π/4 in the clockwise direction
+imgr = imrotate(img, π/4) # output axes (-105:618, -105:618)
+# Rotate the image by π/4 in the counter-clockwise direction
+imgr = imrotate(img, -π/4) # output axes (-105:618, -105:618)
+
+# Preserve the original axes
+# Note that this is more efficient than `@view imrotate(img, π/4)[axes(img)...]`
+imgr = imrotate(img, π/4, axes(img)) # output axes (1:512, 1:512)
+```
+
+By default, `imrotate` uses bilinear interpolation with constant fill value. You can,
+for example, use the nearest interpolation and fill the new region with white pixels:
+
+```julia
+using Interpolations, ImageCore
+imrotate(img, π/4, method=Constant(), fillvalue=oneunit(eltype(img)))
+```
+
+And with some inspiration, maybe fill with periodic values and tile the output together to
+get a mosaic:
+
+```julia
+using Interpolations, ImageCore
+imgr = imrotate(img, π/4, fillvalue = Periodic())
+mosaicview([imgr for _ in 1:9]; nrow=3)
 ```
 
 See also [`warp`](@ref).
 """
-function imrotate(img::AbstractArray{T}, θ::Real, args...; kwargs...) where T
+function imrotate(img::AbstractArray{T}, θ::Real, inds::Union{Tuple, Nothing} = nothing; kwargs...) where T
+    # TODO: expose rotation center as a keyword
     θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
     tform = recenter(RotMatrix{2}(θ), center(img))
-    warp(img, tform, args...; kwargs...)
+    # Use the `nothing` trick here because moving the `autorange` as default value is not type-stable
+    inds = isnothing(inds) ? autorange(img, inv(tform)) : inds
+    warp(img, tform, inds; kwargs...)
 end

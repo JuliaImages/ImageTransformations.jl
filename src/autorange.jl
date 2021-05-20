@@ -1,8 +1,38 @@
-function autorange(img, tform)
-    R = CartesianIndices(axes(img))
-    autorange(R, tform)
-end
+"""
+    autorange(A::AbstractArray, tform::Transformation)
 
+For given transformation `tform`, return the "smallest" range indices that
+preserves all information from `A` after applying `tform`.
+
+# Examples
+
+For transformation that preserves the array size, `autorange` is equivalent to `axes(A)`.
+
+```jldoctest; setup=:(using ImageTransformations: autorange; using CoordinateTransformations, Rotations, ImageTransformations)
+A = rand(5, 5)
+tform = IdentityTransformation()
+autorange(A, tform) == axes(A)
+
+# output
+true
+```
+
+The diffrence shows up when `tform` enlarges the input array `A`. In the following example, we need
+at least `(0:6, 0:6)` as the range indices to get all data of `A`:
+
+```jldoctest; setup=:(using ImageTransformations: autorange; using CoordinateTransformations, Rotations, ImageTransformations)
+A = rand(5, 5)
+tform = recenter(RotMatrix(pi/8), center(A))
+autorange(A, tform)
+
+# output
+(0:6, 0:6)
+```
+
+!!! note
+    This function is not exported; it is mainly for internal usage to infer the default indices.
+"""
+autorange(A::AbstractArray, tform) = autorange(CartesianIndices(A), tform)
 function autorange(R::CartesianIndices, tform)
     tform = _round(tform)
     mn = mx = tform(SVector(first(R).I))
@@ -90,9 +120,6 @@ function _round(tform::T; kwargs...) where T<:CoordinateTransformations.Transfor
         __round(getfield(tform, i); kwargs...)
     end
     T(rounded_fields...)
-end
-if isdefined(Base, :ComposedFunction)
-    _round(tform::ComposedFunction; kwargs...) = _round(tform.outer; kwargs...) ∘ _round(tform.inner; kwargs...)
 end
 _round(tform; kwargs...) = tform
 
