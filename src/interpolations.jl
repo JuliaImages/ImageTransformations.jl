@@ -23,19 +23,22 @@ function box_extrapolation(
         method=Linear(),
         kwargs...)
     T = typeof(zero(Interpolations.tweight(parent)) * zero(eltype(parent)))
-    itp = maybe_lazy_interpolate(T, parent, method)
+    itp = maybe_skip_prefilter(T, parent, method)
     extrapolate(itp, _make_compatible(T, fillvalue))
 end
 box_extrapolation(etp::AbstractExtrapolation) = etp
 box_extrapolation(itp::AbstractInterpolation{T}; fillvalue=_default_fillvalue(T)) where T =
     extrapolate(itp, _make_compatible(T, fillvalue))
 
-@inline function maybe_lazy_interpolate(::Type{T}, A::AbstractArray, degree::D) where {T, D<:Union{Linear, Constant}}
+@inline function maybe_skip_prefilter(::Type{T}, A::AbstractArray, degree::D) where {T, D<:Union{Linear, Constant}}
     axs = axes(A)
     return Interpolations.BSplineInterpolation{T,ndims(A),typeof(A),BSpline{D},typeof(axs)}(A, axs, BSpline(degree))
 end
+@inline function maybe_skip_prefilter(::Type{T}, A::AbstractArray, method::BSpline{D}) where {T, D<:Union{Linear, Constant}}
+    maybe_skip_prefilter(T, A, construct_interpolation_type(D))
+end
 
-@inline function maybe_lazy_interpolate(::Type{T}, A::AbstractArray, method::MethodType) where T
+@inline function maybe_skip_prefilter(::Type{T}, A::AbstractArray, method::MethodType) where T
     return interpolate(A, wrap_BSpline(method))
 end
 
