@@ -46,16 +46,19 @@ end
     n0f8_str = typestring(N0f8)
     matrixf64_str = typestring(Matrix{Float64})
 
-    etp = @inferred ImageTransformations.box_extrapolation(img)
-    @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
-    @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
-    @test typeof(etp) <: Interpolations.FilledExtrapolation
-    @test etp.fillvalue === Gray{N0f8}(0.0)
-    @test etp.itp.coefs === img
+    for method in (Linear(), BSpline(Linear()), Constant(), BSpline(Constant()))
+        etp = @inferred ImageTransformations.box_extrapolation(img, method=method)
+        @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
+        # @test summary(etp) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test typeof(etp) <: Interpolations.FilledExtrapolation
+        @test etp.fillvalue === Gray{N0f8}(0.0)
+        @test etp.itp.coefs === img
+    end
 
     # to catch regressions like #60
     @test @inferred(ImageTransformations._getindex(img, @SVector([1,2]))) isa Gray{N0f8}
 
+    etp = @inferred ImageTransformations.box_extrapolation(img)
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp)
     @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(0.0)) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp2) <: Interpolations.FilledExtrapolation
@@ -63,6 +66,7 @@ end
     @test etp2 !== etp
     @test etp2.itp === etp.itp
 
+    etp = @inferred ImageTransformations.box_extrapolation(img)
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp, fillvalue=Flat())
     @test summary(etp2) == "2×2 extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Flat()) with element type $(ctqual)Gray{$(fpqual)$n0f8_str}"
     @test typeof(etp2) <: Interpolations.Extrapolation
