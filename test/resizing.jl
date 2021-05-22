@@ -181,4 +181,26 @@ end
         @test OffsetArrays.no_offset_view(out) == imresize(img, (128, 128), method=Lanczos4OpenCV())
         end
     end
+
+    @testset "special RGB/Gray types (#97)" begin
+        ori = repeat(distinguishable_colors(10), inner=(1, 10))
+        for T in (
+            RGB, BGR, RGBX, XRGB,
+            ARGB, RGBA,
+            RGB24, ARGB32,
+        )
+            img = T.(ori)
+            out = @inferred imresize(img, ratio=2)
+            @test eltype(out) <: T
+            ref = imresize(ori, ratio=2)
+            @test ref ≈ RGB.(out)
+        end
+        for T in (Gray, AGray, GrayA, Gray24)
+            img = T.(ori)
+            out = @inferred imresize(img, ratio=2)
+            @test eltype(out) <: T
+            ref = imresize(Gray.(ori), ratio=2)
+            @test ref ≈ Gray.(out)
+        end
+    end
 end
