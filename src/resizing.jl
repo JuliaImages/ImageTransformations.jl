@@ -351,7 +351,11 @@ end
 # changes correspond to integer ratios.  We mimic ratio arithmetic
 # without actually using Rational (which risks promoting to a
 # Rational type, too slow for image processing).
-imresize_type(c::Colorant) = base_colorant_type(c){eltype(imresize_type(Gray(c)))}
+function imresize_type(c::Colorant)
+    CT = base_colorant_type(c)
+    isconcretetype(CT) && return CT # special 0-parameter colorant types: ARGB32, etc
+    CT{eltype(imresize_type(Gray(c)))}
+end
 imresize_type(c::Gray) = Gray{imresize_type(gray(c))}
 imresize_type(c::FixedPoint) = typeof(c)
 imresize_type(c) = typeof((c*1)/1)
