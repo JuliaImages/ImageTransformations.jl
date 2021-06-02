@@ -13,6 +13,9 @@ using Base: tail, Indices
 using Base.Cartesian
 using .ColorTypes: AbstractGray, TransparentGray, TransparentRGB
 
+# these two symbols previously live in ImageTransformations
+import ImageBase: restrict, restrict!
+
 export
 
     restrict,
@@ -26,11 +29,11 @@ export
     imrotate
 
 include("autorange.jl")
-include("resizing.jl")
 include("interpolations.jl")
 include("warp.jl")
 include("warpedview.jl")
 include("invwarpedview.jl")
+include("resizing.jl")
 include("compat.jl")
 include("deprecated.jl")
 
