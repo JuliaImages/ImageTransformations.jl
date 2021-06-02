@@ -1,5 +1,10 @@
 # restrict
-restrict(img::Union{WarpedView, InvWarpedView}) = restrict(OffsetArray(img)) # preserve axes information
+function restrict(img::Union{WarpedView, InvWarpedView}, dims::Integer)
+    # preserve axes information but eagerly evaluate the transformation
+    # TODO: this eager evaluation destroy the laziness of `WarpedView`
+    #       and `InvWarpedView`.
+    restrict(OffsetArray(collect(img), axes(img)), dims)
+end
 
 # imresize
 imresize(original::AbstractArray, dim1::T, dimN::T...; kwargs...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...); kwargs...)
