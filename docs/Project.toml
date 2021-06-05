@@ -1,0 +1,14 @@
+[deps]
+CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ImageCore = "a09fc81d-aa75-5fe9-8630-4744c3626534"
+ImageIO = "82e4d734-157c-48bb-816b-45c225c6df19"
+ImageMagick = "6218d12a-5da1-5696-b52f-db25d2ecc6d1"
+ImageShow = "4e3cecfd-b093-5904-9786-8bbb286a6a31"
+ImageTransformations = "02fcd773-0e25-5acc-982a-7f6622650795"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"
+TestImages = "5e47fb64-e119-507b-a336-dd2b206d9990"
+
+[compat]
+Documenter = "0.26"
