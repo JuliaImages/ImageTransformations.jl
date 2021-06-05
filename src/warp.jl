@@ -79,8 +79,19 @@ julia> axes(imgw)
 
 julia> imgr = parent(imgw);
 
-julia> axes(imgr)
-(Base.OneTo(906),Base.OneTo(905))
+```jldoctest
+using ImageTransformations, CoordinateTransformations, Rotations, TestImages, OffsetArrays
+using OffsetArrays: IdOffsetRange
+img = testimage("lighthouse") # axes (1:512, 1:768)
+
+tfm = recenter(RotMatrix(-pi/4), center(img))
+imgw = warp(img, tfm)
+
+axes(imgw)
+
+# output
+
+(IdOffsetRange(values=-196:709, indices=-196:709), IdOffsetRange(values=-68:837, indices=-68:837))
 ```
 """
 function warp(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img, inv(tform))) where T
