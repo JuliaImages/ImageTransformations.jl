@@ -120,6 +120,22 @@ function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}; kwargs...)
     end
 end
 
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, fixed_point::CartesianIndex; kwargs...)  where {T,N}
+    Tnew = imresize_type(first(original))
+    checkbounds(Bool, original, fixed_point) || error("given index $fixed_point is out of range")
+    topleft = firstindex.(Ref(original), (1, 2))
+    offset = fixed_point.I .- new_size .* (fixed_point.I .- topleft) .÷ size(original) .- 1
+    resized = OffsetArray(similar(original, Tnew, new_size), offset)
+    imresize!(resized, original; kwargs...)
+    resized[fixed_point] = original[fixed_point]
+    resized
+end
+
+function imresize(original::AbstractArray{T,N}, fixed_point::CartesianIndex; ratio, kwargs...) where {T,N}
+    all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
+    new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
+    imresize(original, new_size, fixed_point; kwargs...)
+end
 # To choose the output type, rather than forcing everything to
 # Float64 by multiplying by 1.0, we exploit the fact that the scale
 # changes correspond to integer ratios.  We mimic ratio arithmetic
