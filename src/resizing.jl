@@ -57,7 +57,7 @@ upsample/downsample the image `img` to a given size `sz` or axes `inds` using in
   The output size is `ceil(Int, size(img).*ratio)`. If `ratio` is larger than `1`, it is
   an upsample operation. Otherwise it is a downsample operation. `ratio` can also be a tuple,
   in which case `ratio[i]` specifies the resize ratio at dimension `i`.
-- `method::InterpolationType`: 
+- `method::InterpolationType`:
   specify the interpolation method used for reconstruction. conveniently, `methold` can
   also be a `Degree` type, in which case a `BSpline` object will be created.
   For example, `method = Linear()` is equivalent to `method = BSpline(Linear())`.
@@ -120,18 +120,19 @@ function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}; kwargs...)
     end
 end
 
-function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, fixed_point::CartesianIndex; kwargs...)  where {T,N}
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, fixed_point::FixedPoint{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
-    checkbounds(Bool, original, fixed_point) || error("given index $fixed_point is out of range")
-    topleft = firstindex.(Ref(original), (1, 2))
-    offset = fixed_point.I .- new_size .* (fixed_point.I .- topleft) .÷ size(original) .- 1
+    fp = fixed_point.p
+    checkbounds(Bool, original, fp) || error("given point $fp is out of range")
+    topleft = firstindex.(Ref(original), Tuple(1:N))
+    offset = fp.I .- new_size .* (fp.I .- topleft) .÷ size(original) .- 1
     resized = OffsetArray(similar(original, Tnew, new_size), offset)
     imresize!(resized, original; kwargs...)
-    resized[fixed_point] = original[fixed_point]
+    resized[fp] = original[fp]
     resized
 end
 
-function imresize(original::AbstractArray{T,N}, fixed_point::CartesianIndex; ratio, kwargs...) where {T,N}
+function imresize(original::AbstractArray{T,N}, fixed_point::FixedPoint{N}; ratio, kwargs...) where {T,N}
     all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
     new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
     imresize(original, new_size, fixed_point; kwargs...)
