@@ -124,22 +124,22 @@ function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}; kwargs...)
     end
 end
 
-function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, fixed_point::FixedPoint{N}; kwargs...) where {T,N}
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, center_point::CenterPoint{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
-    fp = fixed_point.p
-    checkbounds(Bool, original, fp) || error("given point $fp is out of range")
+    cp = center_point.p
+    checkbounds(Bool, original, cp) || error("given point $cp is out of range")
     topleft = firstindex.(Ref(original), Tuple(1:N))
-    offset = fp.I .- new_size .* (fp.I .- topleft) .÷ size(original) .- 1
+    offset = cp.I .- new_size .* (cp.I .- topleft) .÷ size(original) .- 1
     resized = OffsetArray(similar(original, Tnew, new_size), offset)
     imresize!(resized, original; kwargs...)
-    resized[fp] = original[fp]
+    resized[cp] = original[cp]
     resized
 end
 
-function imresize(original::AbstractArray{T,N}, fixed_point::FixedPoint{N}; ratio, kwargs...) where {T,N}
+function imresize(original::AbstractArray{T,N}, center_point::CenterPoint{N}; ratio, kwargs...) where {T,N}
     all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
     new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
-    imresize(original, new_size, fixed_point; kwargs...)
+    imresize(original, new_size, center_point; kwargs...)
 end
 # To choose the output type, rather than forcing everything to
 # Float64 by multiplying by 1.0, we exploit the fact that the scale
