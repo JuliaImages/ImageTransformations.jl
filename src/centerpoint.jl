@@ -4,7 +4,7 @@
 Create a fixed point which can be used in `imresize` and `imrotate`
 functions in order to keep the value in this point the same, i.e.,
 
-```jldoctest
+```julia
 img[cp] == imgr[cp]
 ```
 """

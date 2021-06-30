@@ -127,13 +127,11 @@ end
 function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, center_point::CenterPoint{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
     cp = center_point.p
-    checkbounds(Bool, original, cp) || error("given point $cp is out of range")
+    checkbounds(original, cp)
     topleft = firstindex.(Ref(original), Tuple(1:N))
-    offset = cp.I .- new_size .* (cp.I .- topleft) .÷ size(original) .- 1
-    resized = OffsetArray(similar(original, Tnew, new_size), offset)
-    imresize!(resized, original; kwargs...)
-    resized[cp] = original[cp]
-    resized
+    offset = @. cp.I - new_size * (cp.I - topleft) ÷ $size(original) - 1
+    newimage = OffsetArray(similar(original, Tnew, new_size), offset)
+    imresize!(newimage, original; kwargs...)
 end
 
 function imresize(original::AbstractArray{T,N}, center_point::CenterPoint{N}; ratio, kwargs...) where {T,N}
