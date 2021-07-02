@@ -47,17 +47,23 @@ end
             test_imresize_interface(img, (5,10), (5,))
             test_imresize_interface(img, (5,10), 1:5) # FIXME: @inferred failed
             test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
+            test_imresize_interface(img, (5,5), (5,5), CenterPoint(1, 1))
+            test_imresize_interface(img, (20,20), CenterPoint(1, 1), ratio = 2)
+            test_imresize_interface(img, (20,10), CenterPoint(1, 1), ratio = (2, 1))
 
             @test_throws MethodError imresize(img,5.0,5.0)
             @test_throws MethodError imresize(img,(5.0,5.0))
             @test_throws MethodError imresize(img,(5, 5.0))
             @test_throws MethodError imresize(img,[5,5])
             @test_throws UndefKeywordError imresize(img)
+            @test_throws UndefKeywordError imresize(img, CenterPoint(1, 1))
             @test_throws DimensionMismatch imresize(img,(5,5,5))
             @test_throws ArgumentError imresize(img, ratio = -0.5)
             @test_throws ArgumentError imresize(img, ratio = (-0.5, 1))
+            @test_throws ArgumentError imresize(img, CenterPoint(1, 1), ratio = -0.5)
             @test_throws DimensionMismatch imresize(img, ratio=(5,5,5))
             @test_throws DimensionMismatch imresize(img, (5,5,1))
+            @test_throws BoundsError imresize(img, (5,5), CenterPoint(100, 100))
         end
     end
 

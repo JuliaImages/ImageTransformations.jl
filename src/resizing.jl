@@ -83,9 +83,9 @@ imresize(img, (1:256, )) # 256*768
 imresize(img, ratio = 0.5) #256*384
 imresize(img, ratio = (2, 1)) # 1024*768
 
-# pass `FixedPoint`
-imresize(img, (256, 384), FixedPoint(10, 15)) # 256*384, img[10,15] == imgr[10,15]
-imresize(img, FixedPoint(10, 15), ratio = 0.5) # 256*384, img[10,15] == imgr[10,15]
+# pass `CenterPoint`
+imresize(img, (256, 384), CenterPoint(10, 15)) # 256*384, img[10,15] ≈ imgr[10,15]
+imresize(img, CenterPoint(10, 15), ratio = 0.5) # 256*384, img[10,15] ≈ imgr[10,15]
 
 # use different interpolation method
 imresize(img, (256, 384), method=Linear()) # 256*384 bilinear interpolation
