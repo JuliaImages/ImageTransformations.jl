@@ -143,6 +143,7 @@ Rotate around the center of `img`:
 
 ```jldoctest
 using ImageTransformations, CoordinateTransformations, Rotations, TestImages, OffsetArrays
+using OffsetArrays: IdOffsetRange
 img = testimage("lighthouse") # axes (1:512, 1:768)
 
 tfm = recenter(RotMatrix(-pi/4), center(img))
