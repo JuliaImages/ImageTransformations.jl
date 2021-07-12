@@ -20,4 +20,4 @@ other spatial transformations of arrays.
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://JuliaImages.github.io/ImageTransformations.jl/stable
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://JuliaImages.github.io/ImageTransformations.jl/latest
+[docs-dev-url]: https://JuliaImages.github.io/ImageTransformations.jl/dev
