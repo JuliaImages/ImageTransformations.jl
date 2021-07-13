@@ -35,7 +35,7 @@ box_extrapolation(itp::AbstractInterpolation{T}; fillvalue=_default_fillvalue(T)
     return Interpolations.BSplineInterpolation{T,ndims(A),typeof(A),BSpline{D},typeof(axs)}(A, axs, BSpline(degree))
 end
 @inline function maybe_skip_prefilter(::Type{T}, A::AbstractArray, method::BSpline{D}) where {T, D<:Union{Linear, Constant}}
-    maybe_skip_prefilter(T, A, construct_interpolation_type(D))
+    maybe_skip_prefilter(T, A, method.degree)
 end
 
 @inline function maybe_skip_prefilter(::Type{T}, A::AbstractArray, method::MethodType) where T
