@@ -14,8 +14,8 @@ Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-AxisAlgorithms = "1.0"
-ColorVectorSpace = "0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9"
+AxisAlgorithms = "0.3, 1.0"
+ColorVectorSpace = "0.6, 0.7, 0.8, 0.9"
 CoordinateTransformations = "0.5, 0.6"
 ImageBase = "0.1.1"
 ImageCore = "0.8.1, 0.9"
