@@ -23,12 +23,3 @@ end
 @inline _nan(::Type{HSV{Float32}}) = HSV{Float32}(NaN32,NaN32,NaN32)
 @inline _nan(::Type{HSV{Float64}}) = HSV{Float64}(NaN,NaN,NaN)
 @inline _nan(::Type{T}) where {T} = nan(T)
-
-if !hasmethod(Constant{Nearest}, ())
-    # `Constant{Nearest}()` is not defined for Interpolations <= v0.13.2
-    # https://github.com/JuliaMath/Interpolations.jl/pull/426
-    construct_interpolation_type(::Type{T}) where T<:Union{Linear, Constant} = T()
-    construct_interpolation_type(::Type{Constant{Nearest}}) = Constant()
-else
-    construct_interpolation_type(::Type{T}) where T<:Union{Linear, Constant} = T()
-end
