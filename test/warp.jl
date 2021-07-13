@@ -81,6 +81,7 @@ img_camera = testimage("camera")
 
     @testset "WarpedView" begin
         imgr = @inferred(WarpedView(img_camera, tfm))
+        @test_nowarn summary(imgr)
         @test @inferred(getindex(imgr,2,2)) == imgr[2,2]
         @test typeof(imgr[2,2]) == eltype(imgr)
         @test size(imgr) == ref_size
@@ -94,6 +95,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr2
 
         imgr = @inferred(WarpedView(img_camera, tfm, axes(img_camera)))
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test parent(imgr) === img_camera
@@ -103,6 +105,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm, axes(img_camera); fillvalue=1))
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test parent(imgr) === img_camera
@@ -112,6 +115,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm, axes(img_camera); method=Linear(), fillvalue=1))
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test parent(imgr) === img_camera
@@ -121,6 +125,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm; fillvalue=1))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test parent(imgr) === img_camera
         @test typeof(imgr) <: WarpedView
@@ -133,6 +138,7 @@ img_camera = testimage("camera")
         # @test imgr2[axes(img_camera)...] ≈ img_camera
 
         imgr = @inferred(WarpedView(img_camera, tfm; fillvalue=Flat()))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test parent(imgr) === img_camera
         @test typeof(imgr) <: WarpedView
@@ -144,6 +150,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm; method=Constant(), fillvalue=Periodic()))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test parent(imgr) === img_camera
         @test typeof(imgr) <: WarpedView
@@ -151,6 +158,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm, ref_inds; method=Constant(), fillvalue=Periodic()))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test parent(imgr) === img_camera
         @test eltype(imgr) == eltype(img_camera)
@@ -177,6 +185,7 @@ img_camera = testimage("camera")
 
         imgr = @inferred(invwarpedview(img_camera, tfm))
         @test imgr == @inferred(InvWarpedView(img_camera, tfm))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test parent(imgr) isa Interpolations.FilledExtrapolation
         @test parent(imgr).itp.coefs === img_camera
@@ -190,6 +199,7 @@ img_camera = testimage("camera")
 
         imgr = @inferred(invwarpedview(img_camera, tfm, axes(img_camera)))
         @test imgr == @inferred(InvWarpedView(img_camera, tfm, axes(img_camera)))
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test parent(imgr) isa Interpolations.FilledExtrapolation
@@ -200,6 +210,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, axes(img_camera); fillvalue=1))
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
@@ -210,6 +221,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, axes(img_camera); method=Linear(), fillvalue=1))
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
@@ -220,6 +232,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm; fillvalue=1))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
         @test parent(imgr).itp.coefs === img_camera
@@ -228,6 +241,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm; fillvalue=Flat()))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test typeof(parent(imgr)) <: Interpolations.Extrapolation
         @test parent(imgr).itp.coefs === img_camera
@@ -240,6 +254,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm; method=Constant(), fillvalue=Periodic()))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test axes(imgr) == ref_inds
         @test typeof(parent(imgr)) <: Interpolations.Extrapolation
@@ -249,6 +264,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, ref_inds; method=Constant(), fillvalue=Periodic()))
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test axes(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
@@ -260,6 +276,7 @@ img_camera = testimage("camera")
         wv = @inferred(InvWarpedView(img_camera, tfm))
         # tight crop that barely contains head and camera
         v = @inferred view(wv, 75:195, 245:370)
+        @test_nowarn summary(v)
         @test axes(v) == (1:121, 1:126)
         @test v.indices == (75:195, 245:370)
         @test axes(parent(v)) == (-78:591, -78:591)
@@ -274,7 +291,8 @@ img_camera = testimage("camera")
         @test typeof(parent(wv2)) <: InvWarpedView
         @test typeof(parent(wv2)) <: InvWarpedView
         @test parent(parent(wv2)) === img_camera
-        @test wv2.indices === axes(wv2) === (Base.IdentityUnitRange(55:127), Base.IdentityUnitRange(246:346))
+        @test_nowarn summary(wv2)
+        @test wv2.indices === axes(wv2) === (IdentityUnitRange(55:127), IdentityUnitRange(246:346))
         @test axes(parent(wv2)) == (-37:365, -13:523)
         @test eltype(wv2) == eltype(img_camera)
 
@@ -288,6 +306,7 @@ img_camera = testimage("camera")
         tfm = recenter(RotMatrix(-pi/8), center(float_array))
         wv = @inferred(InvWarpedView(float_array, tfm))
         v = @inferred view(wv, 1:10, 1:10)
+        @test_nowarn summary(v)
         @test axes(v) == (1:10, 1:10)
         @test eltype(v) == eltype(float_array)
         @test any(isnan, v)
@@ -417,6 +436,7 @@ NaN  NaN      NaN      NaN      NaN      NaN      NaN
             itp = interpolate(img_pyramid_cntr, BSpline(Quadratic(Flat(OnCell()))))
             imgrq_cntr = InvWarpedView(itp, inv(tfm2))
             @test parent(imgrq_cntr) === itp
+            @test_nowarn summary(imgrq_cntr)
             @test axes(imgrq_cntr) == (-3:3, -3:3)
             @test eltype(imgrq_cntr) == eltype(img_pyramid_cntr)
 

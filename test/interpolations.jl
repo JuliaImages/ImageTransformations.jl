@@ -42,6 +42,7 @@ end
     for method in (Linear(), BSpline(Linear()), Constant(), BSpline(Constant()))
         etp = @inferred ImageTransformations.box_extrapolation(img, method=method)
         @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
+        @test_nowarn summary(etp)
         @test size(etp) == size(img)
         @test eltype(etp) == eltype(img)
         @test etp.itp isa Interpolations.BSplineInterpolation
@@ -55,9 +56,10 @@ end
 
     etp = @inferred ImageTransformations.box_extrapolation(img)
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp)
-    @test size(etp) == size(img)
-    @test eltype(etp) == eltype(img)
-    @test etp.itp isa Interpolations.BSplineInterpolation
+    @test_nowarn summary(etp2)
+    @test size(etp2) == size(img)
+    @test eltype(etp2) == eltype(img)
+    @test etp2.itp isa Interpolations.BSplineInterpolation
     @test etp2 isa Interpolations.FilledExtrapolation
     @test etp2.fillvalue === Gray{N0f8}(0.0)
     @test etp2 !== etp
@@ -65,6 +67,7 @@ end
 
     etp = @inferred ImageTransformations.box_extrapolation(img)
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp, fillvalue=Flat())
+    @test_nowarn summary(etp2)
     @test size(etp2) == size(img)
     @test eltype(etp2) == eltype(img)
     @test etp2.itp isa Interpolations.BSplineInterpolation
@@ -74,6 +77,7 @@ end
     @test etp2.itp === etp.itp
 
     etp = @inferred ImageTransformations.box_extrapolation(img, fillvalue=1)
+    @test_nowarn summary(etp)
     @test size(etp) == size(img)
     @test eltype(etp) == eltype(img)
     @test etp.itp isa Interpolations.BSplineInterpolation
@@ -83,6 +87,7 @@ end
 
     etp = @inferred ImageTransformations.box_extrapolation(img, fillvalue=Flat())
     @test @inferred(ImageTransformations.box_extrapolation(etp)) === etp
+    @test_nowarn summary(etp)
     @test size(etp) == size(img)
     @test eltype(etp) == eltype(img)
     @test etp.itp isa Interpolations.BSplineInterpolation
@@ -91,6 +96,7 @@ end
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, method=Constant())
+    @test_nowarn summary(etp)
     @test size(etp) == size(img)
     @test eltype(etp) == eltype(img)
     @test etp.itp.it == BSpline(Constant{Nearest}())
@@ -98,6 +104,7 @@ end
     @test etp.itp.coefs === img
 
     etp = @inferred ImageTransformations.box_extrapolation(img, method=Constant(), fillvalue=Flat())
+    @test_nowarn summary(etp)
     @test size(etp) == size(img)
     @test eltype(etp) == eltype(img)
     @test etp.itp.it == BSpline(Constant{Nearest}())
@@ -107,18 +114,21 @@ end
 
     imgfloat = Float64.(img)
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, method=Quadratic(Flat(OnGrid())))
+    @test_nowarn summary(etp)
     @test size(etp) == size(imgfloat)
     @test eltype(etp) == eltype(imgfloat)
     @test etp.itp.it == BSpline(Quadratic(Flat(OnGrid())))
     @test etp isa Interpolations.FilledExtrapolation
 
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, method=Cubic(Flat(OnGrid())), fillvalue=Flat())
+    @test_nowarn summary(etp)
     @test size(etp) == size(imgfloat)
     @test eltype(etp) == eltype(imgfloat)
     @test etp.itp.it == BSpline(Cubic(Flat(OnGrid())))
     @test etp isa Interpolations.Extrapolation
 
     etp = @inferred ImageTransformations.box_extrapolation(imgfloat, method=Lanczos4OpenCV())
+    @test_nowarn summary(etp)
     @test size(etp) == size(imgfloat)
     @test eltype(etp) == eltype(imgfloat)
     @test etp.itp.it == Lanczos4OpenCV()
