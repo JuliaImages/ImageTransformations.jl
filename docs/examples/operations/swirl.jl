@@ -1,6 +1,8 @@
 # ---
 # cover: assets/swirl.gif
 # title: Swirl effect using warp operation
+# author: Johnny Chen
+# date: 2021-07-12
 # ---
 
 # In this example, we illustrate how to construct a custom warping map
