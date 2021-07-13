@@ -1,16 +1,11 @@
 using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
 using Test, ReferenceTests
+using OffsetArrays: IdentityUnitRange # compat for Julia <1.1
 
 refambs = detect_ambiguities(CoordinateTransformations, Base, Core)
 using ImageTransformations
 ambs = detect_ambiguities(ImageTransformations, CoordinateTransformations, Base, Core)
 @test isempty(setdiff(ambs, refambs))
-
-function typestring(::Type{T}) where T   # from https://github.com/JuliaImages/ImageCore.jl/pull/133
-    buf = IOBuffer()
-    show(buf, T)
-    String(take!(buf))
-end
 
 # helper function to compare NaN
 nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))

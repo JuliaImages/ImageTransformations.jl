@@ -1,25 +1,6 @@
 using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
 using Test, ReferenceTests
 
-#img_square = Gray{N0f8}.(reshape(linspace(0,1,9), (3,3)))
-
-SPACE = " " # julia PR #20288
-
-# These module qualifications (used in showarg output) vanished for a while;
-# they are left as variables in case that happens again.
-#ctqual = "ColorTypes."
-#fpqual = "FixedPointNumbers."
-ctqual = ""
-fpqual = ""
-
-if VERSION >= v"1.2.0-DEV.229"
-    sumfmt(rest,img) = Base.dims2string(size(img)) * ' ' * rest
-    sumfmt(ax,rest,img) = Base.dims2string(size(img)) * ' ' * rest * " with indices " * ax
-else
-    sumfmt(rest,img) = rest
-    sumfmt(ax,rest,img) = rest * " with indices " * ax
-end
-
 include("twoints.jl")
 
 img_camera = testimage("camera")
@@ -27,8 +8,6 @@ img_camera = testimage("camera")
     tfm = recenter(RotMatrix(pi/8), center(img_camera))
     ref_inds = (-78:591, -78:591)
     ref_size = map(length,ref_inds)
-    n0f8_str = typestring(N0f8)
-    matrixf64_str = typestring(Matrix{Float64})
 
     @testset "warp" begin
         imgr = @inferred(warp(img_camera, tfm))
@@ -102,7 +81,7 @@ img_camera = testimage("camera")
 
     @testset "WarpedView" begin
         imgr = @inferred(WarpedView(img_camera, tfm))
-        @test summary(imgr) == sumfmt("-78:591×-78:591","WarpedView(::Array{Gray{N0f8},2}, $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        @test_nowarn summary(imgr)
         @test @inferred(getindex(imgr,2,2)) == imgr[2,2]
         @test typeof(imgr[2,2]) == eltype(imgr)
         @test size(imgr) == ref_size
@@ -116,7 +95,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr2
 
         imgr = @inferred(WarpedView(img_camera, tfm, axes(img_camera)))
-        @test summary(imgr) == "512×512 WarpedView(::Array{Gray{N0f8},2}, $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test parent(imgr) === img_camera
@@ -126,32 +105,29 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm, axes(img_camera); fillvalue=1))
-        # @test summary(imgr) == "512×512 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
-        # @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
-        # @test parent(imgr).itp.coefs === img_camera
+        @test parent(imgr) === img_camera
         @test axes(imgr) === axes(img_camera)
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm, axes(img_camera); method=Linear(), fillvalue=1))
-        # @test summary(imgr) == "512×512 WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
-        # @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
-        # @test parent(imgr).itp.coefs === img_camera
+        @test parent(imgr) === img_camera
         @test axes(imgr) === axes(img_camera)
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm; fillvalue=1))
-        # @test summary(imgr) == sumfmt("-78:591×-78:591","WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
-        # @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
-        # @test parent(imgr).itp.coefs === img_camera
+        @test parent(imgr) === img_camera
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_white.txt" imgr
@@ -162,10 +138,9 @@ img_camera = testimage("camera")
         # @test imgr2[axes(img_camera)...] ≈ img_camera
 
         imgr = @inferred(WarpedView(img_camera, tfm; fillvalue=Flat()))
-        # @test summary(imgr) == sumfmt("-78:591×-78:591","WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Flat()), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
-        # @test typeof(parent(imgr)) <: Interpolations.Extrapolation
-        # @test parent(imgr).itp.coefs === img_camera
+        @test parent(imgr) === img_camera
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
@@ -175,23 +150,17 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm; method=Constant(), fillvalue=Periodic()))
-        # str = summary(imgr)
-        # @test occursin(sumfmt("WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
-        #       occursin("Periodic()), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
-        #       occursin("with indices -78:591×-78:591", str)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
-        # @test typeof(parent(imgr)) <: Interpolations.Extrapolation
-        # @test parent(imgr).itp.coefs === img_camera
+        @test parent(imgr) === img_camera
         @test typeof(imgr) <: WarpedView
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(WarpedView(img_camera, tfm, ref_inds; method=Constant(), fillvalue=Periodic()))
-        # str = summary(imgr)
-        # @test occursin(sumfmt("WarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
-        #       occursin("Periodic()), $(imgr.transform)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
-        #       occursin("with indices -78:591×-78:591", str)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
+        @test parent(imgr) === img_camera
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
     end
@@ -212,13 +181,14 @@ img_camera = testimage("camera")
         @test axes(wv2) == axes(img_camera)
         @test eltype(wv2) === eltype(img_camera)
         @test parent(wv2) === img_camera
-        # @test wv2 ≈ img_camera # FIXME
+        @test wv2 ≈ img_camera
 
         imgr = @inferred(invwarpedview(img_camera, tfm))
         @test imgr == @inferred(InvWarpedView(img_camera, tfm))
-        # @test summary(imgr) == sumfmt("-78:591×-78:591","InvWarpedView(::Array{Gray{N0f8},2}, $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
-        # @test parent(imgr) === img_camera # FIXME
+        @test parent(imgr) isa Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: InvWarpedView
         @test axes(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
@@ -229,17 +199,18 @@ img_camera = testimage("camera")
 
         imgr = @inferred(invwarpedview(img_camera, tfm, axes(img_camera)))
         @test imgr == @inferred(InvWarpedView(img_camera, tfm, axes(img_camera)))
-        # @test summary(imgr) == "512×512 InvWarpedView(::Array{Gray{N0f8},2}, $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
-        # @test parent(imgr) === img_camera
+        @test parent(imgr) isa Interpolations.FilledExtrapolation
+        @test parent(imgr).itp.coefs === img_camera
         @test axes(imgr) === axes(img_camera)
         @test typeof(imgr) <: InvWarpedView
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, axes(img_camera); fillvalue=1))
-        @test summary(imgr) == "512×512 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
@@ -250,7 +221,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, axes(img_camera); method=Linear(), fillvalue=1))
-        @test summary(imgr) == "512×512 InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test_nowarn summary(imgr)
         @test @inferred(size(imgr)) == size(img_camera)
         @test @inferred(size(imgr,3)) == 1
         @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
@@ -261,7 +232,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_crop_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm; fillvalue=1))
-        @test summary(imgr) == sumfmt("-78:591×-78:591","InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Gray{N0f8}(1.0)), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test typeof(parent(imgr)) <: Interpolations.FilledExtrapolation
         @test parent(imgr).itp.coefs === img_camera
@@ -270,7 +241,7 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_white.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm; fillvalue=Flat()))
-        @test summary(imgr) == sumfmt("-78:591×-78:591","InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Linear())), Flat()), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", imgr)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
         @test typeof(parent(imgr)) <: Interpolations.Extrapolation
         @test parent(imgr).itp.coefs === img_camera
@@ -283,11 +254,9 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_flat.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm; method=Constant(), fillvalue=Periodic()))
-        str = summary(imgr)
-        @test occursin(sumfmt("InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
-              occursin("Periodic()), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
-              occursin("with indices -78:591×-78:591", str)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
+        @test axes(imgr) == ref_inds
         @test typeof(parent(imgr)) <: Interpolations.Extrapolation
         @test parent(imgr).itp.coefs === img_camera
         @test typeof(imgr) <: InvWarpedView
@@ -295,11 +264,9 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
 
         imgr = @inferred(invwarpedview(img_camera, tfm, ref_inds; method=Constant(), fillvalue=Periodic()))
-        str = summary(imgr)
-        @test occursin(sumfmt("InvWarpedView(extrapolate(interpolate(::Array{Gray{N0f8},2}, BSpline(Constant", imgr), str) &&
-              occursin("Periodic()), $(imgr.inverse)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", str) &&
-              occursin("with indices -78:591×-78:591", str)
+        @test_nowarn summary(imgr)
         @test size(imgr) == ref_size
+        @test axes(imgr) == ref_inds
         @test eltype(imgr) == eltype(img_camera)
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
     end
@@ -309,7 +276,12 @@ img_camera = testimage("camera")
         wv = @inferred(InvWarpedView(img_camera, tfm))
         # tight crop that barely contains head and camera
         v = @inferred view(wv, 75:195, 245:370)
-        @test summary(v) == "121×126 view(InvWarpedView(::Array{Gray{N0f8},2}, $(wv.inverse)), 75:195, 245:370) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}"
+        @test_nowarn summary(v)
+        @test axes(v) == (1:121, 1:126)
+        @test v.indices == (75:195, 245:370)
+        @test axes(parent(v)) == (-78:591, -78:591)
+        @test eltype(v) == eltype(img_camera)
+
         tfm2 = AffineMap(@SMatrix([0.6 0.;0. 0.8]), @SVector([10.,50.]))
         # this should still be a tight crop that
         # barely contains head and camera !
@@ -319,7 +291,11 @@ img_camera = testimage("camera")
         @test typeof(parent(wv2)) <: InvWarpedView
         @test typeof(parent(wv2)) <: InvWarpedView
         @test parent(parent(wv2)) === img_camera
-        # @test summary(wv2) == sumfmt("55:127×246:346","view(InvWarpedView(::Array{Gray{N0f8},2}, $(parent(wv2).inverse)), IdentityRange(55:127), IdentityRange(246:346)) with eltype $(ctqual)Gray{$(fpqual)$n0f8_str}", wv2)
+        @test_nowarn summary(wv2)
+        @test wv2.indices === axes(wv2) === (IdentityUnitRange(55:127), IdentityUnitRange(246:346))
+        @test axes(parent(wv2)) == (-37:365, -13:523)
+        @test eltype(wv2) == eltype(img_camera)
+
         @test_reference "reference/warp_cameraman_rotate_crop_scale.txt" wv2
         wv3 = @inferred invwarpedview(v, tfm2, wv2.indices)
         @test wv3 == wv2
@@ -330,7 +306,11 @@ img_camera = testimage("camera")
         tfm = recenter(RotMatrix(-pi/8), center(float_array))
         wv = @inferred(InvWarpedView(float_array, tfm))
         v = @inferred view(wv, 1:10, 1:10)
-        @test summary(v) == "10×10 view(InvWarpedView(::$matrixf64_str, $(wv.inverse)), 1:10, 1:10) with eltype Float64"
+        @test_nowarn summary(v)
+        @test axes(v) == (1:10, 1:10)
+        @test eltype(v) == eltype(float_array)
+        @test any(isnan, v)
+        @test parent(v) isa InvWarpedView
     end
 end
 
@@ -456,8 +436,10 @@ NaN  NaN      NaN      NaN      NaN      NaN      NaN
             itp = interpolate(img_pyramid_cntr, BSpline(Quadratic(Flat(OnCell()))))
             imgrq_cntr = InvWarpedView(itp, inv(tfm2))
             @test parent(imgrq_cntr) === itp
-            @test summary(imgrq_cntr) == sumfmt("-3:3×-3:3","InvWarpedView(interpolate(OffsetArray(::Array{Gray{Float64},2}, -3:3, -3:3), BSpline(Quadratic(Flat(OnCell())))), $(imgrq_cntr.inverse)) with eltype $(ctqual)Gray{Float64}", imgr)
+            @test_nowarn summary(imgrq_cntr)
             @test axes(imgrq_cntr) == (-3:3, -3:3)
+            @test eltype(imgrq_cntr) == eltype(img_pyramid_cntr)
+
             @test nearlysame(round.(Float64.(imgrq_cntr[axes(imgrq_cntr)...]), digits=3), round.(ref_img_pyramid_quad, digits=3))
         end
     end
