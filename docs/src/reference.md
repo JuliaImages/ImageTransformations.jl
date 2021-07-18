@@ -15,7 +15,6 @@ ImageTransformations.imresize
 ImageTransformations.warp
 ImageTransformations.WarpedView
 ImageTransformations.InvWarpedView
-ImageTransformations.invwarpedview
 ```
 
 # Utilities

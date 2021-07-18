@@ -28,14 +28,15 @@
 @deprecate WarpedView(img::AbstractArray, tform::Transformation, inds, fillvalue::FillType,   method::MethodType) WarpedView(img, tform, inds; method=method, fillvalue=fillvalue)
 
 @deprecate warpedview(args...; kwargs...) WarpedView(args...; kwargs...)
+@deprecate invwarpedview(args...; kwargs...) InvWarpedView(args...; kwargs...)
 
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation,       method::MethodType,                      ) invwarpedview(img, tinv; method=method)
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation,                             fillvalue::FillType) invwarpedview(img, tinv; fillvalue=fillvalue)
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation,       method::MethodType,   fillvalue::FillType) invwarpedview(img, tinv; method=method, fillvalue=fillvalue)
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation,       fillvalue::FillType,   method::MethodType) invwarpedview(img, tinv; method=method, fillvalue=fillvalue)
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation, inds, method::MethodType,                      ) invwarpedview(img, tinv, inds; method=method)
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation, inds,                       fillvalue::FillType) invwarpedview(img, tinv, inds; fillvalue=fillvalue)
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation, inds, method::MethodType,   fillvalue::FillType) invwarpedview(img, tinv, inds; method=method, fillvalue=fillvalue)
-@deprecate invwarpedview(img::AbstractArray, tinv::Transformation, inds, fillvalue::FillType,   method::MethodType) invwarpedview(img, tinv, inds; method=method, fillvalue=fillvalue)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation,       method::MethodType,                      ) InvWarpedView(img, tinv; method=method)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation,                             fillvalue::FillType) InvWarpedView(img, tinv; fillvalue=fillvalue)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation,       method::MethodType,   fillvalue::FillType) InvWarpedView(img, tinv; method=method, fillvalue=fillvalue)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation,       fillvalue::FillType,   method::MethodType) InvWarpedView(img, tinv; method=method, fillvalue=fillvalue)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation, inds, method::MethodType,                      ) InvWarpedView(img, tinv, inds; method=method)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation, inds,                       fillvalue::FillType) InvWarpedView(img, tinv, inds; fillvalue=fillvalue)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation, inds, method::MethodType,   fillvalue::FillType) InvWarpedView(img, tinv, inds; method=method, fillvalue=fillvalue)
+@deprecate InvWarpedView(img::AbstractArray, tinv::Transformation, inds, fillvalue::FillType,   method::MethodType) InvWarpedView(img, tinv, inds; method=method, fillvalue=fillvalue)
 
 # END 0.9 deprecations
