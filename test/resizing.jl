@@ -155,6 +155,32 @@ end
         out = imresize(img, (0:127, 0:127), method=Lanczos4OpenCV())
         @test axes(out) == (0:127, 0:127)
         @test OffsetArrays.no_offset_view(out) == imresize(img, (128, 128), method=Lanczos4OpenCV())
+
+        @test imresize(img, (128,128), method=Linear()) == imresize(img, (128,128), CenterPoint(1,1), method=Linear())
+        @test imresize(img, (128,128), method=BSpline(Linear())) == imresize(img, (128,128), CenterPoint(1,1), method=BSpline(Linear()))
+        @test imresize(img, (128,128), method=Lanczos4OpenCV()) == imresize(img, (128,128), CenterPoint(1,1), method=Lanczos4OpenCV())
+
+        out = imresize(OffsetArray(img, -1, -1), (128,128), CenterPoint(1,1), method=Linear())
+        @test imresize(img, (128,128), method=Linear()) == OffsetArrays.no_offset_view(out)
+
+        out = imresize(OffsetArray(img, -1, -1), (128,128), CenterPoint(1,1), method=BSpline(Linear()))
+        @test imresize(img, (128,128), method=BSpline(Linear())) == OffsetArrays.no_offset_view(out)
+
+        out = imresize(OffsetArray(img, -1, -1), (128,128), CenterPoint(1,1), method=Lanczos4OpenCV())
+        @test imresize(img, (128,128), method=Lanczos4OpenCV()) == OffsetArrays.no_offset_view(out)
+
+        #check negative CenterPoint
+        out = imresize(OffsetArray(img, -2, -2), (128,128), CenterPoint(-1,-1), method=Linear())
+        @test imresize(img, (128,128), method=Linear()) == OffsetArrays.no_offset_view(out)
+
+        out = imresize(OffsetArray(img, -2, -2), (128,128), CenterPoint(-1,-1), method=BSpline(Linear()))
+        @test imresize(img, (128,128), method=BSpline(Linear())) == OffsetArrays.no_offset_view(out)
+
+        out = imresize(OffsetArray(img, -2, -2), (128,128), CenterPoint(-1,-1), method=Lanczos4OpenCV())
+        @test imresize(img, (128,128), method=Lanczos4OpenCV()) == OffsetArrays.no_offset_view(out)
+
+        #check CenterPoint consistency
+        @test imresize(img, (128, 128), CenterPoint(5, 5), method=Constant())[5,5] == img[5,5]
         end
     end
 
