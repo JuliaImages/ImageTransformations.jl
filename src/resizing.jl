@@ -6,7 +6,23 @@ function restrict(img::Union{WarpedView, InvWarpedView}, dims::Integer)
     restrict(OffsetArray(collect(img), axes(img)), dims)
 end
 
-# imresize
+###########
+# imresize/imresize!
+#
+# `imresize` API:
+#   - `imresize(original; ratio, [method])`
+#   - `imresize(original, inds; [method])`
+#   - `imresize(original, sz; [method])`
+# The output type:
+#   - If `inds` method get triggered, the output will unconditionally be `OffsetArray` type.
+#   - Otherwise, it should preserve the original input array type.
+#
+# `imresize!` API:
+#   - `imresize!(resized, original::AbstractArray; [method])`
+#   - `imresize!(resized, original::AbstractInterpolation)`
+###########
+
+
 imresize(original::AbstractArray, dim1::T, dimN::T...; kwargs...) where T<:Union{Integer,AbstractUnitRange} = imresize(original, (dim1,dimN...); kwargs...)
 function imresize(original::AbstractArray; ratio, kwargs...)
     all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
@@ -26,16 +42,18 @@ function imresize(original::AbstractArray, itp::Union{Interpolations.Degree,Inte
 end
 
 odims(original, i, short_size::Tuple{Integer,Vararg{Integer}}) = size(original, i)
-odims(original, i, short_size::Tuple{}) = axes(original, i)
+odims(original, i, short_size::Tuple{}) = size(original, i)
 odims(original, i, short_size) = oftype(first(short_size), axes(original, i))
 
 """
     imresize(img, sz; [method]) -> imgr
-    imresize(img, inds; [method]) -> imgr
+    imresize(img, inds; [method]) -> imgr::OffsetArray
     imresize(img; ratio, [method]) -> imgr
 
-upsample/downsample the image `img` to a given size `sz` or axes `inds` using interpolations. If
-`ratio` is provided, the output size is then `ceil(Int, size(img).*ratio)`.
+upsample/downsample the image `img` to a given size `sz` or axes `inds` using interpolations.
+
+If `ratio` is provided, the output size is then `ceil(Int, size(img).*ratio)`. If axes information is
+provided by passing `inds`, then the output array is `OffsetArray`.
 
 !!! tip
     This interpolates the values at sub-pixel locations. If you are shrinking the image, you risk
@@ -104,6 +122,8 @@ function imresize(original::AbstractArray{T,N}, new_size::Dims{N}; kwargs...) wh
         if axes(dest) == inds
             copyto!(dest, original)
         else
+            # Non 1-based case as a fallback solution
+            # The OffsetArray case is specially handled to also output OffsetArray
             copyto!(dest, CartesianIndices(axes(dest)), original, CartesianIndices(inds))
         end
     else
@@ -111,12 +131,33 @@ function imresize(original::AbstractArray{T,N}, new_size::Dims{N}; kwargs...) wh
     end
 end
 
+function imresize(original::OffsetArray{T,N}, new_size::Dims{N}; kwargs...) where {T,N}
+    Tnew = imresize_type(first(original))
+    inds = axes(original)
+    new_inds = map((ax, n)->first(ax):first(ax)+n-1, axes(original), new_size)
+    if map(length, inds) == new_size
+        dest = similar(original, Tnew, new_inds)
+        if axes(dest) == new_inds
+            # a trivial case of OffsetArray
+            copyto!(parent(dest), original)
+        else
+            copyto!(dest, CartesianIndices(axes(dest)), original, CartesianIndices(inds))
+        end
+    else
+        dest = imresize(original, new_inds; kwargs...)
+    end
+    return dest
+end
+
 function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}; kwargs...) where {T,N}
     Tnew = imresize_type(first(original))
+    # The pirated `similar` method from OffsetArrays will be triggered
+    # thus for type stability, we unconditionally output an `OffsetArray`.
+    origin = OffsetArrays.Origin(map(first, new_inds))
     if axes(original) == new_inds
-        copyto!(similar(original, Tnew), original)
+        OffsetArray(copyto!(similar(original, Tnew), original), origin)
     else
-        imresize!(similar(original, Tnew, new_inds), original; kwargs...)
+        OffsetArray(imresize!(similar(original, Tnew, new_inds), original; kwargs...), origin)
     end
 end
 
@@ -140,6 +181,9 @@ function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}; me
     imresize!(resized, itp)
 end
 
+# If we use the `warp` API then we need to build the backward coordinate map function
+# as a closure, which would unavoidably introduce the overhead. (Although Julia compiler
+# might optimize it away)
 function imresize!(resized::AbstractArray{T,N}, original::AbstractInterpolation{S,N}) where {T,S,N}
     # Define the equivalent of an affine transformation for mapping
     # locations in `resized` to the corresponding position in
