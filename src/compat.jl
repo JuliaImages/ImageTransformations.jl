@@ -1,12 +1,6 @@
 # This file includes two kinds of codes
 #   - Codes for backward compatibility
-#   - Glue codes that might nolonger be necessary in the future
-
-# patch for issue #110
-if isdefined(Base, :ComposedFunction) # Julia >= 1.6.0-DEV.85
-    # https://github.com/JuliaLang/julia/pull/37517
-    _round(tform::ComposedFunction; kwargs...) = _round(tform.outer; kwargs...) ∘ _round(tform.inner; kwargs...)
-end
+#   - Glue codes that might no longer be necessary in the future
 
 @static if !isdefined(Base, :IdentityUnitRange)
     const IdentityUnitRange = Base.Slice

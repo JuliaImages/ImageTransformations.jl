@@ -312,6 +312,14 @@ img_camera = testimage("camera")
         @test any(isnan, v)
         @test parent(v) isa InvWarpedView
     end
+
+    @testset "3d warps" begin
+        img = testimage("mri")
+        θ = π/8
+        tfm = AffineMap(RotZ(θ), (I - RotZ(θ))*center(img))
+        imgr = warpedview(img, tfm, axes(img))
+        @test axes(imgr) == axes(img)
+    end
 end
 
 img_pyramid = Gray{Float64}[
