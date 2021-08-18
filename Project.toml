@@ -19,13 +19,14 @@ ColorVectorSpace = "0.6, 0.7, 0.8, 0.9"
 CoordinateTransformations = "0.5, 0.6"
 ImageBase = "0.1.1"
 ImageCore = "0.8.1, 0.9"
-Interpolations = "0.9, 0.10, 0.11, 0.12, 0.13"
+Interpolations = "0.13.4"
 OffsetArrays = "0.10, 0.11, 1.0.1"
 Rotations = "0.12, 0.13, 1.0"
 StaticArrays = "0.10, 0.11, 0.12, 1.0"
 julia = "1"
 
 [extras]
+EndpointRanges = "340492b5-2a47-5f55-813d-aca7ddf97656"
 ImageMagick = "6218d12a-5da1-5696-b52f-db25d2ecc6d1"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 ReferenceTests = "324d217c-45ce-50fc-942e-d289b448e8cf"
@@ -33,4 +34,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TestImages = "5e47fb64-e119-507b-a336-dd2b206d9990"
 
 [targets]
-test = ["ImageMagick", "LinearAlgebra", "ReferenceTests", "Test", "TestImages"]
+test = ["EndpointRanges", "ImageMagick", "LinearAlgebra", "ReferenceTests", "Test", "TestImages"]
