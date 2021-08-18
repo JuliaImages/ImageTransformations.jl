@@ -182,7 +182,7 @@ img_camera = testimage("camera")
         @test axes(wv2) == axes(img_camera)
         @test eltype(wv2) === eltype(img_camera)
         @test parent(wv2) === img_camera
-        @test_broken wv2 ≈ img_camera      # see discussion in #143
+        @test_skip wv2 ≈ img_camera      # see discussion in #143
         @test wv2[ibegin+1:iend-1,ibegin+1:iend-1] ≈ img_camera[ibegin+1:iend-1,ibegin+1:iend-1]  # TODO: change to begin/end, drop EndpointRanges
 
         imgr = @inferred(invwarpedview(img_camera, tfm))
