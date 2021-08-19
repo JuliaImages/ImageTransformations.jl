@@ -1,6 +1,5 @@
 using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
 using Test, ReferenceTests
-using OffsetArrays: IdentityUnitRange # compat for Julia <1.1
 
 refambs = detect_ambiguities(CoordinateTransformations, Base, Core)
 using ImageTransformations

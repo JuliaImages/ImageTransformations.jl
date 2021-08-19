@@ -85,10 +85,22 @@ using ImageTransformations: box_extrapolation
         @test nearlysame(invwarpedview(img, tfm, 1),                         InvWarpedView(box_extrapolation(img; fillvalue=1), tfm))
         @test nearlysame(invwarpedview(img, tfm, Periodic()),                InvWarpedView(box_extrapolation(img; fillvalue=Periodic()), tfm))
 
+        @test nearlysame(InvWarpedView(img, tfm, Constant()),                InvWarpedView(img, tfm; method=Constant()))
+        @test nearlysame(InvWarpedView(img, tfm, Constant(), 1),             InvWarpedView(img, tfm; method=Constant(), fillvalue=1))
+        @test nearlysame(InvWarpedView(img, tfm, 1, Constant()),             InvWarpedView(img, tfm; method=Constant(), fillvalue=1))
+        @test nearlysame(InvWarpedView(img, tfm, 1),                         InvWarpedView(img, tfm; fillvalue=1))
+        @test nearlysame(InvWarpedView(img, tfm, Periodic()),                InvWarpedView(img, tfm; fillvalue=Periodic()))
+
         @test nearlysame(invwarpedview(img, tfm, axes(img), Constant()),                InvWarpedView(box_extrapolation(img; method=Constant()), tfm, axes(img)))
         @test nearlysame(invwarpedview(img, tfm, axes(img), Constant(), 1),             InvWarpedView(box_extrapolation(img; method=Constant(), fillvalue=1), tfm, axes(img)))
         @test nearlysame(invwarpedview(img, tfm, axes(img), 1, Constant()),             InvWarpedView(box_extrapolation(img; method=Constant(), fillvalue=1), tfm, axes(img)))
         @test nearlysame(invwarpedview(img, tfm, axes(img), 1),                         InvWarpedView(box_extrapolation(img; fillvalue=1), tfm, axes(img)))
         @test nearlysame(invwarpedview(img, tfm, axes(img), Periodic()),                InvWarpedView(box_extrapolation(img; fillvalue=Periodic()), tfm, axes(img)))
+
+        @test nearlysame(InvWarpedView(img, tfm, axes(img), Constant()),                InvWarpedView(img, tfm, axes(img); method=Constant()))
+        @test nearlysame(InvWarpedView(img, tfm, axes(img), Constant(), 1),             InvWarpedView(img, tfm, axes(img); method=Constant(), fillvalue=1))
+        @test nearlysame(InvWarpedView(img, tfm, axes(img), 1, Constant()),             InvWarpedView(img, tfm, axes(img); method=Constant(), fillvalue=1))
+        @test nearlysame(InvWarpedView(img, tfm, axes(img), 1),                         InvWarpedView(img, tfm, axes(img); fillvalue=1))
+        @test nearlysame(InvWarpedView(img, tfm, axes(img), Periodic()),                InvWarpedView(img, tfm, axes(img); fillvalue=Periodic()))
     end
 end

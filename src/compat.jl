@@ -2,12 +2,6 @@
 #   - Codes for backward compatibility
 #   - Glue codes that might no longer be necessary in the future
 
-@static if !isdefined(Base, :IdentityUnitRange)
-    const IdentityUnitRange = Base.Slice
-else
-    using Base: IdentityUnitRange
-end
-
 @static if VERSION < v"1.1"
     @inline isnothing(x) = x === nothing
 end

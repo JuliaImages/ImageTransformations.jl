@@ -39,10 +39,10 @@ There're some high-level interfaces of `warp`:
 - image rotation: [`imrotate`](@ref)
 - image resize: [`imresize`](@ref)
 
-There are also lazy version of `warp`:
+There are also lazy versions of `warp`:
 
 - [`WarpedView`](@ref) is almost equivalent to `warp` except that it does not allocate memory.
-- [`invwarpedview(img, tform, [indices]; kwargs...)`](@ref ImageTransformations.invwarpedview)
+- [`InvWarpedView(img, tform, [indices]; kwargs...)`](@ref ImageTransformations.InvWarpedView)
   is almost equivalent to `warp(img, inv(tform), [indices]; kwargs...)` except that it does not
   allocate memory.
 

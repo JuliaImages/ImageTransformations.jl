@@ -22,17 +22,13 @@ function WarpedView(
     WarpedView{T,N,typeof(A),typeof(tform),typeof(inds),typeof(etp)}(A, tform, inds, etp)
 end
 
-Base.parent(A::WarpedView) = A.parent
+@inline Base.parent(A::WarpedView) = A.parent
 @inline Base.axes(A::WarpedView) = A.indices
+@inline Base.size(A::WarpedView) = map(length,axes(A))
 
-IndexStyle(::Type{T}) where {T<:WarpedView} = IndexCartesian()
-@inline Base.getindex(A::WarpedView{T,N}, I::Vararg{Int,N}) where {T,N} =
-    T(_getindex(A.extrapolation, A.transform(SVector(I))))
-Base.size(A::WarpedView{T,N,TA,F}) where {T,N,TA,F}    = map(length,axes(A))
-Base.size(A::WarpedView{T,N,TA,F}, d) where {T,N,TA,F} = length(axes(A,d))
-
-Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}) where {T,N,TA,F}    = map(length, A.indices)
-Base.size(A::WarpedView{T,N,TA,F,NTuple{N,Base.OneTo{Int}}}, d) where {T,N,TA,F} = d <= N ? length(A.indices[d]) : 1
+Base.@propagate_inbounds function Base.getindex(A::WarpedView{T,N}, I::Vararg{Int,N}) where {T,N}
+    convert(T, _getindex(A.extrapolation, A.transform(SVector(I))))
+end
 
 function Base.showarg(io::IO, A::WarpedView, toplevel)
     print(io, "WarpedView(")
