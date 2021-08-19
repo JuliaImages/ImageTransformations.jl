@@ -54,12 +54,12 @@ struct CornerIterator{I<:CartesianIndex}
 end
 CornerIterator(R::CartesianIndices) = CornerIterator(first(R), last(R))
 
-eltype(::Type{CornerIterator{I}}) where {I} = I
+Base.eltype(::Type{CornerIterator{I}}) where {I} = I
 Base.Iterators.IteratorSize(::Type{CornerIterator{I}}) where {I<:CartesianIndex{N}} where {N} = Base.Iterators.HasShape{N}()
 
 # in 0.6 we could write: 1 .+ (iter.stop.I .- iter.start.I .!= 0)
-size(iter::CornerIterator{CartesianIndex{N}}) where {N} = ntuple(d->iter.stop.I[d]-iter.start.I[d]==0 ? 1 : 2, Val(N))::NTuple{N,Int}
-length(iter::CornerIterator) = prod(size(iter))
+Base.size(iter::CornerIterator{CartesianIndex{N}}) where {N} = ntuple(d->iter.stop.I[d]-iter.start.I[d]==0 ? 1 : 2, Val(N))::NTuple{N,Int}
+Base.length(iter::CornerIterator) = prod(size(iter))
 
 @inline function Base.iterate(iter::CornerIterator{<:CartesianIndex})
     if any(map(>, iter.start.I, iter.stop.I))

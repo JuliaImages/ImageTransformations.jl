@@ -8,10 +8,7 @@ using Interpolations, AxisAlgorithms
 using OffsetArrays
 using ColorVectorSpace
 
-import Base: eltype, size, length
 using Base: tail, Indices
-using Base.Cartesian
-using .ColorTypes: AbstractGray, TransparentGray, TransparentRGB
 
 # these two symbols previously live in ImageTransformations
 import ImageBase: restrict, restrict!
