@@ -263,47 +263,27 @@ img_camera = testimage("camera")
         @test_reference "reference/warp_cameraman_rotate_r22deg_periodic.txt" imgr
     end
 
-    # tfm = recenter(RotMatrix(-pi/8), center(img_camera))
-    # @testset "view of invwarpedview" begin
-    #     wv = @inferred(InvWarpedView(img_camera, tfm))
-    #     # tight crop that barely contains head and camera
-    #     v = @inferred view(wv, 75:195, 245:370)
-    #     @test_nowarn summary(v)
-    #     @test axes(v) == (1:121, 1:126)
-    #     @test v.indices == (75:195, 245:370)
-    #     @test axes(parent(v)) == (-78:591, -78:591)
-    #     @test eltype(v) == eltype(img_camera)
+    @testset "InvWarpedView on SubArray" begin
+        tfm = recenter(RotMatrix(-pi/8), center(img_camera))
+        img = similar(img_camera)
+        v = view(img, 75:195, 245:370)
+        v .= view(img_camera, v.indices...)
+        
+        wv = InvWarpedView(v, tfm)
+        @test wv isa InvWarpedView
+        @test parent(wv) == v
+        @test axes(wv) == (-78:82, 72:234)
+        # boundaries are filled with 0 values
+        @test all(wv[first(axes(wv, 1)), :] .== 0) 
+        @test all(wv[last(axes(wv, 1)), :] .== 0)
+        @test all(wv[:, first(axes(wv, 2))] .== 0)
+        @test all(wv[:, last(axes(wv, 2))] .== 0)
 
-    #     tfm2 = AffineMap(@SMatrix([0.6 0.;0. 0.8]), @SVector([10.,50.]))
-    #     # this should still be a tight crop that
-    #     # barely contains head and camera !
-    #     wv2 = @inferred invwarpedview(v, tfm2)
-    #     @test axes(wv2) == (55:127,246:346)
-    #     @test typeof(wv2) <: SubArray
-    #     @test typeof(parent(wv2)) <: InvWarpedView
-    #     @test typeof(parent(wv2)) <: InvWarpedView
-    #     @test parent(parent(wv2)) === img_camera
-    #     @test_nowarn summary(wv2)
-    #     @test wv2.indices === axes(wv2) === (IdentityUnitRange(55:127), IdentityUnitRange(246:346))
-    #     @test axes(parent(wv2)) == (-37:365, -13:523)
-    #     @test eltype(wv2) == eltype(img_camera)
-
-    #     @test_reference "reference/warp_cameraman_rotate_crop_scale.txt" wv2
-    #     wv3 = @inferred invwarpedview(v, tfm2, wv2.indices)
-    #     @test wv3 == wv2
-    #     @test axes(wv3) == (55:127,246:346)
-
-    #     # test_broken summary for a view(InvWarpedView,...) for number eltypes
-    #     float_array = rand(10,10)
-    #     tfm = recenter(RotMatrix(-pi/8), center(float_array))
-    #     wv = @inferred(InvWarpedView(float_array, tfm))
-    #     v = @inferred view(wv, 1:10, 1:10)
-    #     @test_nowarn summary(v)
-    #     @test axes(v) == (1:10, 1:10)
-    #     @test eltype(v) == eltype(float_array)
-    #     @test any(isnan, v)
-    #     @test parent(v) isa InvWarpedView
-    # end
+        # Out-of-domain values are not used to generate the warp view
+        v = view(img_camera, 75:195, 245:370)
+        wv2 = InvWarpedView(v, tfm)
+        @test wv2 == wv == warp(v, inv(tfm))
+    end
 
     @testset "3d warps" begin
         img = testimage("mri")
