@@ -19,7 +19,6 @@ function WarpedView(
         tform::Transformation,
         inds=autorange(A, inv(tform)); kwargs...) where {T,N,}
     etp = box_extrapolation(A; kwargs...)
-    tform = _round(tform)
     WarpedView{T,N,typeof(A),typeof(tform),typeof(inds),typeof(etp)}(A, tform, inds, etp)
 end
 

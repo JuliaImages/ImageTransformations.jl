@@ -1,4 +1,5 @@
 using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
+using EndpointRanges
 using Test, ReferenceTests
 
 include("twoints.jl")
@@ -181,7 +182,8 @@ img_camera = testimage("camera")
         @test axes(wv2) == axes(img_camera)
         @test eltype(wv2) === eltype(img_camera)
         @test parent(wv2) === img_camera
-        @test wv2 ≈ img_camera
+        @test_skip wv2 ≈ img_camera      # see discussion in #143
+        @test wv2[ibegin+1:iend-1,ibegin+1:iend-1] ≈ img_camera[ibegin+1:iend-1,ibegin+1:iend-1]  # TODO: change to begin/end, drop EndpointRanges
 
         imgr = @inferred(invwarpedview(img_camera, tfm))
         @test imgr == @inferred(InvWarpedView(img_camera, tfm))
@@ -311,6 +313,14 @@ img_camera = testimage("camera")
         @test eltype(v) == eltype(float_array)
         @test any(isnan, v)
         @test parent(v) isa InvWarpedView
+    end
+
+    @testset "3d warps" begin
+        img = testimage("mri")
+        θ = π/8
+        tfm = AffineMap(RotZ(θ), (I - RotZ(θ))*center(img))
+        imgr = warpedview(img, tfm, axes(img))
+        @test axes(imgr) == axes(img)
     end
 end
 

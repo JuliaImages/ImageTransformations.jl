@@ -54,7 +54,7 @@ This approach is known as backward mode warping. It is called "backward" because
 the internal coordinate transformation is actually an inverse map from `axes(imgr)` to `axes(img)`.
 
 You can manually specify interpolation behavior by constructing `AbstractExtrapolation` object
-and passing it to `warp` as `img`. However, this is usually cumbersome. For this reason, there 
+and passing it to `warp` as `img`. However, this is usually cumbersome. For this reason, there
 are two keywords `method` and `fillvalue` to conveniently construct an `AbstractExtrapolation`
 object during `warp`.
 
@@ -163,7 +163,6 @@ function warp(img::AbstractExtrapolation{T}, tform, inds::Tuple = autorange(img,
 end
 
 function warp!(out, img::AbstractExtrapolation, tform)
-    tform = _round(tform)
     @inbounds for I in CartesianIndices(axes(out))
         # Backward mode:
         #   1. get the target index `I` of `out`

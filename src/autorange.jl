@@ -34,7 +34,6 @@ autorange(A, tform)
 """
 autorange(A::AbstractArray, tform) = autorange(CartesianIndices(A), tform)
 function autorange(R::CartesianIndices, tform)
-    tform = _round(tform)
     mn = mx = tform(SVector(first(R).I))
     for I in CornerIterator(R)
         x = tform(SVector(I.I))
@@ -46,7 +45,7 @@ function autorange(R::CartesianIndices, tform)
     _autorange(Tuple(mn), Tuple(mx))
 end
 
-@noinline _autorange(mn,mx) = map((a,b)->floor(Int,a):ceil(Int,b), mn, mx)
+@noinline _autorange(mn,mx) = map((a,b)->floor(Int,_round(a)):ceil(Int,_round(b)), mn, mx)
 
 ## Iterate over the corner-indices of a rectangular region
 struct CornerIterator{I<:CartesianIndex}
@@ -106,23 +105,13 @@ try_static(tfm::Translation{<:SVector}, img::AbstractArray{T,N}) where {T,N} = t
 try_static(tfm::Translation{<:AbstractVector}, img::AbstractArray{T,N}) where {T,N} =
     Translation(SVector{N}(tfm.translation))
 
-# Slightly round/discretize the transformation so that the warpped image size isn't affected by
+# Slightly round/discretize the output coordinates so that the warped image size isn't affected by
 # numerical stability
 # https://github.com/JuliaImages/ImageTransformations.jl/issues/104
 _default_digits(::Type{T}) where T<:Number = _default_digits(floattype(T))
 # these constants come from eps() digits
-_default_digits(::Type{<:AbstractFloat}) = 15
-_default_digits(::Type{Float64}) = 15
-_default_digits(::Type{Float32}) = 7
+_default_digits(::Type{T}) where T<:AbstractFloat = ceil(Int, -log10(sqrt(eps(T))))
+_default_digits(::Type{Float64}) = 8
+_default_digits(::Type{Float32}) = 4
 
-function _round(tform::T; kwargs...) where T<:CoordinateTransformations.Transformation
-    rounded_fields = map(Base.OneTo(fieldcount(T))) do i
-        __round(getfield(tform, i); kwargs...)
-    end
-    T(rounded_fields...)
-end
-_round(tform; kwargs...) = tform
-
-__round(x; kwargs...) = x
-__round(x::AbstractArray; digits=_default_digits(eltype(x)), kwargs...) = round.(x; digits=digits, kwargs...)
-__round(x::T; digits=_default_digits(T), kwargs...) where T<:Number = round(x; digits=digits, kwargs...)
+_round(x::T; digits=_default_digits(T), kwargs...) where T<:Number = round(x; digits=digits, kwargs...)

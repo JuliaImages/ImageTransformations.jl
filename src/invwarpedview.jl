@@ -22,7 +22,7 @@ struct InvWarpedView{T,N,A,F,I,FI<:Transformation,E} <: AbstractArray{T,N}
 end
 
 function InvWarpedView(inner::WarpedView{T,N,TA,F,I,E}) where {T,N,TA,F,I,E}
-    tinv = _round(inv(inner.transform))
+    tinv = inv(inner.transform)
     InvWarpedView{T,N,TA,F,I,typeof(tinv),E}(inner, tinv)
 end
 
