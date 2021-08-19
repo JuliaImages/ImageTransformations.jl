@@ -25,28 +25,62 @@ end
     testtype = (Float32, Float64, N0f8, N0f16)
 
     @testset "Interface" begin
-        function test_imresize_interface(img, outsz, args...; kargs...)
-            img2 = @test_broken @inferred imresize(img, args...; kargs...) # FIXME: @inferred failed
-            img2 = @test_nowarn imresize(img, args...; kargs...)
-            @test size(img2) == outsz
-            @test eltype(img2) == eltype(img)
+        function test_imresize_interface(src_img, outsz, outinds, args...; kwargs...)
+            out = @inferred imresize(src_img, args...; kwargs...)
+            @test size(out) == outsz
+            @test axes(out) == outinds
+            @test eltype(out) == eltype(src_img)
+            return out
         end
         for C in testcolor, T in testtype
             img = rand(C{T},10,10)
 
-            test_imresize_interface(img, (5,5), (5,5))
-            test_imresize_interface(img, (5,5), (1:5,1:5)) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,5), 5,5)
-            test_imresize_interface(img, (5,5), 1:5,1:5) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,5), ratio = 0.5)
-            test_imresize_interface(img, (20,20), ratio = 2)
-            test_imresize_interface(img, (20,20), ratio = (2, 2))
-            test_imresize_interface(img, (20,10), ratio = (2, 1))
-            test_imresize_interface(img, (10,10), ())
-            test_imresize_interface(img, (5,10), 5)
-            test_imresize_interface(img, (5,10), (5,))
-            test_imresize_interface(img, (5,10), 1:5) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
+            @test test_imresize_interface(img, (10,10), (1:10, 1:10), ()) isa Array
+
+            @test test_imresize_interface(img, (5,5), (1:5, 1:5), (5,5)) isa Array
+            @test test_imresize_interface(img, (5,5), (1:5, 1:5), 5, 5) isa Array
+            @test test_imresize_interface(img, (5,10), (1:5, 1:10), 5) isa Array
+            @test test_imresize_interface(img, (5,10), (1:5, 1:10), (5,)) isa Array
+
+            @test test_imresize_interface(img, (5,5), (1:5, 1:5), ratio = 0.5) isa Array
+            @test test_imresize_interface(img, (20,20), (1:20, 1:20), ratio = 2) isa Array
+            @test test_imresize_interface(img, (20,20), (1:20, 1:20), ratio = (2, 2)) isa Array
+            @test test_imresize_interface(img, (20,10), (1:20, 1:10), ratio = (2, 1)) isa Array
+            
+            # indices method always return OffsetArray
+            @test test_imresize_interface(img, (5,5), (1:5, 1:5), (1:5,1:5)) isa OffsetArray
+            @test test_imresize_interface(img, (5,5), (1:5, 1:5), 1:5,1:5) isa OffsetArray
+            @test test_imresize_interface(img, (5,10), (1:5, 1:10), 1:5) isa OffsetArray
+            @test test_imresize_interface(img, (5,10), (1:5, 1:10), (1:5,)) isa OffsetArray
+
+            @test_throws MethodError imresize(img,5.0,5.0)
+            @test_throws MethodError imresize(img,(5.0,5.0))
+            @test_throws MethodError imresize(img,(5, 5.0))
+            @test_throws MethodError imresize(img,[5,5])
+            @test_throws UndefKeywordError imresize(img)
+            @test_throws DimensionMismatch imresize(img,(5,5,5))
+            @test_throws ArgumentError imresize(img, ratio = -0.5)
+            @test_throws ArgumentError imresize(img, ratio = (-0.5, 1))
+            @test_throws DimensionMismatch imresize(img, ratio=(5,5,5))
+            @test_throws DimensionMismatch imresize(img, (5,5,1))
+        end
+
+        for C in testcolor, T in testtype
+            img = OffsetArray(rand(C{T},10,10), -5, -4)
+
+            @test test_imresize_interface(img, (5,5), (-4:0, -3:1), (5,5)) isa OffsetArray
+            @test test_imresize_interface(img, (5,5), (-4:0, -3:1), 5, 5) isa OffsetArray
+            @test test_imresize_interface(img, (5,5), (1:5, 1:5), (1:5,1:5)) isa OffsetArray
+            @test test_imresize_interface(img, (5,5), (1:5, 1:5), 1:5,1:5) isa OffsetArray
+            @test test_imresize_interface(img, (5,5), (-4:0, -3:1), ratio = 0.5) isa OffsetArray
+            @test test_imresize_interface(img, (20,20), (-4:15, -3:16), ratio = 2) isa OffsetArray
+            @test test_imresize_interface(img, (20,20), (-4:15, -3:16), ratio = (2, 2)) isa OffsetArray
+            @test test_imresize_interface(img, (20,10), (-4:15, -3:6), ratio = (2, 1)) isa OffsetArray
+            @test test_imresize_interface(img, (10,10), (-4:5, -3:6), ()) isa OffsetArray
+            @test test_imresize_interface(img, (5,10), (-4:0, -3:6), 5) isa OffsetArray
+            @test test_imresize_interface(img, (5,10), (-4:0, -3:6), (5,)) isa OffsetArray
+            @test test_imresize_interface(img, (5,10), (1:5, -3:6), 1:5) isa OffsetArray
+            @test test_imresize_interface(img, (5,10), (1:5, -3:6), (1:5,)) isa OffsetArray
 
             @test_throws MethodError imresize(img,5.0,5.0)
             @test_throws MethodError imresize(img,(5.0,5.0))
@@ -105,7 +139,7 @@ end
             @test !(R === A)
             Ao = OffsetArray(A, -2:2, 0:4)
             R = imresize(Ao, (5,5))
-            @test axes(R) === axes(A)
+            @test axes(R) === axes(Ao)
             R = imresize(Ao, axes(Ao))
             @test axes(R) === axes(Ao)
             @test !(R === A)
@@ -134,9 +168,10 @@ end
         @test_throws ArgumentError imresize(img, Linear())
 
         #consisency checks
-        @test imresize(img, (128, 128), method=Linear()) == imresize(OffsetArray(img, -1, -1), (128, 128), method=Linear())
-        @test imresize(img, (128, 128), method=BSpline(Linear())) == imresize(OffsetArray(img, -1, -1), (128, 128), method=BSpline(Linear()))
-        @test imresize(img, (128, 128), method=Lanczos4OpenCV()) == imresize(OffsetArray(img, -1, -1), (128, 128), method=Lanczos4OpenCV())
+        imgo = OffsetArray(img, -1, -1)
+        @test imresize(img, (128, 128), method=Linear()) == OffsetArrays.no_offset_view(imresize(imgo, (128, 128), method=Linear()))
+        @test imresize(img, (128, 128), method=BSpline(Linear())) == OffsetArrays.no_offset_view(imresize(imgo, (128, 128), method=BSpline(Linear())))
+        @test imresize(img, (128, 128), method=Lanczos4OpenCV()) == OffsetArrays.no_offset_view(imresize(imgo, (128, 128), method=Lanczos4OpenCV()))
 
         out = imresize(img, (0:127, 0:127), method=Linear())
         @test axes(out) == (0:127, 0:127)
