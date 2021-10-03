@@ -15,6 +15,7 @@ tests = [
     "resizing.jl",
     "interpolations.jl",
     "warp.jl",
+    "swirl.jl",
     "deprecated.jl" # test deprecations in the last
 ]
 
