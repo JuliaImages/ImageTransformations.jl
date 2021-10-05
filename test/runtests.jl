@@ -7,8 +7,8 @@ ambs = detect_ambiguities(ImageTransformations, CoordinateTransformations, Base,
 @test isempty(setdiff(ambs, refambs))
 
 # helper function to compare NaN
-nearlysame(x, y) = x ≈ y || (isnan(x) & isnan(y))
-nearlysame(A::AbstractArray, B::AbstractArray) = all(map(nearlysame, A, B))
+nearlysame(x, y, atol = 0.0) = isapprox(x, y; atol = atol) || (isnan(x) & isnan(y))
+nearlysame(A::AbstractArray, B::AbstractArray; atol = 0.0) = all(map((a, b, atol)-> nearlysame(a, b, atol), A, B, atol))
 
 tests = [
     "autorange.jl",

@@ -4,19 +4,16 @@
 Create whirlpool effect on `img`
 
 # Arguments
-- `img`: to specify input img array
-- `rotation`: to specify rotation angle
+- `img`: to specify input image array
+- `rotation`: to specify rotation angle(clockwise)
 - `strength`:to specify amount of swirl 
 - `radius`:to specify extent of swirl 
-- `x0`: to specify center of swirl.
-
+- `x0` (optional): to specify the center point of the swirl. The default value is `OffsetArrays.center(img)`.
 # Examples
 
 ```julia
-using ImageTransformations
-using OffsetArrays, StaticArrays
-using ImageShow, TestImages
-using LinearAlgebra
+using ImageTransformations, TestImages
+
 
 img = imresize(testimage("cameraman"), (256, 256));
 

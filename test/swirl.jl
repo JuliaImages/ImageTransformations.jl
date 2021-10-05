@@ -1,4 +1,5 @@
 @testset "Swirl Operation" begin
+
     img = [0 0 0 0 0
            0 0 1 0 0
            0 1 0 0 0
@@ -12,5 +13,8 @@
     res = swirl(img, 1, 10, 1)
     replace!(res, NaN=>0.0)
     replace!(expected, NaN=>0.0)
-    @test isapprox(res, expected; atol=0.1)
+    @test nearlysame(res, expected)
+
+    @test nearlysame(swirl(img, 1, 10, 1), swirl(img, 1, 10, 1, OffsetArrays.center(img)))
+    
 end
