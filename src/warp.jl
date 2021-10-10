@@ -244,7 +244,11 @@ mosaicview([imgr for _ in 1:9]; nrow=3)
 """
 function imrotate(img::AbstractArray{T}, θ::Real, inds::Union{Tuple, Nothing} = nothing; kwargs...) where T
     # TODO: expose rotation center as a keyword
-    θ = floor(mod(θ,2pi)*typemax(Int16))/typemax(Int16) # periodic discretezation
+    Δ = eps(θ)
+    θ = mod2pi(θ)
+    if abs(θ) <= Δ || abs(θ - 2π) <= Δ
+        θ = zero(θ)
+    end
     tform = recenter(RotMatrix{2}(θ), center(img))
     # Use the `nothing` trick here because moving the `autorange` as default value is not type-stable
     inds = isnothing(inds) ? autorange(img, inv(tform)) : inds

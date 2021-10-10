@@ -268,13 +268,13 @@ img_camera = testimage("camera")
         img = similar(img_camera)
         v = view(img, 75:195, 245:370)
         v .= view(img_camera, v.indices...)
-        
+
         wv = InvWarpedView(v, tfm)
         @test wv isa InvWarpedView
         @test parent(wv) == v
         @test axes(wv) == (-78:82, 72:234)
         # boundaries are filled with 0 values
-        @test all(wv[first(axes(wv, 1)), :] .== 0) 
+        @test all(wv[first(axes(wv, 1)), :] .== 0)
         @test all(wv[last(axes(wv, 1)), :] .== 0)
         @test all(wv[:, first(axes(wv, 2))] .== 0)
         @test all(wv[:, last(axes(wv, 2))] .== 0)
@@ -452,6 +452,18 @@ NaN  NaN      NaN      NaN      NaN      NaN      NaN
                     @test nearlysame(imrotate(img,θ), imrotate(img,θ+2π))
                 end
             end
+        end
+
+        @testset "issue #147" begin
+            img = Float64[1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 15 16]
+            trfm = recenter(RotMatrix(pi/2), center(img))
+            @test imrotate(img, π/2) ≈ warp(img, trfm) ≈ rotr90(img)
+            @test  any(isnan, imrotate(img, π/3))
+            @test !any(isnan, imrotate(img, π/3; fillvalue=0.0))
+            @test !any(isnan, imrotate(img, π/3, fillvalue=0.0))
+            @test  any(isnan, imrotate(img, π/3, axes(img)))
+            @test !any(isnan, imrotate(img, π/3, axes(img); fillvalue=0.0))
+            @test !any(isnan, imrotate(img, π/3, axes(img), fillvalue=0.0))
         end
     end
 end
