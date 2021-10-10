@@ -476,6 +476,13 @@ NaN  NaN      NaN      NaN      NaN      NaN      NaN
             @test ImageTransformations._mod2pi(τ) isa Float64
             ## Now check that it gives the expected result
             @test imrotate(img_camera, τ) ≈ img_camera
+
+            # check special rotation degrees
+            img = rand(Gray{N0f8}, 100, 50)
+            @test size(imrotate(img, pi/2)) == (50, 100)
+            @test size(imrotate(img, pi)) == (100, 50)
+            @test size(imrotate(img, 3pi/2)) == (50, 100)
+            @test size(imrotate(img, 2pi)) == (100, 50)
         end
     end
 end
