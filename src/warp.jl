@@ -259,4 +259,4 @@ _mod2pi(θ::Irrational{:π}) = θ
 _mod2pi(θ::Irrational) = mod2pi(float(θ))
 
 rotmtrx2(θ) = RotMatrix{2}(θ)
-rotmtrx2(θ::Irrational{:π}) = @SMatrix [-1 0; 0 1]
+rotmtrx2(θ::Irrational{:π}) = RotMatrix(@SMatrix [-1 0; 0 -1])
