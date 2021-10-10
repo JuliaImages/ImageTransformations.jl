@@ -1,5 +1,6 @@
 using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
 using EndpointRanges
+using Tau
 using Test, ReferenceTests
 
 include("twoints.jl")
@@ -470,6 +471,11 @@ NaN  NaN      NaN      NaN      NaN      NaN      NaN
             @test axes(imrotate(img_camera, pi/2)) == axes(img_camera)
             @test imrotate(imrotate(imrotate(imrotate(img_camera, pi/2), pi/2), pi/2), pi/2) ≈ img_camera
             @test imrotate(imrotate(img_camera, pi), pi) == img_camera
+            # Also check a "generic" irrational (one that happens to be quite special)
+            ## First, check that this hits the generic code path (if we change that, pick a different irrational)
+            @test ImageTransformations._mod2pi(τ) isa Float64
+            ## Now check that it gives the expected result
+            @test imrotate(img_camera, τ) ≈ img_camera
         end
     end
 end
