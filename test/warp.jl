@@ -465,5 +465,11 @@ NaN  NaN      NaN      NaN      NaN      NaN      NaN
             @test !any(isnan, imrotate(img, π/3, axes(img); fillvalue=0.0))
             @test !any(isnan, imrotate(img, π/3, axes(img), fillvalue=0.0))
         end
+
+        @testset "Examples from #79" begin
+            @test axes(imrotate(img_camera, pi/2)) == axes(img_camera)
+            @test imrotate(imrotate(imrotate(imrotate(img_camera, pi/2), pi/2), pi/2), pi/2) ≈ img_camera
+            @test imrotate(imrotate(img_camera, pi), pi) == img_camera
+        end
     end
 end
