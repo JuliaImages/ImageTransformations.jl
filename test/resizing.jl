@@ -129,6 +129,13 @@ end
         #test default behavior
         @test imresize(img, (128,128)) == imresize(img, (128,128), method=Linear())
 
+        # test that out-of-place and in-place produce the same result.
+        resized = zeros(eltype(img), 128, 128)
+        @test imresize(img, (128, 128)) == imresize!(resized, img)
+        @test imresize(img, (128, 128), method=Linear()) == imresize!(resized, img, method=Linear())
+        @test imresize(img, (128, 128), method=BSpline(Linear())) == imresize!(resized, img, method=BSpline(Linear()))
+        @test imresize(img, (128, 128), method=Lanczos4OpenCV()) == imresize!(resized, img, method=Lanczos4OpenCV())
+
         #check error handling
         @test_throws ArgumentError imresize(img, BSpline(Linear()))
         @test_throws ArgumentError imresize(img, Linear())
