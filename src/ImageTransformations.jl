@@ -17,6 +17,7 @@ export
 
     restrict,
     imresize,
+    imresize!,
     center,
     warp,
     WarpedView,
