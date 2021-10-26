@@ -4,6 +4,7 @@ version = "0.9.1"
 
 [deps]
 AxisAlgorithms = "13072b0f-2c55-5437-9ae7-d433b7a33950"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 ColorVectorSpace = "c3611d14-8923-5661-9e6a-0046d554d3a4"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 ImageBase = "c817782e-172a-44cc-b673-b171935fbb9e"
