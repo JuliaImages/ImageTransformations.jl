@@ -1,6 +1,6 @@
 name = "ImageTransformations"
 uuid = "02fcd773-0e25-5acc-982a-7f6622650795"
-version = "0.9.1"
+version = "0.9.2"
 
 [deps]
 AxisAlgorithms = "13072b0f-2c55-5437-9ae7-d433b7a33950"
