@@ -137,11 +137,11 @@ imresize_type(c) = typeof((c*1)/1)
 function imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}; method::Union{Interpolations.Degree,Interpolations.InterpolationType}=BSpline(Linear()), kwargs...) where {T,S,N}
     _imresize!(resized, original, method; kwargs...)
 end
-function _imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}, method::Union{Interpolations.Degree, Interpolations.BSpline{D}}; kwargs...) where {T,S,N,D}
+@inline function _imresize!(resized, original, method::Union{D, Interpolations.BSpline{D}}; kwargs...) where D <: Union{Constant, Linear}
     imresize!(resized, interpolate!(original, wrap_BSpline(method)))
 end
-function _imresize!(resized::AbstractArray{T,N}, original::AbstractArray{S,N}, method::Interpolations.InterpolationType; kwargs...) where {T,S,N}
-    imresize!(resized, interpolate(original, method))
+@inline function _imresize!(resized, original, method; kwargs...)
+    imresize!(resized, interpolate(original, wrap_BSpline(method)))
 end
 
 function imresize!(resized::AbstractArray{T,N}, original::AbstractInterpolation{S,N}) where {T,S,N}

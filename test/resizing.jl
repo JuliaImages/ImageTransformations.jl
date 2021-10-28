@@ -180,4 +180,22 @@ end
             @test ref ≈ Gray.(out)
         end
     end
+
+    @testset "In-place resizing should not modify original image" begin
+        for c in testcolor
+            image = rand(c, 128, 128)
+            original = copy(image)
+            out = zeros(eltype(image), 32, 32)
+
+            methods = (
+                Constant(), Linear(),
+                Quadratic(Reflect(OnCell())),
+                Quadratic(InPlace(OnCell())),
+                Cubic(Line(OnGrid())), Lanczos4OpenCV())
+            for method in methods
+                imresize!(out, image, method=method)
+                @test image == original
+            end
+        end
+    end
 end
