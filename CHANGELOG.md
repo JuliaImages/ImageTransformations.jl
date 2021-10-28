@@ -1,5 +1,9 @@
 # ImageTransformations
 
+## Version `v0.9.3`
+
+- ![Bugfix][badge-bugfix] Do not modify original image when resizing. ([#151](github-151))
+
 ## Version `v0.9.2`
 
 - ![Enhancement][badge-enhancement] The in-place version of resize function `imresize!` is optimized and exported. ([#150](github-150))
@@ -29,7 +33,8 @@ whether a "fill-value" is used instead of interpolation.
 - ![Bugfix][badge-bugfix] `restrict` on `OffsetArray` always returns an `OffsetArray` result. ([ImageBase#4][github-base-4])
 
 
-[github-150]: https://github.com/JuliaImages/ImageTransformations.jl/pull/149
+[github-151]: https://github.com/JuliaImages/ImageTransformations.jl/pull/151
+[github-150]: https://github.com/JuliaImages/ImageTransformations.jl/pull/150
 [github-149]: https://github.com/JuliaImages/ImageTransformations.jl/pull/149
 [github-148]: https://github.com/JuliaImages/ImageTransformations.jl/pull/148
 [github-143]: https://github.com/JuliaImages/ImageTransformations.jl/pull/143
