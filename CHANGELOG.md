@@ -1,8 +1,12 @@
 # ImageTransformations
 
+## Version `v0.9.2`
+
+- ![Enhancement][badge-enhancement] The in-place version of resize function `imresize!` is optimized and exported. ([#150](github-150))
+
 ## Version `v0.9.1`
 
-- angles in `imrotate` are processed with high precision, restoring it to the same behavior you'd get from a manually-constructed
+- ![Enhancement][badge-enhancement] angles in `imrotate` are processed with high precision, restoring it to the same behavior you'd get from a manually-constructed
   `tform` supplied to `warp`. This can change the presence/absence of padding on the edges. ([#148][github-148], [#149](github-149))
 
 ## Version `v0.9.0`
@@ -24,6 +28,8 @@ whether a "fill-value" is used instead of interpolation.
 - ![Bugfix][badge-bugfix] `restrict` on singleton dimension is now a no-op. ([ImageBase#8][github-base-8])
 - ![Bugfix][badge-bugfix] `restrict` on `OffsetArray` always returns an `OffsetArray` result. ([ImageBase#4][github-base-4])
 
+
+[github-150]: https://github.com/JuliaImages/ImageTransformations.jl/pull/149
 [github-149]: https://github.com/JuliaImages/ImageTransformations.jl/pull/149
 [github-148]: https://github.com/JuliaImages/ImageTransformations.jl/pull/148
 [github-143]: https://github.com/JuliaImages/ImageTransformations.jl/pull/143
