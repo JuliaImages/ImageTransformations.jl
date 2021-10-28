@@ -193,7 +193,7 @@ end
                 Quadratic(InPlace(OnCell())),
                 Cubic(Line(OnGrid())), Lanczos4OpenCV())
             for method in methods
-                imresize!(out, image; method)
+                imresize!(out, image, method=method)
                 @test image == original
             end
         end
