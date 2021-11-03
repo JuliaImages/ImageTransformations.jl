@@ -10,7 +10,7 @@ This package provides support for image resizing, image rotation, and other spat
 - `imrotate`: Rotate image `img` by `θ`∈[0,2π) in a clockwise direction around its center point.
 - `autorange`: For given transformation `tform`, return the "smallest" range indices that preserves all information from `A` after applying `tform`.
 
-There are in-place version of many of the functions, e.g., imresize! etc.
+There are in-place version of many of the functions, e.g., `imresize!` etc.
 
 Resize example:
 
