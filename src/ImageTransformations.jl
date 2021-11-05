@@ -14,7 +14,7 @@ There are in-place version of many of the functions, e.g., `imresize!` etc.
 
 Resize example:
 
-```julia
+```jldoctest
 using ImageTransformations, TestImages
 
 img = testimage("mandrill")
@@ -25,7 +25,7 @@ img_medium = imresize(img_small, size(img_small).*2)
 
 Warping example:
 
-```julia
+```jldoctest
 using ImageTransformations, TestImages, CoordinateTransformations, Rotations
 
 img = testimage("camera");
