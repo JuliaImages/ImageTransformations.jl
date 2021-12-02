@@ -38,7 +38,7 @@ Y_{i,j} = f(X)_{i, j} = τ(X, ϕ(i, j))
 Take the following resizing operation as an example, for every pixel position `p` in output image `Y`, we 1) use the backward coordinate map `ϕ` to get its corresponding pixel position `q` in original image `X`. Since `q` may not be on grid, we need to 2) estimate the value of `X` on position `q` using function `τ`, and finally 3) assign `X[q]` back to `Y[p]`. In Julia words, it is
 
 ```julia
-for p in CartesianIndexes(Y)
+for p in CartesianIndices(Y)
     q = ϕ(p) # backward coordinate map
     v = τ(X, q) # estimate the value
     Y[p] = v # assign value back
