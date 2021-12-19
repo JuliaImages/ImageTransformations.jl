@@ -4,7 +4,7 @@
 Create a view of `img` that lazily transforms any given index `I`
 passed to `wv[I]` so that `wv[I] == img[tform(I)]`.
 
-This is the lazy view version of `warp`, please see [`warp`](@ref
+This is the lazy view version of `warp`, please see [`warp`](@ref)
 for more information.
 """
 struct WarpedView{T,N,A<:AbstractArray,F<:Transformation,I<:Tuple,E<:AbstractExtrapolation} <: AbstractArray{T,N}
