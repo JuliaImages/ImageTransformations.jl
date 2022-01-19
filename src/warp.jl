@@ -253,15 +253,16 @@ _mod2pi(θ) = mod2pi(θ)
 _mod2pi(θ::Irrational{:π}) = θ
 _mod2pi(θ::Irrational) = mod2pi(float(θ))
 
-function rotmtrx2(θ)
+function rotmtrx2(θ::T) where T<:Real
     Δ = eps(float(θ))
     θ = _mod2pi(θ)
+    FT = floattype(T)
     if abs(θ) <= Δ || abs(θ - 2π) <= Δ
-        return RotMatrix(@SMatrix [1 0; 0 1])
+        return RotMatrix{2,FT}(@SMatrix [1 0; 0 1])
     elseif abs(θ - π) <= Δ
-        return RotMatrix(@SMatrix [-1 0; 0 -1])
+        return RotMatrix{2,FT}(@SMatrix [-1 0; 0 -1])
     else
-        return RotMatrix{2}(θ)
+        return RotMatrix{2,FT}(θ)
     end
 end
 rotmtrx2(θ::Irrational{:π}) = RotMatrix(@SMatrix [-1 0; 0 -1])
