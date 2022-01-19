@@ -484,5 +484,10 @@ NaN  NaN      NaN      NaN      NaN      NaN      NaN
             @test size(imrotate(img, 3pi/2)) == (50, 100)
             @test size(imrotate(img, 2pi)) == (100, 50)
         end
+
+        @testset "issue #154" begin
+            img = rand(Gray{N0f8}, 100, 50)
+            @test imrotate(img, pi) == imrotate(img, 1.0 * pi)
+        end
     end
 end
