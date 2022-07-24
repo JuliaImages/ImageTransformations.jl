@@ -12,6 +12,7 @@ Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+StaticArraysCore = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
 
 [compat]
 AxisAlgorithms = "0.3, 1.0"
@@ -22,7 +23,7 @@ ImageCore = "0.8.1, 0.9"
 Interpolations = "0.13.4, 0.14"
 OffsetArrays = "0.10, 0.11, 1.0.1"
 Rotations = "0.12, 0.13, 1.0"
-StaticArrays = "0.10, 0.11, 0.12, 1.0"
+StaticArraysCore = "1"
 julia = "1"
 
 [extras]
@@ -31,9 +32,10 @@ ImageIO = "82e4d734-157c-48bb-816b-45c225c6df19"
 ImageMagick = "6218d12a-5da1-5696-b52f-db25d2ecc6d1"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 ReferenceTests = "324d217c-45ce-50fc-942e-d289b448e8cf"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Tau = "c544e3c2-d3e5-5802-ac44-44683f340e4a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TestImages = "5e47fb64-e119-507b-a336-dd2b206d9990"
 
 [targets]
-test = ["EndpointRanges", "ImageIO", "ImageMagick", "LinearAlgebra", "ReferenceTests", "Tau", "Test", "TestImages"]
+test = ["EndpointRanges", "ImageIO", "ImageMagick", "LinearAlgebra", "ReferenceTests", "StaticArrays", "Tau", "Test", "TestImages"]

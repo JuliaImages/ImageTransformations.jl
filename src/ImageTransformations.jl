@@ -40,7 +40,7 @@ module ImageTransformations
 using ImageCore
 using CoordinateTransformations
 using Rotations
-using StaticArrays
+using StaticArraysCore
 using Interpolations, AxisAlgorithms
 using OffsetArrays
 using ColorVectorSpace
@@ -73,8 +73,8 @@ include("compat.jl")
 include("deprecated.jl")
 
 # TODO: move to warp.jl
-@inline _getindex(A, v::StaticVector) = A[Tuple(v)...]
-@inline _getindex(A::AbstractInterpolation, v::StaticVector) = A(Tuple(v)...)
+@inline _getindex(A, v::StaticArraysCore.StaticVector) = A[Tuple(v)...]
+@inline _getindex(A::AbstractInterpolation, v::StaticArraysCore.StaticVector) = A(Tuple(v)...)
 @inline _getindex(A, v) = A[v...]
 @inline _getindex(A::AbstractInterpolation, v) = A(v...)
 

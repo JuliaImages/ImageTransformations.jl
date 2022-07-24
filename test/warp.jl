@@ -1,4 +1,4 @@
-using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
+using CoordinateTransformations, Rotations, TestImages, ImageCore, OffsetArrays, Interpolations, LinearAlgebra
 using EndpointRanges
 using Tau
 using Test, ReferenceTests

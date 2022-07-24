@@ -52,7 +52,7 @@ end
     end
 
     # to catch regressions like #60
-    @test @inferred(ImageTransformations._getindex(img, @SVector([1,2]))) isa Gray{N0f8}
+    @test @inferred(ImageTransformations._getindex(img, SVector{2}([1,2]))) isa Gray{N0f8}
 
     etp = @inferred ImageTransformations.box_extrapolation(img)
     etp2 = @inferred ImageTransformations.box_extrapolation(etp.itp)

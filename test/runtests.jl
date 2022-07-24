@@ -1,4 +1,5 @@
-using CoordinateTransformations, Rotations, TestImages, ImageCore, StaticArrays, OffsetArrays, Interpolations, LinearAlgebra
+using CoordinateTransformations, Rotations, TestImages, ImageCore, OffsetArrays, Interpolations, LinearAlgebra
+using StaticArraysCore
 using Test, ReferenceTests
 
 refambs = detect_ambiguities(CoordinateTransformations, Base, Core)
@@ -24,6 +25,11 @@ for t in tests
         include(t)
     end
 end
+
+# put StaticArrays-related test at the end of the test to ensure the functionality works
+# without `using StaticArrays`
+using StaticArrays
+include("staticarrays.jl")
 end
 
 nothing
