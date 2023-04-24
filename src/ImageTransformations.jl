@@ -61,8 +61,10 @@ export
     warpedview,
     InvWarpedView,
     invwarpedview,
-    imrotate
+    imrotate,
+    CenterPoint
 
+include("centerpoint.jl")
 include("autorange.jl")
 include("interpolations.jl")
 include("warp.jl")

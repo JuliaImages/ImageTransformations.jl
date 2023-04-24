@@ -57,7 +57,7 @@ upsample/downsample the image `img` to a given size `sz` or axes `inds` using in
   The output size is `ceil(Int, size(img).*ratio)`. If `ratio` is larger than `1`, it is
   an upsample operation. Otherwise it is a downsample operation. `ratio` can also be a tuple,
   in which case `ratio[i]` specifies the resize ratio at dimension `i`.
-- `method::InterpolationType`: 
+- `method::InterpolationType`:
   specify the interpolation method used for reconstruction. conveniently, `methold` can
   also be a `Degree` type, in which case a `BSpline` object will be created.
   For example, `method = Linear()` is equivalent to `method = BSpline(Linear())`.
@@ -82,6 +82,10 @@ imresize(img, (1:256, )) # 256*768
 # pass resize ratio
 imresize(img, ratio = 0.5) #256*384
 imresize(img, ratio = (2, 1)) # 1024*768
+
+# pass `CenterPoint`
+imresize(img, (256, 384), CenterPoint(10, 15)) # 256*384, img[10,15] ≈ imgr[10,15]
+imresize(img, CenterPoint(10, 15), ratio = 0.5) # 256*384, img[10,15] ≈ imgr[10,15]
 
 # use different interpolation method
 imresize(img, (256, 384), method=Linear()) # 256*384 bilinear interpolation
@@ -120,6 +124,21 @@ function imresize(original::AbstractArray{T,N}, new_inds::Indices{N}; kwargs...)
     end
 end
 
+function imresize(original::AbstractArray{T,N}, new_size::Dims{N}, center_point::CenterPoint{N}; kwargs...) where {T,N}
+    Tnew = imresize_type(first(original))
+    cp = center_point.p
+    checkbounds(original, cp)
+    topleft = firstindex.(Ref(original), Tuple(1:N))
+    offset = @. cp.I - new_size * (cp.I - topleft) ÷ $size(original) - 1
+    newimage = OffsetArray(similar(original, Tnew, new_size), offset)
+    imresize!(newimage, original; kwargs...)
+end
+
+function imresize(original::AbstractArray{T,N}, center_point::CenterPoint{N}; ratio, kwargs...) where {T,N}
+    all(ratio .> 0) || throw(ArgumentError("ratio $ratio should be positive"))
+    new_size = ceil.(Int, size(original) .* ratio) # use ceil to avoid 0
+    imresize(original, new_size, center_point; kwargs...)
+end
 # To choose the output type, rather than forcing everything to
 # Float64 by multiplying by 1.0, we exploit the fact that the scale
 # changes correspond to integer ratios.  We mimic ratio arithmetic
