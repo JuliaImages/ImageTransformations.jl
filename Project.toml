@@ -1,10 +1,9 @@
 name = "ImageTransformations"
 uuid = "02fcd773-0e25-5acc-982a-7f6622650795"
-version = "0.9.5"
+version = "0.10.0"
 
 [deps]
 AxisAlgorithms = "13072b0f-2c55-5437-9ae7-d433b7a33950"
-ColorVectorSpace = "c3611d14-8923-5661-9e6a-0046d554d3a4"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 ImageBase = "c817782e-172a-44cc-b673-b171935fbb9e"
 ImageCore = "a09fc81d-aa75-5fe9-8630-4744c3626534"
@@ -15,15 +14,15 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 AxisAlgorithms = "0.3, 1.0"
-ColorVectorSpace = "0.6, 0.7, 0.8, 0.9"
 CoordinateTransformations = "0.5, 0.6"
 ImageBase = "0.1.1"
-ImageCore = "0.8.1, 0.9"
+ImageCore = "0.9, 0.10"
 Interpolations = "0.13.4, 0.14"
 OffsetArrays = "0.10, 0.11, 1.0.1"
 Rotations = "0.12, 0.13, 1.0"
 StaticArrays = "0.10, 0.11, 0.12, 1.0"
-julia = "1"
+Tau = "1"
+julia = "1.6"
 
 [extras]
 EndpointRanges = "340492b5-2a47-5f55-813d-aca7ddf97656"

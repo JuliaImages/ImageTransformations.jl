@@ -3,7 +3,7 @@
 This package provides support for image resizing, image rotation, and other spatial transformations of arrays.
 
 - `WarpedView`: Create a view of `img` that lazily transforms any given index `I` passed to `wv[I]` so that `wv[I] == img[tform(I)]`.
-- `warp`: An eager evaluation variant of `WarpedView`. Transform the coordinates of `img`, returning a new `imgw` satisfying `imgw[I] = img[tform(I)]`. 
+- `warp`: An eager evaluation variant of `WarpedView`. Transform the coordinates of `img`, returning a new `imgw` satisfying `imgw[I] = img[tform(I)]`.
 - `InvWarpedView`: Create a view of `img` that lazily transforms any given index `I` passed to `wv[I]` so that `wv[I] == img[inv(tinv)(I)]`.
 - `imresize`: Upsample/downsample the image `img` to a given size `sz` or axes `inds` using interpolations.
 - `restrict`: A much more efficient version of `imresize` that two-folds/down-samples image to approximate 1/2 size. (This is now provided by `ImageBase.restrict`)
@@ -43,7 +43,6 @@ using Rotations
 using StaticArrays
 using Interpolations, AxisAlgorithms
 using OffsetArrays
-using ColorVectorSpace
 
 using Base: tail, Indices
 
