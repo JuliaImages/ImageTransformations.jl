@@ -20,24 +20,43 @@
     end
 end
 
+macro maybe_test_broken(args...)
+    if VERSION < v"1.10.0-DEV.0"
+        return quote
+            @test_broken $(esc(args...))
+        end
+    else
+        return quote
+            $(esc(args...))
+        end
+    end
+end
+
 @testset "Image resize" begin
     testcolor = (RGB,Gray)
     testtype = (Float32, Float64, N0f8, N0f16)
 
     @testset "Interface" begin
-        function test_imresize_interface(img, outsz, args...; kargs...)
-            img2 = @test_broken @inferred imresize(img, args...; kargs...) # FIXME: @inferred failed
+        function test_imresize_interface_core(img, outsz, args...; kargs...)
             img2 = @test_nowarn imresize(img, args...; kargs...)
             @test size(img2) == outsz
             @test eltype(img2) == eltype(img)
+        end
+        function test_imresize_interface(img, outsz, args...; kargs...)
+            @maybe_test_broken @inferred imresize(img, args...; kargs...) # FIXME: @inferred failed
+            test_imresize_interface_core(img, outsz, args...; kargs...)
+        end
+        function test_imresize_interface_broken(img, outsz, args...; kargs...)
+            @test_broken @inferred imresize(img, args...; kargs...) # FIXME: @inferred failed
+            test_imresize_interface_core(img, outsz, args...; kargs...)
         end
         for C in testcolor, T in testtype
             img = rand(C{T},10,10)
 
             test_imresize_interface(img, (5,5), (5,5))
-            test_imresize_interface(img, (5,5), (1:5,1:5)) # FIXME: @inferred failed
+            test_imresize_interface_broken(img, (5,5), (1:5,1:5)) # FIXME: @inferred failed
             test_imresize_interface(img, (5,5), 5,5)
-            test_imresize_interface(img, (5,5), 1:5,1:5) # FIXME: @inferred failed
+            test_imresize_interface_broken(img, (5,5), 1:5,1:5) # FIXME: @inferred failed
             test_imresize_interface(img, (5,5), ratio = 0.5)
             test_imresize_interface(img, (20,20), ratio = 2)
             test_imresize_interface(img, (20,20), ratio = (2, 2))
@@ -45,8 +64,8 @@ end
             test_imresize_interface(img, (10,10), ())
             test_imresize_interface(img, (5,10), 5)
             test_imresize_interface(img, (5,10), (5,))
-            test_imresize_interface(img, (5,10), 1:5) # FIXME: @inferred failed
-            test_imresize_interface(img, (5,10), (1:5,)) # FIXME: @inferred failed
+            test_imresize_interface_broken(img, (5,10), 1:5) # FIXME: @inferred failed
+            test_imresize_interface_broken(img, (5,10), (1:5,)) # FIXME: @inferred failed
 
             @test_throws MethodError imresize(img,5.0,5.0)
             @test_throws MethodError imresize(img,(5.0,5.0))
