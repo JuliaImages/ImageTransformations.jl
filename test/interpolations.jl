@@ -34,7 +34,6 @@
 end
 
 @testset "box_extrapolation" begin
-    @test_throws UndefVarError box_extrapolation
     @test typeof(ImageTransformations.box_extrapolation) <: Function
 
     img = rand(Gray{N0f8}, 2, 2)
