@@ -27,4 +27,3 @@ end
 preview = ImageShow.gif([swirl(0, 10, radius) for radius in 10:10:150]; fps=5)
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-
