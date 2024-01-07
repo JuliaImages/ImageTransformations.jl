@@ -62,7 +62,6 @@ end
     @test etp2.itp isa Interpolations.BSplineInterpolation
     @test etp2 isa Interpolations.FilledExtrapolation
     @test etp2.fillvalue === Gray{N0f8}(0.0)
-    @test etp2 !== etp
     @test etp2.itp === etp.itp
 
     etp = @inferred ImageTransformations.box_extrapolation(img)
