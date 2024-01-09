@@ -60,7 +60,8 @@ export
     warpedview,
     InvWarpedView,
     invwarpedview,
-    imrotate
+    imrotate,
+    swirl
 
 include("autorange.jl")
 include("interpolations.jl")
@@ -68,6 +69,7 @@ include("warp.jl")
 include("warpedview.jl")
 include("invwarpedview.jl")
 include("resizing.jl")
+include("swirl.jl")
 include("compat.jl")
 include("deprecated.jl")
 

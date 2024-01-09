@@ -9,6 +9,7 @@
 # and pass it to `warp`. This swirl example comes from
 # [the Princeton Computer Graphics course for Image Warping (Fall 2000)](https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/warp/warp.pdf)
 # and [scikit-image swirl example](https://scikit-image.org/docs/dev/auto_examples/transform/plot_swirl.html).
+# To apply the swirl effect, please use the existing `swirl` function in ImageTransformations.jl directly.
 
 using ImageTransformations
 using OffsetArrays, StaticArrays
