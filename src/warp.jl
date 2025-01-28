@@ -14,12 +14,12 @@ does not hold in general. If you just want a plain array, you can "strip" the cu
 - `img`: the original image that you need coordinate transformation.
 - `tform`: the coordinate transformation function or function-like object, it must accept a
   [`SVector`](https://github.com/JuliaArrays/StaticArrays.jl) as input. A useful package to
-  create a wide variety of such transfomrations is
+  create a wide variety of such transformations is
   [CoordinateTransformations.jl](https://github.com/FugroRoames/CoordinateTransformations.jl).
 - `indices` (Optional): specifies the output image axes.
   By default, the indices are computed in such a way that `imgw` contains all the original pixels
   in `img` using [`autorange`](@ref ImageTransformations.autorange). To do this `inv(tform)` has
-  to be computed. If the given transfomration `tform` does not support `inv` then the parameter
+  to be computed. If the given transformation `tform` does not support `inv` then the parameter
   `indices` has to be specified manually.
 
 # Parameters
