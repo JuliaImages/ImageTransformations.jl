@@ -93,19 +93,19 @@ Also, `fillvalue` can be extrapolation schemes: `Flat()`, `Periodic()` and `Refl
 way to understand these schemes is perhaps try it with small example:
 
 ```jldoctest
-using ImageTransformations, TestImages, Interpolations
-using OffsetArrays: IdOffsetRange
+julia> using ImageTransformations, TestImages, Interpolations
 
-img = testimage("lighthouse")
+julia> using OffsetArrays: IdOffsetRange
 
-imgr = imrotate(img, π/4; fillvalue=Flat()) # zero extrapolation slope
-imgr = imrotate(img, π/4; fillvalue=Periodic()) # periodic boundary
-imgr = imrotate(img, π/4; fillvalue=Reflect()) # mirror boundary
+julia> img = testimage("lighthouse");
 
-axes(imgr)
+julia> imgr = imrotate(img, π/4; fillvalue=Flat()); # zero extrapolation slope
 
-# output
+julia> imgr = imrotate(img, π/4; fillvalue=Periodic()); # periodic boundary
 
+julia> imgr = imrotate(img, π/4; fillvalue=Reflect()); # mirror boundary
+
+julia> axes(imgr)
 (IdOffsetRange(values=-196:709, indices=-196:709), IdOffsetRange(values=-68:837, indices=-68:837))
 ```
 
@@ -116,16 +116,15 @@ axes(imgr)
 pixels in `img`.
 
 ```jldoctest
-using ImageTransformations, TestImages, Interpolations
+julia> using ImageTransformations, TestImages, Interpolations
 
-img = testimage("lighthouse")
-imgr = imrotate(img, π/4)
-imgr_cropped = imrotate(img, π/4, axes(img))
+julia> img = testimage("lighthouse");
 
-# No need to manually calculate the offsets
-imgr[axes(img)...] == imgr_cropped
+julia> imgr = imrotate(img, π/4);
 
-# output
+julia> imgr_cropped = imrotate(img, π/4, axes(img));
+
+julia> imgr[axes(img)...] == imgr_cropped # No need to manually calculate the offsets
 true
 ```
 
@@ -142,17 +141,20 @@ true
 Rotate around the center of `img`:
 
 ```jldoctest
-using ImageTransformations, CoordinateTransformations, Rotations, TestImages, OffsetArrays
-using OffsetArrays: IdOffsetRange
-img = testimage("lighthouse") # axes (1:512, 1:768)
+julia> using ImageTransformations, CoordinateTransformations, Rotations, TestImages, OffsetArrays
 
-tfm = recenter(RotMatrix(-pi/4), center(img))
-imgw = warp(img, tfm)
+julia> using OffsetArrays: IdOffsetRange
 
-axes(imgw)
+julia> img = testimage("lighthouse"); # axes (1:512, 1:768)
 
-# output
+julia> axes(img)
+(1:512, 1:768)
 
+julia> tfm = recenter(RotMatrix(-pi/4), center(img));
+
+julia> imgw = warp(img, tfm);
+
+julia> axes(imgw)
 (IdOffsetRange(values=-196:709, indices=-196:709), IdOffsetRange(values=-68:837, indices=-68:837))
 ```
 
