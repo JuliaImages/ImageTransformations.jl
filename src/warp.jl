@@ -145,10 +145,10 @@ julia> using ImageTransformations, CoordinateTransformations, Rotations, TestIma
 
 julia> using OffsetArrays: IdOffsetRange
 
-julia> img = testimage("lighthouse"); # axes (1:512, 1:768)
+julia> img = testimage("lighthouse");
 
 julia> axes(img)
-(1:512, 1:768)
+(Base.OneTo(512), Base.OneTo(768))
 
 julia> tfm = recenter(RotMatrix(-pi/4), center(img));
 
