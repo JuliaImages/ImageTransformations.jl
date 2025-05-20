@@ -5,6 +5,10 @@ on:
     - cron: '00 00 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   CompatHelper:
     runs-on: ${{ matrix.os }}

@@ -9,11 +9,11 @@ preserves all information from `A` after applying `tform`.
 For transformation that preserves the array size, `autorange` is equivalent to `axes(A)`.
 
 ```jldoctest; setup=:(using ImageTransformations: autorange; using CoordinateTransformations, Rotations, ImageTransformations)
-A = rand(5, 5)
-tform = IdentityTransformation()
-autorange(A, tform) == axes(A)
+julia> A = rand(5, 5);
 
-# output
+julia> tform = IdentityTransformation();
+
+julia> autorange(A, tform) == axes(A)
 true
 ```
 
@@ -21,11 +21,11 @@ The diffrence shows up when `tform` enlarges the input array `A`. In the followi
 at least `(0:6, 0:6)` as the range indices to get all data of `A`:
 
 ```jldoctest; setup=:(using ImageTransformations: autorange; using CoordinateTransformations, Rotations, ImageTransformations)
-A = rand(5, 5)
-tform = recenter(RotMatrix(pi/8), center(A))
-autorange(A, tform)
+julia> A = rand(5, 5);
 
-# output
+julia> tform = recenter(RotMatrix(pi/8), center(A));
+
+julia> autorange(A, tform)
 (0:6, 0:6)
 ```
 
