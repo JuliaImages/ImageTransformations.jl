@@ -54,7 +54,7 @@ upsample/downsample the image `img` to a given size `sz` or axes `inds` using in
     To construct `method`, you may need to load `Interpolations` package first.
 
 - `ratio`: the upsample/downsample ratio used.
-  The output size is `ceil(Int, size(img).*ratio)`. If `ratio` is larger than `1`, it is
+  The output size is `ceil.(Int, size(img).*ratio)`. If `ratio` is larger than `1`, it is
   an upsample operation. Otherwise it is a downsample operation. `ratio` can also be a tuple,
   in which case `ratio[i]` specifies the resize ratio at dimension `i`.
 - `method::InterpolationType`: 
